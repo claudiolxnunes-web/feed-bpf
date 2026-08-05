@@ -317,11 +317,11 @@ const AppRoutes = () => {
         {/* Agro RC CRM - redireciona para projeto externo publicado */}
         <Route
           path="/agrorc/*"
-          element={<ExternalRedirect to="https://soil-to-client.lovable.app" preservePath basePath="/agrorc" />}
+          element={<ExternalRedirect to="https://nutrigestor-crm.netlify.app" preservePath basePath="/agrorc" />}
         />
         <Route
           path="/agro-rc/*"
-          element={<ExternalRedirect to="https://soil-to-client.lovable.app" preservePath basePath="/agro-rc" />}
+          element={<ExternalRedirect to="https://nutrigestor-crm.netlify.app" preservePath basePath="/agro-rc" />}
         />
 
         {/* NutriCRM - redireciona para projeto externo publicado */}
@@ -337,8 +337,8 @@ const AppRoutes = () => {
         />
 
         {/* Audits_BPF - redireciona para projeto externo publicado */}
-        <Route path="/auditsbpf/*" element={<ExternalRedirect to="https://friendly-flame-igniter.lovable.app" preservePath basePath="/auditsbpf" />} />
-        <Route path="/audits-bpf/*" element={<ExternalRedirect to="https://friendly-flame-igniter.lovable.app" preservePath basePath="/audits-bpf" />} />
+        <Route path="/auditsbpf/*" element={<ExternalRedirect to="https://auditsbpf.bpfconsult.com.br" preservePath basePath="/auditsbpf" />} />
+        <Route path="/audits-bpf/*" element={<ExternalRedirect to="https://auditsbpf.bpfconsult.com.br" preservePath basePath="/audits-bpf" />} />
 
         {/* Nutri_Agro Labels - Rotas Dedicadas */}
         <Route

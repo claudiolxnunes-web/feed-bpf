@@ -440,7 +440,7 @@ export default function SuperAdmin() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">Plataforma externa de CRM especializada em representantes comerciais do agronegócio.</p>
-                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://soil-to-client.lovable.app", "_blank")}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://nutrigestor-crm.netlify.app", "_blank")}>
                   Acessar CRM Externo <ExternalLink className="h-4 w-4" />
                 </Button>
               </CardContent>
@@ -474,7 +474,7 @@ export default function SuperAdmin() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">Módulo especializado em auditorias avançadas e gestão de conformidades BPF.</p>
-                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://friendly-flame-igniter.lovable.app", "_blank")}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://auditsbpf.bpfconsult.com.br", "_blank")}>
                   Acessar Auditorias <ExternalLink className="h-4 w-4" />
                 </Button>
               </CardContent>
