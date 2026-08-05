@@ -463,7 +463,7 @@ export default function SuperAdmin() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">Sistema de gestão estratégica e CRM para consultorias e empresas de gestão agro.</p>
-                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://regional-fixer-charm.lovable.app", "_blank")}>
+                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://agrogestao.bpfconsult.com.br", "_blank")}>
                   Acessar CRM Externo <ExternalLink className="h-4 w-4" />
                 </Button>
               </CardContent>

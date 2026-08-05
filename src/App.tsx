@@ -337,7 +337,7 @@ const AppRoutes = () => {
         {/* AgroGestão CRM - redireciona para projeto externo publicado */}
         <Route
           path="/agrogestao/*"
-          element={<ExternalRedirect to="https://regional-fixer-charm.lovable.app" preservePath basePath="/agrogestao" />}
+          element={<ExternalRedirect to="https://agrogestao.bpfconsult.com.br" preservePath basePath="/agrogestao" />}
         />
 
         {/* Audits_BPF - redireciona para projeto externo publicado */}

@@ -28,7 +28,7 @@ const diferenciais = [
 // Por isso os botões enviam o usuário diretamente para o app externo — passar
 // pelo /auth interno só atrapalhava (login não é compartilhado) e fazia o app
 // externo abrir a tela de pagamento/login, que ao cancelar voltava para a raiz.
-const APP_EXTERNO = "https://regional-fixer-charm.lovable.app";
+const APP_EXTERNO = "https://agrogestao.bpfconsult.com.br";
 
 export default function AgroGestaoCRMPage() {
   const signupLink = `${APP_EXTERNO}/?trial=1`;
