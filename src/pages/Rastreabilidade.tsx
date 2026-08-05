@@ -165,12 +165,20 @@ export default function Rastreabilidade() {
 
   const fetchData = async () => {
     if (!user) return;
-    let q = supabase.from("rastreabilidade").select("*").order("created_at", { ascending: false });
-    if (empresaAtiva) q = q.eq("empresa_id", empresaAtiva.id);
-    const { data, error } = await q;
-    if (error) toast.error("Erro ao carregar dados");
-    else setRegistros((data as unknown as RastreabilidadeRow[]) || []);
-    setLoading(false);
+    setLoading(true);
+    try {
+      let q = supabase.from("rastreabilidade").select("*").order("created_at", { ascending: false });
+      if (empresaAtiva) q = q.eq("empresa_id", empresaAtiva.id);
+      const { data, error } = await q;
+      if (error) throw error;
+      setRegistros((data as unknown as RastreabilidadeRow[]) || []);
+    } catch (err) {
+      console.error("[Rastreabilidade] fetchData", err);
+      toast.error("Erro ao carregar dados de rastreabilidade");
+      setRegistros([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchAnalisesLab = async () => {

@@ -10,6 +10,7 @@ import logoAgrorc from "@/assets/logo-agrorc.png";
 import logoRotulos from "@/assets/logo-nutri-agro-labels.png";
 import logoNutriCrm from "@/assets/logo-nutricrm.png";
 import logoAgroGestao from "@/assets/logo-agrogestao.png";
+import { Seo } from "@/components/Seo";
 
 type ProdutoCard = {
   nome: string;
@@ -166,6 +167,11 @@ export default function Vitrine() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
+      <Seo
+        title="BPF_Consult — Software de Boas Práticas para Fábricas de Ração"
+        description="Plataforma completa de conformidade MAPA: POPs, rastreabilidade, auditorias e rótulos para fábricas de ração e nutrição animal."
+        jsonLd={{"@context": "https://schema.org", "@type": "Organization", "name": "BPF_Consult", "url": "https://www.bpfconsult.com.br", "description": "Software de conformidade MAPA para fábricas de ração e nutrição animal."}}
+      />
       {/* Top Banner - Urgency */}
       <div className="bg-[#173404] text-[#97C459] py-2 px-4 text-center text-xs font-bold tracking-widest uppercase">
         Prepare sua fábrica para as novas exigências do MAPA · IN 17/2023

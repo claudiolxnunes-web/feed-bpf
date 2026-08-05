@@ -1,0 +1,1 @@
+UPDATE public.whatsapp_config SET api_key = '9583bb38bb5e754f360c5b5d4e9f760af2b77e70816202de', last_known_status = 'open', last_status_change = now(), last_status_check = now() WHERE instance_name = 'bpfconsult-02';

@@ -10,6 +10,7 @@ import logoAgrorc from "@/assets/logo-agrorc.png";
 import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 
 import { useAuth } from "@/hooks/useAuth";
+import { Seo } from "@/components/Seo";
 
 const funcionalidades = [
   { icon: BarChart3, title: "Painel RC", desc: "Painel exclusivo do Representante Comercial com margens, comissões, scores de desempenho e ranking." },
@@ -51,6 +52,11 @@ export default function AgroRCCRMPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Agro RC — CRM de Representantes Comerciais do Agro"
+        description="Controle carteira de clientes, visitas, pipeline e metas de representantes comerciais do agronegócio."
+        jsonLd={{"@context": "https://schema.org", "@type": "Product", "name": "Agro RC", "description": "CRM para representantes comerciais do agronegócio.", "brand": {"@type": "Brand", "name": "BPF_Consult"}}}
+      />
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-violet-500/5 to-primary/10" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(270,70%,45%,0.08),transparent_60%)]" />

@@ -6,9 +6,49 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.bpfconsult.com.br/demo</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://www.bpfconsult.com.br/feedbpf</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/feedbpf-custom</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/auditsbpf</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/auditsbpf/planos</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/nutricrm</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/agrogestao</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/agro-rc</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/rotulos</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/bpf-consult</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.bpfconsult.com.br/demo/feedbpf</loc>
@@ -46,12 +86,17 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.bpfconsult.com.br/privacy-policy</loc>
+    <loc>https://www.bpfconsult.com.br/privacidade</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://www.bpfconsult.com.br/terms-of-service</loc>
+    <loc>https://www.bpfconsult.com.br/termos</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.bpfconsult.com.br/reembolso</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

@@ -55,14 +55,17 @@ Deno.serve(async (req) => {
     const { action, ...params } = await req.json();
 
     if (action === "list") {
-      const { produto: filterProduto } = params;
+      const { produto: filterProdutoRaw } = params;
+      const filterProduto = filterProdutoRaw
+        ? String(filterProdutoRaw).toLowerCase().replace(/[^a-z0-9]/g, "")
+        : null;
       let licenseQuery = adminClient
         .from("licencas")
         .select("*, empresas(nome)")
         .order("created_at", { ascending: false });
       
       if (filterProduto) {
-        licenseQuery = licenseQuery.eq("produto", filterProduto.toLowerCase());
+        licenseQuery = licenseQuery.eq("produto", filterProduto);
       }
 
       const [licensesRes, vinculosRes, authUsersRes] = await Promise.all([
@@ -116,12 +119,180 @@ Deno.serve(async (req) => {
 
       let result = [...consultor, ...diretas];
       if (filterProduto) {
-        result = result.filter(r => r.produto?.toLowerCase() === filterProduto.toLowerCase());
+        result = result.filter(r =>
+          (r.produto || "").toString().toLowerCase().replace(/[^a-z0-9]/g, "") === filterProduto
+        );
       }
 
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ===== Auditoria de licenças duplicadas / soltas =====
+    if (action === "audit_duplicates" || action === "fix_duplicates") {
+      const today = new Date().toISOString().split("T")[0];
+
+      const [licRes, empresasRes, membrosRes, usersRes] = await Promise.all([
+        adminClient.from("licencas").select("*").eq("status", "ativa"),
+        adminClient.from("empresas").select("id, nome, user_id"),
+        adminClient.from("empresa_membros").select("empresa_id, user_id, ativo, papel"),
+        adminClient.auth.admin.listUsers({ perPage: 1000 }),
+      ]);
+      if (licRes.error) throw licRes.error;
+      if (empresasRes.error) throw empresasRes.error;
+      if (membrosRes.error) throw membrosRes.error;
+
+      const users = usersRes.data?.users || [];
+      const empresas = empresasRes.data || [];
+      const membros = (membrosRes.data || []).filter((m: any) => m.ativo);
+
+      const emailOf = (uid: string) =>
+        users.find((u: any) => u.id === uid)?.email || "—";
+      const empresaOf = (eid: string | null) =>
+        eid ? empresas.find((e: any) => e.id === eid)?.nome || "—" : null;
+
+      const empresasDoUsuario = (uid: string) => {
+        const ids = new Set<string>();
+        empresas.filter((e: any) => e.user_id === uid).forEach((e: any) => ids.add(e.id));
+        membros.filter((m: any) => m.user_id === uid).forEach((m: any) => ids.add(m.empresa_id));
+        return [...ids];
+      };
+
+      const nivelRank: Record<string, number> = { entrada: 1, intermediario: 2, avancado: 3 };
+      const score = (l: any) => [
+        l.empresa_id ? 1 : 0,
+        l.data_expiracao ? new Date(l.data_expiracao).getTime() : 0,
+        nivelRank[String(l.nivel || "").toLowerCase()] || 0,
+        l.liberado_admin ? 1 : 0,
+      ];
+      const better = (a: any, b: any) => {
+        const sa = score(a), sb = score(b);
+        for (let i = 0; i < sa.length; i++) {
+          if (sa[i] !== sb[i]) return sa[i] > sb[i] ? a : b;
+        }
+        return a;
+      };
+
+      const licencas = (licRes.data || []).filter(
+        (l: any) => !l.data_expiracao || l.data_expiracao >= today
+      );
+
+      const grupos = new Map<string, any[]>();
+      for (const l of licencas) {
+        const prod = String(l.produto || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const key = `${l.user_id}::${prod}`;
+        if (!grupos.has(key)) grupos.set(key, []);
+        grupos.get(key)!.push({ ...l, _produto: prod });
+      }
+
+      const problemas: any[] = [];
+      for (const [key, lics] of grupos) {
+        const [uid, prod] = key.split("::");
+        const manter = lics.reduce((acc: any, cur: any) => better(acc, cur));
+        const empresasUser = empresasDoUsuario(uid);
+
+        if (lics.length > 1) {
+          problemas.push({
+            tipo: "duplicada",
+            user_id: uid,
+            email: emailOf(uid),
+            produto: prod,
+            manter_id: manter.id,
+            manter_empresa: empresaOf(manter.empresa_id),
+            licencas: lics.map((l: any) => ({
+              id: l.id,
+              empresa_id: l.empresa_id,
+              empresa_nome: empresaOf(l.empresa_id),
+              nivel: l.nivel,
+              plano: l.plano,
+              data_expiracao: l.data_expiracao,
+              liberado_admin: l.liberado_admin,
+              manter: l.id === manter.id,
+            })),
+            acao: "Revogar as licenças extras, mantendo a vinculada à empresa",
+          });
+        } else if (!lics[0].empresa_id && empresasUser.length > 0) {
+          problemas.push({
+            tipo: "solta",
+            user_id: uid,
+            email: emailOf(uid),
+            produto: prod,
+            manter_id: lics[0].id,
+            manter_empresa: null,
+            empresa_sugerida_id: empresasUser.length === 1 ? empresasUser[0] : null,
+            empresa_sugerida_nome:
+              empresasUser.length === 1 ? empresaOf(empresasUser[0]) : null,
+            licencas: [{
+              id: lics[0].id,
+              empresa_id: null,
+              empresa_nome: null,
+              nivel: lics[0].nivel,
+              plano: lics[0].plano,
+              data_expiracao: lics[0].data_expiracao,
+              liberado_admin: lics[0].liberado_admin,
+              manter: true,
+            }],
+            acao:
+              empresasUser.length === 1
+                ? "Vincular a licença à empresa do usuário"
+                : "Usuário possui várias empresas — vincular manualmente",
+          });
+        }
+      }
+
+      if (action === "audit_duplicates") {
+        return new Response(
+          JSON.stringify({
+            total: problemas.length,
+            duplicadas: problemas.filter((p) => p.tipo === "duplicada").length,
+            soltas: problemas.filter((p) => p.tipo === "solta").length,
+            problemas,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { user_id: onlyUser, produto: onlyProduto } = params;
+      const alvo = problemas.filter(
+        (p) =>
+          (!onlyUser || p.user_id === onlyUser) &&
+          (!onlyProduto || p.produto === onlyProduto)
+      );
+
+      let revogadas = 0;
+      let vinculadas = 0;
+      const erros: string[] = [];
+
+      for (const p of alvo) {
+        try {
+          if (p.tipo === "duplicada") {
+            const extras = p.licencas.filter((l: any) => !l.manter).map((l: any) => l.id);
+            if (extras.length) {
+              const { error } = await adminClient
+                .from("licencas")
+                .update({ status: "revogada", updated_at: new Date().toISOString() })
+                .in("id", extras);
+              if (error) throw error;
+              revogadas += extras.length;
+            }
+          } else if (p.tipo === "solta" && p.empresa_sugerida_id) {
+            const { error } = await adminClient
+              .from("licencas")
+              .update({ empresa_id: p.empresa_sugerida_id, updated_at: new Date().toISOString() })
+              .eq("id", p.manter_id);
+            if (error) throw error;
+            vinculadas++;
+          }
+        } catch (e) {
+          erros.push(`${p.email} / ${p.produto}: ${(e as Error).message}`);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, revogadas, vinculadas, erros }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     if (action === "create") {
@@ -154,7 +325,9 @@ Deno.serve(async (req) => {
         ? nivel.toLowerCase()
         : "entrada";
 
-      const normalizedProduto = String(produto).toLowerCase();
+      // Normaliza igual ao hook useLicense (remove _, -, espaços etc.)
+      // para evitar divergência tipo "feed_bpf" vs "feedbpf"
+      const normalizedProduto = String(produto).toLowerCase().replace(/[^a-z0-9]/g, "");
 
       // Check duplicate
       let existsQuery = adminClient

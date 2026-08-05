@@ -112,6 +112,9 @@ export const NAV_ENTRIES: NavEntry[] = [
       { path: "/produtos", label: "Cadastro de Produtos", icon: Package, keywords: ["itens", "mercadoria", "sku"] },
       { path: "/formulas", label: "Fórmulas de Produção", icon: FlaskConical, keywords: ["receita", "composição", "mistura"] },
       { path: "/status-lotes", label: "Status & Fila de Lotes", icon: Tag, keywords: ["estoque", "fifo", "bloqueio", "mp"] },
+      { path: "/analises", label: "Análises Laboratoriais", icon: FlaskConical, keywords: ["laudo", "laboratório", "amostra", "resultado"] },
+      { path: "/substancias", label: "Substâncias Restritas (IN 17/2017)", icon: ShieldAlert, keywords: ["ractopamina", "medicamento", "aditivo", "proibido"] },
+      { path: "/armazenamento-transporte", label: "Armazenamento e Transporte", icon: Truck, keywords: ["estocagem", "veículo", "carga", "eeb"] },
     ],
   },
   { path: "/manutencao", label: "POP 06 - Manutenção e Calibração de Equipamentos e Instrumentos", icon: Wrench, keywords: ["máquinas", "equipamentos", "reparo", "calibração", "inventário"] },
@@ -138,12 +141,14 @@ export const NAV_ENTRIES: NavEntry[] = [
   // --- DOCUMENTAÇÃO & REGISTROS (FLAT) ---
   { path: "/manual", label: "Manual Feed_BPF", icon: BookOpen },
   { path: "/documentos", label: "Documentos e Registros", icon: FileText },
+  { path: "/documentos-bpf", label: "Arquivo Digital BPF", icon: FolderOpen, keywords: ["anexos", "scaneados", "upload", "acervo"] },
   { path: "/execucao-pops", label: "Execução ITs/POPs", icon: Clipboard },
   { path: "/planilhas-pop", label: "Planilhas de POPs", icon: Clipboard },
   { path: "/guia-geral-pops", label: "Guia Geral POPs", icon: ClipboardList },
   { path: "/guia-pops", label: "ITs Detalhadas", icon: FileText },
   { path: "/modelos", label: "Biblioteca de Modelos", icon: FolderOpen },
   { path: "/orientacoes", label: "Central de Orientações", icon: GraduationCap },
+  { path: "/legislacao", label: "Legislação e Normas", icon: BookOpen, keywords: ["mapa", "in", "decreto", "norma"] },
 
   // --- AUDITORIA & MELHORIA (FLAT) ---
   { path: "/auditoria", label: "Auditoria BPF", icon: ClipboardCheck },
@@ -152,8 +157,34 @@ export const NAV_ENTRIES: NavEntry[] = [
   { path: "/audit-log", label: "Log de Atividades", icon: History },
   { path: "/checklist-pre-auditoria", label: "Checklist Pré-Auditoria", icon: ClipboardList },
   { path: "/simulador-tf-autocontroles", label: "Simulador TF-Autocontroles (MAPA)", icon: ShieldCheck },
+  { path: "/simulacao-carimbo", label: "Simulação de Carimbo/Selo", icon: ShieldCheck, keywords: ["selo", "carimbo", "certificado"] },
+  { path: "/planejamento-anual", label: "Planejamento Anual", icon: CalendarDays, keywords: ["cronograma", "calendário", "programação anual"] },
   { path: "/qualidade-total", label: "Qualidade Total (SAC)", icon: MessageSquare },
   { path: "/indicadores", label: "Indicadores de Qualidade", icon: BarChart3 },
+
+  // --- RELATÓRIOS ---
+  {
+    label: "Relatórios",
+    icon: BarChart3,
+    items: [
+      { path: "/relatorios", label: "Central de Relatórios", icon: FileText, keywords: ["pdf", "exportar", "documento"] },
+      { path: "/relatorio-producao", label: "Relatório de Produção", icon: Layers, keywords: ["produção", "lote", "rendimento"] },
+      { path: "/analise-tendencias", label: "Análise de Tendências (IA)", icon: Sparkles, keywords: ["ia", "tendência", "estatística"] },
+    ],
+  },
+
+  // --- FERRAMENTAS & IA ---
+  {
+    label: "Ferramentas & IA",
+    icon: Sparkles,
+    items: [
+      { path: "/gerador-pop-ia", label: "Gerador de POPs (IA)", icon: Sparkles, keywords: ["ia", "pop", "gerar"] },
+      { path: "/geracao-manual-bpf", label: "Geração do Manual BPF", icon: BookOpen, keywords: ["manual", "gerar", "pdf"] },
+      { path: "/consulta-sipeagro", label: "Consulta SIPEAGRO", icon: ShieldCheck, keywords: ["mapa", "registro", "estabelecimento"] },
+      { path: "/busca-global", label: "Busca Global", icon: FolderOpen, keywords: ["pesquisar", "localizar"] },
+      { path: "/configurar-pin", label: "Configurar PIN de Assinatura", icon: ShieldCheck, keywords: ["senha", "assinatura", "aprovação"] },
+    ],
+  },
 
   // --- OUTROS ---
   { path: "/modo-tablet", label: "Factory / Modo Tablet", icon: Tablet },

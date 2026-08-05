@@ -8,6 +8,7 @@ import logoAgroGestao from "@/assets/logo-agrogestao.png";
 import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicFooter } from "@/components/layout/PublicFooter";
+import { Seo } from "@/components/Seo";
 
 const funcionalidades = [
   { icon: LayoutDashboard, title: "Dashboard Comercial", desc: "Visão geral do desempenho de vendas, funil de vendas e indicadores em tempo real." },
@@ -35,6 +36,11 @@ export default function AgroGestaoCRMPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Seo
+        title="AgroGestão — Gestão Comercial e Técnica no Agronegócio"
+        description="Pipeline comercial, visitas e indicadores para equipes técnicas do agronegócio em uma única plataforma."
+        jsonLd={{"@context": "https://schema.org", "@type": "Product", "name": "AgroGestão", "description": "Gestão comercial e técnica para o agronegócio.", "brand": {"@type": "Brand", "name": "BPF_Consult"}}}
+      />
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-primary/10" />
         <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-20 text-center sm:text-left">

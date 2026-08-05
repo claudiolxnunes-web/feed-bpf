@@ -88,14 +88,23 @@ export default function Recebimento() {
 
   const fetchData = async () => {
     if (!user) return;
-    let q = supabase
-      .from("recebimento_mp")
-      .select("*")
-      .order("data", { ascending: false });
-    if (empresaAtiva) q = q.eq("empresa_id", empresaAtiva.id);
-    const { data, error } = await q;
-    if (!error && data) setItems(data as any);
-    setLoading(false);
+    setLoading(true);
+    try {
+      let q = supabase
+        .from("recebimento_mp")
+        .select("*")
+        .order("data", { ascending: false });
+      if (empresaAtiva) q = q.eq("empresa_id", empresaAtiva.id);
+      const { data, error } = await q;
+      if (error) throw error;
+      setItems((data as any) || []);
+    } catch (err) {
+      console.error("[Recebimento] fetchData", err);
+      toast.error("Erro ao carregar recebimentos de matéria-prima");
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, [user, empresaAtiva]);

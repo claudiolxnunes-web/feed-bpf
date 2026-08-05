@@ -25,17 +25,24 @@ export default function PortalCliente() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [lic, emp, tk, ind] = await Promise.all([
-        supabase.from("licencas").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("empresas").select("*").eq("user_id", user.id),
-        supabase.from("leads_contato").select("*").eq("email", user.email ?? "").order("created_at", { ascending: false }),
-        supabase.from("indicacoes").select("*").eq("indicador_user_id", user.id).order("criado_em", { ascending: false }),
-      ]);
-      setLicencas(lic.data ?? []);
-      setEmpresas(emp.data ?? []);
-      setTickets(tk.data ?? []);
-      setIndicacoes(ind.data ?? []);
-      setLoading(false);
+      setLoading(true);
+      try {
+        const [lic, emp, tk, ind] = await Promise.all([
+          supabase.from("licencas").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+          supabase.from("empresas").select("*").eq("user_id", user.id),
+          supabase.from("leads_contato").select("*").eq("email", user.email ?? "").order("created_at", { ascending: false }),
+          supabase.from("indicacoes").select("*").eq("indicador_user_id", user.id).order("criado_em", { ascending: false }),
+        ]);
+        setLicencas(lic.data ?? []);
+        setEmpresas(emp.data ?? []);
+        setTickets(tk.data ?? []);
+        setIndicacoes(ind.data ?? []);
+      } catch (err) {
+        console.error("[PortalCliente] carga inicial", err);
+        toast.error("Não foi possível carregar seus dados. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [user]);
 

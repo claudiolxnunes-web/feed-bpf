@@ -10,6 +10,7 @@ import dashboardPreview from "@/assets/auditsbpf-dashboard-preview.jpg";
 
 import { useAuth } from "@/hooks/useAuth";
 import { PublicFooter } from "@/components/layout/PublicFooter";
+import { Seo } from "@/components/Seo";
 
 const funcionalidades = [
   { icon: ClipboardCheck, title: "Checklist Completo", desc: "Checklist de auditoria interna baseado integralmente no Decreto 12.031/2024, com todos os itens exigidos pelo MAPA." },
@@ -28,6 +29,11 @@ export default function AuditsBPFPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Seo
+        title="Audits_BPF — Auditorias e Checklists MAPA para Fábricas"
+        description="Conduza auditorias internas com checklists do Decreto 12.031/2024, planos de ação e relatórios prontos para o fiscal."
+        jsonLd={{"@context": "https://schema.org", "@type": "Product", "name": "Audits_BPF", "description": "Plataforma de auditorias internas e checklists de conformidade MAPA.", "brand": {"@type": "Brand", "name": "BPF_Consult"}}}
+      />
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-primary/10" />
         <div className="relative max-w-6xl mx-auto px-4 py-12 sm:py-20">

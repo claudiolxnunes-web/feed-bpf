@@ -8,6 +8,7 @@ import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 import dashboardPreview from "@/assets/feedbpf-dashboard-preview.jpg";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicFooter } from "@/components/layout/PublicFooter";
+import { Seo } from "@/components/Seo";
 
 const funcionalidades = [
   { icon: BookOpen, title: "Manual BPF Completo", desc: "Manual de Boas Práticas de Fabricação com todos os capítulos exigidos pela IN 04/2007." },
@@ -46,6 +47,11 @@ export default function FeedBPFPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Seo
+        title="Feed_BPF — Gestão de Boas Práticas de Fabricação de Ração"
+        description="Digitalize os 10 POPs obrigatórios da IN 04/2007, rastreabilidade e recall conforme o Decreto 12.031/2024."
+        jsonLd={{"@context": "https://schema.org", "@type": "Product", "name": "Feed_BPF", "description": "Sistema de gestão de Boas Práticas de Fabricação para fábricas de ração.", "brand": {"@type": "Brand", "name": "BPF_Consult"}}}
+      />
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-500/10 via-blue-500/5 to-primary/10" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,hsl(200,80%,50%,0.08),transparent_60%)]" />

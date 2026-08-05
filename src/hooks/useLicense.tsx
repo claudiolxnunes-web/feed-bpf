@@ -18,6 +18,12 @@ export interface LicenseInfo {
   produto: string | null;
 }
 
+const isValidLicense = (license: LicenseInfo | null) => {
+  if (!license) return false;
+  const expired = new Date(license.data_expiracao) < new Date() || license.status === "expirada";
+  return license.liberado_admin || (license.status === "ativa" && !expired);
+};
+
 export function useLicense(productParam?: string) {
   const { user } = useAuth();
   const { empresaAtiva } = useEmpresa();
@@ -51,26 +57,56 @@ export function useLicense(productParam?: string) {
     const fetchLicense = async () => {
       setLoading(true);
       try {
-        let query = supabase
-          .from("licencas")
-          .select("*")
-          .eq("produto", targetProduct)
-          .order("created_at", { ascending: false })
-          .limit(1);
+        const queries = [];
 
         if (empresaAtiva) {
-          query = query.eq("empresa_id", empresaAtiva.id);
-        } else {
-          query = query.eq("user_id", user.id).is("empresa_id", null);
+          queries.push(
+            supabase
+              .from("licencas")
+              .select("*")
+              .eq("produto", targetProduct)
+              .eq("empresa_id", empresaAtiva.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+          );
         }
 
-        const { data, error } = await query.maybeSingle();
-        if (error) {
-          console.error("Erro ao buscar licença:", error);
-          setLicense(null);
-        } else {
-          setLicense(data as LicenseInfo | null);
+        queries.push(
+          supabase
+            .from("licencas")
+            .select("*")
+            .eq("produto", targetProduct)
+            .eq("user_id", user.id)
+            .is("empresa_id", null)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        );
+
+        if (empresaAtiva) {
+          queries.push(
+            supabase
+              .from("licencas")
+              .select("*")
+              .eq("produto", targetProduct)
+              .eq("user_id", user.id)
+              .eq("empresa_id", empresaAtiva.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+          );
         }
+
+        const results = await Promise.all(queries);
+        const firstError = results.find((result) => result.error)?.error;
+        if (firstError) console.error("Erro ao buscar licença:", firstError);
+
+        const licenses = results
+          .map((result) => result.data as LicenseInfo | null)
+          .filter((item): item is LicenseInfo => Boolean(item));
+        const selectedLicense = licenses.find(isValidLicense) ?? licenses[0] ?? null;
+        setLicense(selectedLicense);
       } catch (err) {
         console.error("Erro inesperado ao buscar licença:", err);
         setLicense(null);
@@ -96,20 +132,17 @@ export function useLicense(productParam?: string) {
     if (error) throw new Error(error.message || "Erro ao ativar licença");
 
     // Refresh license
-    let query = supabase
+    const refreshQuery = supabase
       .from("licencas")
       .select("*")
       .eq("produto", targetProduct)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1);
 
-    if (empresaAtiva) {
-      query = query.eq("empresa_id", empresaAtiva.id);
-    } else {
-      query = query.eq("user_id", user.id).is("empresa_id", null);
-    }
-
-    const { data: refreshed } = await query.maybeSingle();
+    const { data: refreshed } = empresaAtiva
+      ? await refreshQuery.eq("empresa_id", empresaAtiva.id).maybeSingle()
+      : await refreshQuery.is("empresa_id", null).maybeSingle();
     setLicense(refreshed as LicenseInfo | null);
     return data;
   };

@@ -1,3 +1,4 @@
+// me passe um arquivo com todos os meus programas nominados, quais os nomes genericos, e os repositórios do github
 import React, { Suspense, lazy, useEffect } from "react";
 
 
@@ -11,6 +12,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { EmpresaProvider } from "@/hooks/useEmpresa";
 import AppLayout from "@/components/layout/AppLayout";
 import LicenseGate from "@/components/LicenseGate";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 import PageLoader from "@/components/PageLoader";
 import { ExternalRedirect } from "@/components/ExternalRedirect";
 import SupportChatWidget from "@/components/SupportChatWidget";
@@ -260,7 +262,9 @@ const InternalRoutes = () => (
 );
 
 const AppRoutes = () => {
+  const location = useLocation();
   return (
+    <AppErrorBoundary key={location.pathname}>
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Vitrine />} />
@@ -383,6 +387,7 @@ const AppRoutes = () => {
         />
       </Routes>
     </Suspense>
+    </AppErrorBoundary>
   );
 };
 

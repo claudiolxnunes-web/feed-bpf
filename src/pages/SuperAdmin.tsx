@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Users, TrendingUp, TrendingDown, Key, CreditCard, Activity, Target, Award, Loader2, Megaphone, FileText, SendHorizontal, Lock, Zap, MessageSquare, ExternalLink, Tag, LayoutDashboard, Building2, AlertTriangle, History as HistoryIcon, Headphones, Flame, HeartPulse, BarChart3, Repeat, Bot, Bell, Gift } from "lucide-react";
+import { ShieldCheck, Users, TrendingUp, TrendingDown, Key, CreditCard, Activity, Target, Award, Loader2, Megaphone, FileText, SendHorizontal, Lock, Zap, MessageSquare, ExternalLink, Tag, LayoutDashboard, Building2, AlertTriangle, History as HistoryIcon, Headphones, Flame, HeartPulse, BarChart3, Repeat, Bot, Bell, Gift, Wrench } from "lucide-react";
 import AppErrorLogsViewer from "@/components/admin/AppErrorLogsViewer";
 import VersionHistory from "@/components/admin/VersionHistory";
 import SuperAdminDashboard from "@/components/admin/SuperAdminDashboard";
@@ -20,6 +20,7 @@ import CopilotoIAPanel from "@/components/admin/CopilotoIAPanel";
 import AttributionPanel from "@/components/admin/AttributionPanel";
 import NotificacoesPanel from "@/components/admin/NotificacoesPanel";
 import IndicacoesPanel from "@/components/admin/IndicacoesPanel";
+import LicencasAuditoriaPanel from "@/components/admin/LicencasAuditoriaPanel";
 import { canAccessLicenseAdmin } from "@/config/adminAccess";
 import CRM from "./CRM";
 import AdminLicencas from "./AdminLicencas";
@@ -34,7 +35,7 @@ import { useLocation } from "react-router-dom";
 export default function SuperAdmin() {
   const { user, roles, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const validTabs = ["dashboard", "leads", "scoring", "copiloto", "crm", "cadencias", "forecast", "benchmark", "attribution", "licencas", "retencao", "assinaturas", "indicacoes", "marketing", "plano-vendas", "disparo", "campanhas", "whatsapp", "whatsapp-relatorio", "modulos", "notificacoes", "suporte", "saude", "error-logs", "historico"];
+  const validTabs = ["dashboard", "leads", "scoring", "copiloto", "crm", "cadencias", "forecast", "benchmark", "attribution", "licencas", "licencas-auditoria", "retencao", "assinaturas", "indicacoes", "marketing", "plano-vendas", "disparo", "campanhas", "whatsapp", "whatsapp-relatorio", "modulos", "notificacoes", "suporte", "saude", "error-logs", "historico"];
 
   const initialTab = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(
@@ -148,6 +149,7 @@ export default function SuperAdmin() {
                 { value: "benchmark", label: "Benchmark", icon: BarChart3 },
                 { value: "attribution", label: "Attribution/ROI", icon: BarChart3 },
                 { value: "licencas", label: "Licenças", icon: Key },
+                { value: "licencas-auditoria", label: "Auditoria de Licenças", icon: Wrench },
                 { value: "retencao", label: "Retenção", icon: TrendingDown },
                 { value: "assinaturas", label: "Assinaturas", icon: CreditCard },
                 { value: "indicacoes", label: "Indicações", icon: Gift },
@@ -282,6 +284,10 @@ export default function SuperAdmin() {
 
         <TabsContent value="licencas">
           <AdminLicencas isTab />
+        </TabsContent>
+
+        <TabsContent value="licencas-auditoria">
+          <LicencasAuditoriaPanel />
         </TabsContent>
 
         <TabsContent value="retencao">
