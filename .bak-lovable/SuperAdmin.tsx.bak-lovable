@@ -1,0 +1,507 @@
+import { useState, useEffect } from "react";
+import { Navigate, useSearchParams, Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, Users, TrendingUp, TrendingDown, Key, CreditCard, Activity, Target, Award, Loader2, Megaphone, FileText, SendHorizontal, Lock, Zap, MessageSquare, ExternalLink, Tag, LayoutDashboard, Building2, AlertTriangle, History as HistoryIcon, Headphones, Flame, HeartPulse, BarChart3, Repeat, Bot, Bell, Gift } from "lucide-react";
+import AppErrorLogsViewer from "@/components/admin/AppErrorLogsViewer";
+import VersionHistory from "@/components/admin/VersionHistory";
+import SuperAdminDashboard from "@/components/admin/SuperAdminDashboard";
+import SupportTicketsPanel from "@/components/admin/SupportTicketsPanel";
+import SystemHealthPanel from "@/components/admin/SystemHealthPanel";
+import RetencaoPanel from "@/components/admin/RetencaoPanel";
+import LeadScoringPanel from "@/components/admin/LeadScoringPanel";
+import CadenciasPanel from "@/components/admin/CadenciasPanel";
+import ForecastPanel from "@/components/admin/ForecastPanel";
+import BenchmarkPanel from "@/components/admin/BenchmarkPanel";
+import CopilotoIAPanel from "@/components/admin/CopilotoIAPanel";
+import AttributionPanel from "@/components/admin/AttributionPanel";
+import NotificacoesPanel from "@/components/admin/NotificacoesPanel";
+import IndicacoesPanel from "@/components/admin/IndicacoesPanel";
+import { canAccessLicenseAdmin } from "@/config/adminAccess";
+import CRM from "./CRM";
+import AdminLicencas from "./AdminLicencas";
+import AdminLeads from "./AdminLeads";
+import GeradorHeadlines from "./GeradorHeadlines";
+import DisparadorMarketing from "@/components/marketing/DisparadorMarketing";
+import WhatsAppConfig from "./WhatsAppConfig";
+import WhatsAppRelatorio from "./WhatsAppRelatorio";
+import CampanhasWhatsApp from "@/components/marketing/CampanhasWhatsApp";
+import { useLocation } from "react-router-dom";
+
+export default function SuperAdmin() {
+  const { user, roles, loading: authLoading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs = ["dashboard", "leads", "scoring", "copiloto", "crm", "cadencias", "forecast", "benchmark", "attribution", "licencas", "retencao", "assinaturas", "indicacoes", "marketing", "plano-vendas", "disparo", "campanhas", "whatsapp", "whatsapp-relatorio", "modulos", "notificacoes", "suporte", "saude", "error-logs", "historico"];
+
+  const initialTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    initialTab && validTabs.includes(initialTab) ? initialTab : "dashboard"
+  );
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && validTabs.includes(t) && t !== activeTab) setActiveTab(t);
+  }, [searchParams]);
+  const handleTabChange = (t: string) => {
+    setActiveTab(t);
+    setSearchParams({ tab: t }, { replace: true });
+  };
+  const [stats, setStats] = useState({
+    totalLeads: 0,
+    leadsPendente: 0,
+    vendasGanhos: 0,
+    valorTotalGanhos: 0,
+    totalLicencasAtivas: 0,
+    loading: true
+  });
+
+  useEffect(() => {
+    if (!user || !canAccessLicenseAdmin(roles, user.email)) return;
+
+    async function fetchStats() {
+      try {
+        const [leadsRes, crmRes, licensesRes] = await Promise.all([
+          supabase.from("leads").select("id, notificado"),
+          supabase.from("crm_pipeline").select("etapa, valor_estimado"),
+          supabase.functions.invoke("admin-licencas", {
+            body: { action: "list" }
+          })
+        ]);
+
+        const leads = leadsRes.data || [];
+        const crm = crmRes.data || [];
+        const licenses = licensesRes.data || [];
+
+        const ganhos = crm.filter(i => i.etapa === "ganho");
+        const valorGanhos = ganhos.reduce((acc, i) => acc + (Number(i.valor_estimado) || 0), 0);
+        
+        // Count active licenses
+        const activeLicenses = licenses.filter((l: any) => 
+          l.liberado_admin || (l.status === "ativa" && new Date(l.data_expiracao) > new Date())
+        ).length;
+
+        setStats({
+          totalLeads: leads.length,
+          leadsPendente: leads.filter(l => !l.notificado).length,
+          vendasGanhos: ganhos.length,
+          valorTotalGanhos: valorGanhos,
+          totalLicencasAtivas: activeLicenses,
+          loading: false
+        });
+      } catch (error) {
+        console.error("Erro ao carregar métricas superadmin:", error);
+        setStats(s => ({ ...s, loading: false }));
+      }
+    }
+
+    void fetchStats();
+  }, [user, roles]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Acesso estrito ao superadmin
+  if (!user || !canAccessLicenseAdmin(roles, user.email)) {
+    console.log("Acesso negado ao SuperAdmin:", user?.email, roles);
+    return <Navigate to="/auth?product=admin" replace />;
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-8 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Portal de Gestão (CRM & Licenças)</h1>
+            <p className="text-muted-foreground">Controle central de leads, vendas e licenças de todos os programas</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => (window.location.href = "/dashboard")} className="gap-2 bg-emerald-500/10 border-emerald-500/20 text-emerald-700 hover:bg-emerald-500/20">
+            <LayoutDashboard className="h-4 w-4" />
+            Acessar Feed_BPF
+          </Button>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        {(() => {
+          const SECTIONS: Record<string, { label: string; icon: any; tabs: { value: string; label: string; icon: any }[] }> = {
+            comercial: {
+              label: "Comercial",
+              icon: TrendingUp,
+              tabs: [
+                { value: "dashboard", label: "Dashboard", icon: Activity },
+                { value: "leads", label: "Leads", icon: Users },
+                { value: "scoring", label: "Lead Scoring", icon: Flame },
+                { value: "copiloto", label: "Copiloto IA", icon: Bot },
+                { value: "crm", label: "CRM / Vendas", icon: TrendingUp },
+                { value: "cadencias", label: "Cadências", icon: Repeat },
+                { value: "forecast", label: "Forecast", icon: Target },
+                { value: "benchmark", label: "Benchmark", icon: BarChart3 },
+                { value: "attribution", label: "Attribution/ROI", icon: BarChart3 },
+                { value: "licencas", label: "Licenças", icon: Key },
+                { value: "retencao", label: "Retenção", icon: TrendingDown },
+                { value: "assinaturas", label: "Assinaturas", icon: CreditCard },
+                { value: "indicacoes", label: "Indicações", icon: Gift },
+                { value: "plano-vendas", label: "Plano de Vendas", icon: FileText },
+              ],
+            },
+            marketing: {
+              label: "Marketing",
+              icon: Megaphone,
+              tabs: [
+                { value: "marketing", label: "Gerador Headlines", icon: Zap },
+                { value: "disparo", label: "Disparos", icon: SendHorizontal },
+                { value: "campanhas", label: "Campanhas", icon: Megaphone },
+              ],
+            },
+            whatsapp: {
+              label: "WhatsApp",
+              icon: MessageSquare,
+              tabs: [
+                { value: "whatsapp", label: "Configuração", icon: MessageSquare },
+                { value: "whatsapp-relatorio", label: "Relatórios", icon: FileText },
+              ],
+            },
+            sistema: {
+              label: "Sistema",
+              icon: ShieldCheck,
+              tabs: [
+                { value: "notificacoes", label: "Notificações", icon: Bell },
+                { value: "modulos", label: "Módulos Externos", icon: Zap },
+                { value: "suporte", label: "Suporte / Tickets", icon: Headphones },
+                { value: "saude", label: "Saúde do Sistema", icon: HeartPulse },
+                { value: "error-logs", label: "Logs de Erro", icon: AlertTriangle },
+                { value: "historico", label: "Histórico", icon: HistoryIcon },
+              ],
+            },
+          };
+
+          const currentSection =
+            Object.entries(SECTIONS).find(([, s]) => s.tabs.some((t) => t.value === activeTab))?.[0] || "comercial";
+
+          return (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2 border-b border-border/50 pb-2">
+                {Object.entries(SECTIONS).map(([key, sec]) => {
+                  const Icon = sec.icon;
+                  const active = key === currentSection;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleTabChange(sec.tabs[0].value)}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                        active
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {sec.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0">
+                <TabsList className="inline-flex w-max h-auto gap-1 bg-muted/30 p-1">
+                  {SECTIONS[currentSection].tabs.map((t) => {
+                    const Icon = t.icon;
+                    return (
+                      <TabsTrigger
+                        key={t.value}
+                        value={t.value}
+                        className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm py-2 px-3"
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="text-xs">{t.label}</span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+              </div>
+            </div>
+          );
+        })()}
+
+
+        <TabsContent value="dashboard" className="space-y-6">
+          <SuperAdminDashboard onNavigate={handleTabChange} />
+        </TabsContent>
+        <TabsContent value="leads">
+          <AdminLeads isTab />
+        </TabsContent>
+
+        <TabsContent value="scoring">
+          <LeadScoringPanel />
+        </TabsContent>
+
+
+        <TabsContent value="crm">
+          <CRM isTab />
+        </TabsContent>
+
+        <TabsContent value="cadencias">
+          <CadenciasPanel />
+        </TabsContent>
+
+        <TabsContent value="forecast">
+          <ForecastPanel />
+        </TabsContent>
+
+        <TabsContent value="benchmark">
+          <BenchmarkPanel />
+        </TabsContent>
+
+        <TabsContent value="copiloto">
+          <CopilotoIAPanel />
+        </TabsContent>
+
+        <TabsContent value="attribution">
+          <AttributionPanel />
+        </TabsContent>
+
+        <TabsContent value="notificacoes">
+          <NotificacoesPanel />
+        </TabsContent>
+
+        <TabsContent value="indicacoes">
+          <IndicacoesPanel />
+        </TabsContent>
+
+
+
+        <TabsContent value="licencas">
+          <AdminLicencas isTab />
+        </TabsContent>
+
+        <TabsContent value="retencao">
+          <RetencaoPanel />
+        </TabsContent>
+
+
+        <TabsContent value="assinaturas">
+          <Card>
+            <CardHeader>
+              <CardTitle>Assinaturas & Faturamento</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">O controle de assinaturas e faturamento via Paddle está centralizado aqui.</p>
+              <div className="p-4 bg-muted rounded-lg border border-dashed text-center">
+                 Consolidação de Webhooks do Paddle em desenvolvimento...
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="disparo">
+          <DisparadorMarketing />
+        </TabsContent>
+        <TabsContent value="campanhas">
+          <CampanhasWhatsApp />
+        </TabsContent>
+        <TabsContent value="marketing">
+          <GeradorHeadlines />
+        </TabsContent>
+        <TabsContent value="plano-vendas">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Plano de Vendas & Headlines — BPF_Consult
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Estratégia comercial completa, ICP, funil, pricing e copywriting de alta conversão.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href="/admin/plano-vendas.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline"
+                >
+                  Abrir em nova aba ↗
+                </a>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      Portal de Gestão (Restrito)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Acesso centralizado para equipe interna. O link do Portal de Gestão foi movido para esta área restrita para garantir a segurança dos dados.
+                    </p>
+                    <Link to="/admin-access">
+                      <Button size="sm" variant="outline" className="w-full gap-2">
+                        <Lock className="h-3 w-3" />
+                        Ver Página de Acesso
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-emerald-500/5 border-emerald-500/20">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Material de Apoio
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Utilize o plano de vendas abaixo para alinhar a comunicação com os leads capturados.
+                    </p>
+                    <Button size="sm" variant="outline" className="w-full gap-2" onClick={() => window.open('/admin/plano-vendas.html', '_blank')}>
+                      <FileText className="h-3 w-3" />
+                      Download / Visualizar
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <iframe
+                src="/admin/plano-vendas.html"
+                title="Plano de Vendas BPF Consult"
+                className="w-full rounded-lg border"
+                style={{ height: "calc(100vh - 450px)", minHeight: "500px" }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="whatsapp">
+          <WhatsAppConfig />
+        </TabsContent>
+        <TabsContent value="whatsapp-relatorio">
+          <WhatsAppRelatorio />
+        </TabsContent>
+
+        <TabsContent value="suporte">
+          <SupportTicketsPanel />
+        </TabsContent>
+
+        <TabsContent value="saude">
+          <SystemHealthPanel />
+        </TabsContent>
+
+
+        <TabsContent value="error-logs">
+          <AppErrorLogsViewer />
+        </TabsContent>
+
+        <TabsContent value="historico">
+          <VersionHistory />
+        </TabsContent>
+
+        <TabsContent value="modulos">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Tag className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>Nutri_Agro Labels</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Sistema de geração de rótulos e etiquetas para o setor agroindustrial.</p>
+                <Link to="/rotulos/dashboard">
+                  <Button variant="outline" className="w-full gap-2">
+                    Abrir Módulo <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-emerald-500" />
+                  </div>
+                  <CardTitle>Agro RC CRM</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Plataforma externa de CRM especializada em representantes comerciais do agronegócio.</p>
+                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://nutrigestor-crm.netlify.app", "_blank")}>
+                  Acessar CRM Externo <ExternalLink className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Building2 className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <CardTitle>AgroGestão CRM</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Sistema de gestão estratégica e CRM para consultorias e empresas de gestão agro.</p>
+                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://regional-fixer-charm.lovable.app", "_blank")}>
+                  Acessar CRM Externo <ExternalLink className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <ShieldCheck className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <CardTitle>Audits_BPF</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Módulo especializado em auditorias avançadas e gestão de conformidades BPF.</p>
+                <Button variant="outline" className="w-full gap-2" onClick={() => window.open("https://friendly-flame-igniter.lovable.app", "_blank")}>
+                  Acessar Auditorias <ExternalLink className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                    <LayoutDashboard className="h-6 w-6 text-indigo-500" />
+                  </div>
+                  <CardTitle>Feed_BPF</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">Painel principal do sistema Feed_BPF para gestão de segurança alimentar.</p>
+                <Link to="/dashboard">
+                  <Button variant="outline" className="w-full gap-2">
+                    Voltar ao Dashboard <LayoutDashboard className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+      </Tabs>
+    </div>
+  );
+}

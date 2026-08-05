@@ -222,7 +222,7 @@ export default function TutorialGoogleFormsSheets() {
             <p>
               Menu <strong>Extensões → Apps Script</strong>. Apague o código padrão e cole:
             </p>
-            <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">{`const WEBHOOK_URL = "https://uyrcxfypdzasdminxizq.supabase.co/functions/v1/google-forms-webhook";
+            <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">{`const WEBHOOK_URL = "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-forms-webhook";
 const TOKEN = "COLE_SEU_TOKEN_AQUI"; // pegue em Feed_BPF Custom → Google Forms
 
 function onEdit(e) {

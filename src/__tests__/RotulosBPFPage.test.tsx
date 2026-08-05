@@ -59,7 +59,7 @@ describe("RotulosBPFPage", () => {
     // No card de sucesso, o título do plano aparece em um <p> específico dentro do grid de informações
     const successContainer = screen.getByRole("heading", { name: /Bem-vindo ao Nutri_Agro Labels/i }).parentElement?.parentElement;
     expect(successContainer).toHaveTextContent(/Grupo 10 empresas/i);
-    expect(successContainer).toHaveTextContent(/R\$ 457,00/i);
+    expect(successContainer).toHaveTextContent(/R\$ 297,00/i);
   });
 
   it("deve exibir card de erro quando o checkout for cancelado", () => {

@@ -17,6 +17,33 @@ interface VersionEntry {
 
 const VERSIONS: VersionEntry[] = [
   {
+    version: "v3.0.0",
+    date: "01/08/2026",
+    title: "Migração da infraestrutura e consolidação da BPF Suite",
+    type: "infra",
+    changes: [
+      "Migração completa do banco para a infraestrutura Supabase administrada pela BPF Consult, com backup prévio e preservação dos dados existentes",
+      "Aplicação e validação de 135 migrações, totalizando 110 tabelas, 230 políticas RLS e 43 rotinas no schema público",
+      "Publicação e ativação das 52 Edge Functions da plataforma",
+      "Configuração de autenticação, URLs de produção, Storage e integrações de IA e Evolution API",
+      "Remoção das referências ativas ao projeto legado do Lovable e atualização dos editores estáticos para a infraestrutura atual",
+      "Reforço de segurança no webhook de pagamentos, cabeçalhos HTTP, segredos operacionais e isolamento por RLS",
+      "Ajuste da observabilidade Sentry, correção da resolução DNS da VPS e novo deploy validado em produção",
+    ],
+    impact:
+      "A plataforma passa a operar integralmente na infraestrutura controlada pela BPF Consult, com maior governança, rastreabilidade e segurança. Dados existentes foram preservados e os fluxos principais permaneceram disponíveis após a migração.",
+    affects: [
+      "BPF Suite",
+      "Supabase",
+      "Autenticação",
+      "Banco de dados e RLS",
+      "Edge Functions",
+      "Storage",
+      "Integrações e observabilidade",
+    ],
+    risk: "alto",
+  },
+  {
     version: "v2.6.0",
     date: "10/06/2026",
     title: "Histórico de Versões & Auditoria Centralizada",

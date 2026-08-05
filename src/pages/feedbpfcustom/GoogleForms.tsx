@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { toast } from "sonner";
 
-const WEBHOOK_URL = "https://uyrcxfypdzasdminxizq.supabase.co/functions/v1/google-forms-webhook";
+const WEBHOOK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-forms-webhook`;
 
 interface Modelo {
   id: string;

@@ -147,7 +147,7 @@ const WhatsAppTwilio = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="p-3 bg-muted rounded text-xs break-all font-mono">
-              https://uyrcxfypdzasdminxizq.supabase.co/functions/v1/whatsapp-webhook
+              {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`}
             </div>
             <p className="text-xs text-muted-foreground">
               Método: <strong>POST</strong>. As mensagens recebidas aparecerão abaixo automaticamente.

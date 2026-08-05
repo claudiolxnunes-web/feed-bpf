@@ -1,0 +1,407 @@
+import React, { Suspense, lazy, useEffect } from "react";
+
+
+import { Tag, FileText, Layers, Palette, Printer } from "lucide-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Route, Routes, Navigate, useLocation, useParams } from "react-router-dom";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { EmpresaProvider } from "@/hooks/useEmpresa";
+import AppLayout from "@/components/layout/AppLayout";
+import LicenseGate from "@/components/LicenseGate";
+import PageLoader from "@/components/PageLoader";
+import { ExternalRedirect } from "@/components/ExternalRedirect";
+import SupportChatWidget from "@/components/SupportChatWidget";
+import { canAccessLicenseAdmin } from "@/config/adminAccess";
+
+
+
+
+// Lazy-loaded pages
+const Vitrine = lazy(() => import("./pages/Vitrine"));
+const Index = lazy(() => import("./pages/Index"));
+const Cadastro = lazy(() => import("./pages/Cadastro"));
+const Documentos = lazy(() => import("./pages/Documentos"));
+const Auditoria = lazy(() => import("./pages/Auditoria"));
+const NaoConformidades = lazy(() => import("./pages/NaoConformidades"));
+const Recebimento = lazy(() => import("./pages/Recebimento"));
+const Producao = lazy(() => import("./pages/Producao"));
+const PCP = lazy(() => import("./pages/PCP"));
+const Rastreabilidade = lazy(() => import("./pages/Rastreabilidade"));
+const Expedicao = lazy(() => import("./pages/Expedicao"));
+const Pragas = lazy(() => import("./pages/Pragas"));
+const Treinamentos = lazy(() => import("./pages/Treinamentos"));
+const Indicadores = lazy(() => import("./pages/Indicadores"));
+const ExecucaoPops = lazy(() => import("./pages/ExecucaoPops"));
+const Relatorios = lazy(() => import("./pages/Relatorios"));
+const Legislacao = lazy(() => import("./pages/Legislacao"));
+const Fornecedores = lazy(() => import("./pages/Fornecedores"));
+const Manual = lazy(() => import("./pages/Manual"));
+const PlanilhasPop = lazy(() => import("./pages/PlanilhasPop"));
+const GuiaPops = lazy(() => import("./pages/GuiaPops"));
+const GuiaGeralPops = lazy(() => import("./pages/GuiaGeralPops"));
+const Produtos = lazy(() => import("./pages/Produtos"));
+const Formulas = lazy(() => import("./pages/Formulas"));
+const AnalisesLaboratorio = lazy(() => import("./pages/AnalisesLaboratorio"));
+const HigieneSanitizacao = lazy(() => import("./pages/HigieneSanitizacao"));
+const ManutencaoPreventiva = lazy(() => import("./pages/ManutencaoPreventiva"));
+const ControleResiduos = lazy(() => import("./pages/ControleResiduos"));
+const ControleSubstancias = lazy(() => import("./pages/ControleSubstancias"));
+const ValidacaoLimpezaLinha = lazy(() => import("./pages/ValidacaoLimpezaLinha"));
+const MatrizRisco = lazy(() => import("./pages/MatrizRisco"));
+const PlanejamentoAnual = lazy(() => import("./pages/PlanejamentoAnual"));
+const QualidadeTotal = lazy(() => import("./pages/QualidadeTotal"));
+const SalaAuditor = lazy(() => import("./pages/SalaAuditor"));
+const RelatorioProducao = lazy(() => import("./pages/RelatorioProducao"));
+const ArmazenamentoTransporte = lazy(() => import("./pages/ArmazenamentoTransporte"));
+const PotabilidadeAgua = lazy(() => import("./pages/PotabilidadeAgua"));
+const SaudePessoal = lazy(() => import("./pages/SaudePessoal"));
+const ControleVisitantes = lazy(() => import("./pages/ControleVisitantes"));
+const DocumentosBPF = lazy(() => import("./pages/DocumentosBPF"));
+const MonitoramentoPCC = lazy(() => import("./pages/MonitoramentoPCC"));
+const Autocontrole = lazy(() => import("./pages/Autocontrole"));
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+
+const Modelos = lazy(() => import("./pages/Modelos"));
+const Instalar = lazy(() => import("./pages/Instalar"));
+const NutriCRMPage = lazy(() => import("./pages/NutriCRMPage"));
+const FeedBPFPage = lazy(() => import("./pages/FeedBPFPage"));
+const AuditsBPFPage = lazy(() => import("./pages/AuditsBPFPage"));
+const AuditsBPFPlanos = lazy(() => import("./pages/AuditsBPFPlanos"));
+const AgroGestaoCRMPage = lazy(() => import("./pages/AgroGestaoCRMPage"));
+const AgroRCCRMPage = lazy(() => import("./pages/AgroRCCRMPage"));
+const RotulosBPFPage = lazy(() => import("./pages/RotulosBPFPage"));
+const SuperAdmin = lazy(() => import("./pages/SuperAdmin"));
+const ChecklistPreAuditoria = lazy(() => import("./pages/ChecklistPreAuditoria"));
+const SimuladorTFAutocontroles = lazy(() => import("./pages/SimuladorTFAutocontroles"));
+const SimulacaoRecall = lazy(() => import("./pages/SimulacaoRecall"));
+const SimulacaoCarimbo = lazy(() => import("./pages/SimulacaoCarimbo"));
+const Orientacoes = lazy(() => import("./pages/Orientacoes"));
+const BuscaGlobal = lazy(() => import("./pages/BuscaGlobal"));
+const ModoTablet = lazy(() => import("./pages/ModoTablet"));
+const AnaliseTendencias = lazy(() => import("./pages/AnaliseTendencias"));
+const GeracaoManualBPF = lazy(() => import("./pages/GeracaoManualBPF"));
+const GeradorPopIA = lazy(() => import("./pages/GeradorPopIA"));
+const ConsultaSipeagro = lazy(() => import("./pages/ConsultaSipeagro"));
+const ConfigurarPin = lazy(() => import("./pages/ConfigurarPin"));
+const AuditorPortal = lazy(() => import("./pages/AuditorPortal"));
+const AdminLicencas = lazy(() => import("./pages/AdminLicencas"));
+const DemoPage = lazy(() => import("./pages/DemoPage"));
+const AdminAccess = lazy(() => import("./pages/AdminAccess"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const LandingPageBPF = lazy(() => import("./pages/LandingPageBPF"));
+const StatusLotes = lazy(() => import("./pages/StatusLotes"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const AuditLog = lazy(() => import("./pages/AuditLog"));
+const AdminFeedBPFAuditoria = lazy(() => import("./pages/AdminFeedBPFAuditoria"));
+const PortalCliente = lazy(() => import("./pages/PortalCliente"));
+
+// Feed_BPF Custom
+const FeedBpfCustomLanding = lazy(() => import("./pages/FeedBpfCustomLanding"));
+const FeedBpfCustomLayout = lazy(() => import("./components/layout/FeedBpfCustomLayout"));
+const FeedCustomAcervo = lazy(() => import("./pages/feedbpfcustom/MeuAcervo"));
+const FeedCustomImport = lazy(() => import("./pages/feedbpfcustom/ImportacaoMassa"));
+const FeedCustomModelos = lazy(() => import("./pages/feedbpfcustom/MeusModelos"));
+const FeedCustomRegistros = lazy(() => import("./pages/feedbpfcustom/RegistrosDigitais"));
+const FeedCustomConfig = lazy(() => import("./pages/feedbpfcustom/ConfigCustom"));
+const FeedCustomModulos = lazy(() => import("./pages/feedbpfcustom/ConfiguracaoModulos"));
+const FeedCustomTutorial = lazy(() => import("./pages/feedbpfcustom/TutorialCustom"));
+const FeedCustomAnaliseIA = lazy(() => import("./pages/feedbpfcustom/AnaliseIA"));
+const FeedCustomPlanilhas = lazy(() => import("./pages/feedbpfcustom/ImportarPlanilhas"));
+const FeedCustomGuia = lazy(() => import("./pages/feedbpfcustom/GuiaCustomizacao"));
+const FeedCustomGoogleForms = lazy(() => import("./pages/feedbpfcustom/GoogleForms"));
+const FeedCustomTutorialGoogle = lazy(() => import("./pages/feedbpfcustom/TutorialGoogleFormsSheets"));
+
+
+// Agro RC CRM - Páginas Internas
+const AgroRcLayout = lazy(() => import("./components/layout/AgroRcLayout"));
+const AgroRcDashboard = lazy(() => import("./pages/agrorc/Dashboard"));
+const AgroRcPipeline = lazy(() => import("./pages/agrorc/Pipeline"));
+const AgroRcClientes = lazy(() => import("./pages/agrorc/Clientes"));
+const AgroRcVisitas = lazy(() => import("./pages/agrorc/Visitas"));
+const AgroRcMetas = lazy(() => import("./pages/agrorc/Metas"));
+const AgroRcAdmin = lazy(() => import("./pages/agrorc/Admin"));
+
+// NutriCRM - Páginas Internas
+const NutriCrmLayout = lazy(() => import("./components/layout/NutriCrmLayout"));
+const NutriDashboard = lazy(() => import("./pages/nutricrm/NutriCrmPages").then(m => ({ default: m.NutriDashboardPage })));
+const NutriClientes = lazy(() => import("./pages/nutricrm/NutriCrmPages").then(m => ({ default: m.NutriClientesPage })));
+const NutriVisitas = lazy(() => import("./pages/nutricrm/NutriCrmPages").then(m => ({ default: m.NutriVisitasPage })));
+const NutriProjetos = lazy(() => import("./pages/nutricrm/NutriCrmPages").then(m => ({ default: m.NutriProjetosPage })));
+const NutriMetas = lazy(() => import("./pages/nutricrm/NutriCrmPages").then(m => ({ default: m.NutriMetasPage })));
+const NutriRelatorios = lazy(() => import("./pages/nutricrm/NutriCrmPages").then(m => ({ default: m.NutriRelatoriosPage })));
+
+
+// Audits_BPF - Páginas Internas
+const AuditsBpfLayout = lazy(() => import("./components/layout/AuditsBpfLayout"));
+const AuditsDashboard = lazy(() => import("./pages/auditsbpf/AuditsBpfPages").then(m => ({ default: m.AuditsDashboardPage })));
+const AuditsChecklist = lazy(() => import("./pages/auditsbpf/AuditsBpfPages").then(m => ({ default: m.AuditsChecklistPage })));
+const AuditsSala = lazy(() => import("./pages/auditsbpf/AuditsBpfPages").then(m => ({ default: m.AuditsSalaPage })));
+const AuditsPlano = lazy(() => import("./pages/auditsbpf/AuditsBpfPages").then(m => ({ default: m.AuditsPlanoPage })));
+const AuditsRelatorio = lazy(() => import("./pages/auditsbpf/AuditsBpfPages").then(m => ({ default: m.AuditsRelatorioPage })));
+const AuditsHistorico = lazy(() => import("./pages/auditsbpf/AuditsBpfPages").then(m => ({ default: m.AuditsHistoricoPage })));
+
+// Nutri_Agro Labels - Páginas Internas
+const RotulosLayout = lazy(() => import("./components/layout/RotulosLayout"));
+const RotulosDashboard = lazy(() => import("./pages/rotulos/RotulosPages").then(m => ({ default: m.RotulosDashboardPage })));
+const RotulosEditor = lazy(() => import("./pages/rotulos/RotulosPages").then(m => ({ default: m.RotulosEditorPage })));
+const RotulosRTPI = lazy(() => import("./pages/rotulos/RotulosPages").then(m => ({ default: m.RotulosRTPIPage })));
+const RotulosNiveis = lazy(() => import("./pages/rotulos/RotulosPages").then(m => ({ default: m.RotulosNiveisPage })));
+const RotulosTemplates = lazy(() => import("./pages/rotulos/RotulosPages").then(m => ({ default: m.RotulosTemplatesPage })));
+const RotulosZebra = lazy(() => import("./pages/rotulos/RotulosPages").then(m => ({ default: m.RotulosZebraPage })));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+      retry: (failureCount, error: any) => {
+        // Don't retry on 401/403 or specific Supabase errors
+        if (error?.status === 401 || error?.status === 403 || error?.code === "PGRST301") return false;
+        return failureCount < 2;
+      },
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const ProtectedRoute = ({ children, requireAdmin }: { children: React.ReactNode; requireAdmin?: boolean }) => {
+  const { session, loading, roles, user } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <PageLoader />;
+
+  if (!session) {
+    const nextPath = `${location.pathname}${location.search}${location.hash}`;
+    const redirect = encodeURIComponent(nextPath);
+    return <Navigate to={`/auth?redirect=${redirect}`} replace />;
+  }
+
+  // Proteção extra para módulos administrativos (BPF_Consult)
+  if (requireAdmin) {
+    if (!canAccessLicenseAdmin(roles, user?.email)) {
+      console.warn("Acesso negado: Rota administrativa restrita.");
+      return <Navigate to="/404" replace />;
+    }
+  }
+  
+  return <>{children}</>;
+};
+
+const InternalRoutes = () => (
+  <Routes>
+    <Route path="/dashboard" element={<Index />} />
+    <Route path="/Dashboard" element={<Navigate to="/dashboard" replace />} />
+    
+    <Route path="/cadastro" element={<Cadastro />} />
+    <Route path="/documentos" element={<Documentos />} />
+    <Route path="/documentos-bpf" element={<DocumentosBPF />} />
+    <Route path="/auditoria" element={<Auditoria />} />
+    <Route path="/nao-conformidades" element={<NaoConformidades />} />
+    <Route path="/recebimento" element={<Recebimento />} />
+    <Route path="/fornecedores" element={<Fornecedores />} />
+    <Route path="/producao" element={<Producao />} />
+    <Route path="/pcp" element={<PCP />} />
+    <Route path="/rastreabilidade" element={<Rastreabilidade />} />
+    <Route path="/expedicao" element={<Expedicao />} />
+    <Route path="/pragas" element={<Pragas />} />
+    <Route path="/treinamentos" element={<Treinamentos />} />
+    <Route path="/indicadores" element={<Indicadores />} />
+    <Route path="/execucao-pops" element={<ExecucaoPops />} />
+    <Route path="/relatorios" element={<Relatorios />} />
+    <Route path="/legislacao" element={<Legislacao />} />
+    <Route path="/manual" element={<Manual />} />
+    <Route path="/guia-pops" element={<GuiaPops />} />
+    <Route path="/guia-geral-pops" element={<GuiaGeralPops />} />
+    <Route path="/planilhas-pop" element={<PlanilhasPop />} />
+    <Route path="/produtos" element={<Produtos />} />
+    <Route path="/formulas" element={<Formulas />} />
+    <Route path="/analises" element={<AnalisesLaboratorio />} />
+    <Route path="/higiene" element={<HigieneSanitizacao />} />
+    <Route path="/manutencao" element={<ManutencaoPreventiva />} />
+    <Route path="/residuos" element={<ControleResiduos />} />
+    <Route path="/substancias" element={<ControleSubstancias />} />
+    <Route path="/validacao-limpeza" element={<ValidacaoLimpezaLinha />} />
+    <Route path="/matriz-risco" element={<MatrizRisco />} />
+    <Route path="/planejamento-anual" element={<PlanejamentoAnual />} />
+    <Route path="/qualidade-total" element={<QualidadeTotal />} />
+    <Route path="/sala-auditor" element={<SalaAuditor />} />
+    <Route path="/relatorio-producao" element={<RelatorioProducao />} />
+    <Route path="/armazenamento-transporte" element={<ArmazenamentoTransporte />} />
+    <Route path="/potabilidade-agua" element={<PotabilidadeAgua />} />
+    <Route path="/saude-pessoal" element={<SaudePessoal />} />
+    <Route path="/visitantes" element={<ControleVisitantes />} />
+    <Route path="/monitoramento-pcc" element={<MonitoramentoPCC />} />
+    <Route path="/autocontrole" element={<Autocontrole />} />
+    <Route path="/modelos" element={<Modelos />} />
+    <Route path="/checklist-pre-auditoria" element={<ChecklistPreAuditoria />} />
+    <Route path="/simulador-tf-autocontroles" element={<SimuladorTFAutocontroles />} />
+    <Route path="/simulacao-recall" element={<SimulacaoRecall />} />
+    <Route path="/simulacao-carimbo" element={<SimulacaoCarimbo />} />
+    <Route path="/orientacoes" element={<Orientacoes />} />
+    <Route path="/orientacoes/:moduloId" element={<Orientacoes />} />
+    <Route path="/busca-global" element={<BuscaGlobal />} />
+    <Route path="/modo-tablet" element={<ModoTablet />} />
+    <Route path="/analise-tendencias" element={<AnaliseTendencias />} />
+    <Route path="/geracao-manual-bpf" element={<GeracaoManualBPF />} />
+    <Route path="/gerador-pop-ia" element={<GeradorPopIA />} />
+    <Route path="/consulta-sipeagro" element={<ConsultaSipeagro />} />
+    <Route path="/configurar-pin" element={<ConfigurarPin />} />
+    <Route path="/status-lotes" element={<StatusLotes />} />
+    <Route path="/audit-log" element={<AuditLog />} />
+    <Route path="*" element={<NotFound />} />
+
+  </Routes>
+);
+
+const AppRoutes = () => {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<Vitrine />} />
+        <Route path="/vitrine" element={<Vitrine />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/auditor/:token" element={<AuditorPortal />} />
+        <Route path="/demo/:produto" element={<DemoPage />} />
+        <Route path="/instalar" element={<Instalar />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
+        <Route path="/termos" element={<TermsOfService />} />
+        <Route path="/reembolso" element={<RefundPolicy />} />
+        
+        {/* Landings de Produtos */}
+        <Route path="/nutricrm" element={<NutriCRMPage />} />
+        <Route path="/bpf-consult" element={<LandingPageBPF />} />
+        <Route path="/feedbpf/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/feedbpf" element={<FeedBPFPage />} />
+        <Route path="/auditsbpf/planos" element={<AuditsBPFPlanos />} />
+        <Route path="/auditsbpf" element={<AuditsBPFPage />} />
+        <Route path="/audits-bpf" element={<Navigate to="/auditsbpf" replace />} />
+        <Route path="/agrogestao" element={<AgroGestaoCRMPage />} />
+        <Route path="/agro-rc" element={<AgroRCCRMPage />} />
+        <Route path="/rotulos" element={<RotulosBPFPage />} />
+
+        {/* Feed_BPF Custom */}
+        <Route path="/feedbpf-custom" element={<FeedBpfCustomLanding />} />
+        <Route
+          path="/feedbpf-custom/*"
+          element={
+            <ProtectedRoute>
+              <FeedBpfCustomLayout>
+                <Routes>
+                  <Route index element={<Navigate to="tutorial" replace />} />
+                  <Route path="tutorial" element={<FeedCustomTutorial />} />
+                  <Route path="guia" element={<FeedCustomGuia />} />
+                  <Route path="acervo" element={<FeedCustomAcervo />} />
+                  <Route path="importacao" element={<FeedCustomImport />} />
+                  <Route path="planilhas" element={<FeedCustomPlanilhas />} />
+                  <Route path="modelos" element={<FeedCustomModelos />} />
+                  <Route path="registros" element={<FeedCustomRegistros />} />
+                  <Route path="registros/novo" element={<FeedCustomRegistros />} />
+                  <Route path="google-forms" element={<FeedCustomGoogleForms />} />
+                  <Route path="tutorial-google" element={<FeedCustomTutorialGoogle />} />
+                  <Route path="analise-ia" element={<FeedCustomAnaliseIA />} />
+                  <Route path="config" element={<FeedCustomConfig />} />
+                  <Route path="modulos" element={<FeedCustomModulos />} />
+                </Routes>
+              </FeedBpfCustomLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Agro RC CRM - redireciona para projeto externo publicado */}
+        <Route
+          path="/agrorc/*"
+          element={<ExternalRedirect to="https://nutrigestor-crm.netlify.app" preservePath basePath="/agrorc" />}
+        />
+        <Route
+          path="/agro-rc/*"
+          element={<ExternalRedirect to="https://nutrigestor-crm.netlify.app" preservePath basePath="/agro-rc" />}
+        />
+
+        {/* NutriCRM - redireciona para projeto externo publicado */}
+        <Route
+          path="/nutricrm/*"
+          element={<ExternalRedirect to="https://nutricrm.onrender.com" preservePath basePath="/nutricrm" />}
+        />
+
+        {/* AgroGestão CRM - redireciona para projeto externo publicado */}
+        <Route
+          path="/agrogestao/*"
+          element={<ExternalRedirect to="https://regional-fixer-charm.lovable.app" preservePath basePath="/agrogestao" />}
+        />
+
+        {/* Audits_BPF - redireciona para projeto externo publicado */}
+        <Route path="/auditsbpf/*" element={<ExternalRedirect to="https://friendly-flame-igniter.lovable.app" preservePath basePath="/auditsbpf" />} />
+        <Route path="/audits-bpf/*" element={<ExternalRedirect to="https://friendly-flame-igniter.lovable.app" preservePath basePath="/audits-bpf" />} />
+
+        {/* Nutri_Agro Labels - Rotas Dedicadas */}
+        <Route
+          path="/rotulos/*"
+          element={
+            <ProtectedRoute>
+              <RotulosLayout>
+                <Routes>
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<RotulosDashboard />} />
+                   <Route path="editor" element={<RotulosEditor />} />
+                   <Route path="rtpi" element={<RotulosRTPI />} />
+                   <Route path="niveis" element={<RotulosNiveis />} />
+                   <Route path="templates" element={<RotulosTemplates />} />
+                   <Route path="zebra" element={<RotulosZebra />} />
+                </Routes>
+              </RotulosLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Portal de Gestão (BPF_Consult) - rotas standalone, fora do AppLayout do Feed_BPF */}
+        <Route path="/admin-access" element={<AdminAccess />} />
+        <Route path="/admin" element={<ProtectedRoute requireAdmin><SuperAdmin /></ProtectedRoute>} />
+        <Route path="/portal" element={<ProtectedRoute><PortalCliente /></ProtectedRoute>} />
+        <Route path="/admin/auditoria-feedbpf" element={<ProtectedRoute requireAdmin><AdminFeedBPFAuditoria /></ProtectedRoute>} />
+        <Route path="/crm" element={<ProtectedRoute requireAdmin><Navigate to="/admin?tab=crm" replace /></ProtectedRoute>} />
+        <Route path="/leads" element={<ProtectedRoute requireAdmin><Navigate to="/admin?tab=leads" replace /></ProtectedRoute>} />
+        <Route path="/licencas" element={<ProtectedRoute requireAdmin><Navigate to="/admin?tab=licencas" replace /></ProtectedRoute>} />
+        <Route path="/assinaturas" element={<ProtectedRoute requireAdmin><Navigate to="/admin?tab=assinaturas" replace /></ProtectedRoute>} />
+        <Route path="/licencas-programa" element={<ProtectedRoute requireAdmin><Navigate to="/admin?tab=licencas" replace /></ProtectedRoute>} />
+
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <InternalRoutes />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Suspense>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <EmpresaProvider>
+            <AppRoutes />
+            <SupportChatWidget />
+          </EmpresaProvider>
+        </AuthProvider>
+
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;

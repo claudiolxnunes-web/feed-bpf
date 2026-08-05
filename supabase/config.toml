@@ -1,4 +1,4 @@
-project_id = "uyrcxfypdzasdminxizq"
+project_id = "ufqqskukhzgakmwrsumq"
 
 [functions.google-forms-webhook]
 verify_jwt = false
@@ -13,4 +13,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.export-storage]
+verify_jwt = false
+
+[functions.paddle-webhook]
+verify_jwt = true
+
+[functions.whatsapp-webhook]
 verify_jwt = false

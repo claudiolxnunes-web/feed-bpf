@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "../playwright-fixture";
 
-const PROJECT_REF = "uyrcxfypdzasdminxizq";
+const PROJECT_REF = "ufqqskukhzgakmwrsumq";
 const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
 
 type ProgramaProtegido = {

@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+cd /opt/feed-bpf
+git pull 2>/dev/null || echo "(sem git pull — repo local)"
+npm run build
+rsync -a --delete --exclude='gerador-rotulos' dist/ /opt/bpfsuite/dist/
+echo "✅ PUBLICADO: $(date)"
