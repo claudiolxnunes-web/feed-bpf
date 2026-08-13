@@ -1,4 +1,5 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { getAiResponse } from "../_shared/ai-helper.ts";
 
 interface ReqBody {
   arquivos: { id: string; nome: string }[];
@@ -36,20 +37,11 @@ Regras:
 
     const userPrompt = `Classifique os seguintes arquivos:\n${listaArquivos}`;
 
-    const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const resp = await getAiResponse({
+      systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      model: "google/gemini-2.5-flash",
+      responseFormat: { type: "json_object" },
     });
 
     if (!resp.ok) {

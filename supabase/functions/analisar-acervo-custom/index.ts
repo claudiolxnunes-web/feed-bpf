@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getAiResponse } from "../_shared/ai-helper.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,20 +89,11 @@ Retorne JSON:
   "recomendacoes_prioritarias": ["ação 1", "ação 2", "ação 3"]
 }`;
 
-    const aiResp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const aiResp = await getAiResponse({
+      systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      model: "google/gemini-2.5-flash",
+      responseFormat: { type: "json_object" },
     });
 
     if (aiResp.status === 429) {

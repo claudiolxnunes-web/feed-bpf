@@ -1,5 +1,6 @@
 // Copiloto IA Comercial - analisa lead e sugere próximas ações
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getAiResponse } from "../_shared/ai-helper.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -89,19 +90,10 @@ Não inclua markdown, apenas JSON puro.`;
 
     const userPrompt = `Lead:\n${JSON.stringify(contexto, null, 2)}`;
 
-    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      }),
+    const aiRes = await getAiResponse({
+      systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      model: "google/gemini-2.5-flash",
     });
 
     if (!aiRes.ok) {

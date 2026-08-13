@@ -5,12 +5,16 @@ export async function getAiResponse({
   tools,
   toolChoice,
   model = "openai/gpt-4o",
+  stream,
+  responseFormat,
 }: {
   messages: any[];
   systemPrompt?: string;
   tools?: any[];
   toolChoice?: any;
   model?: string;
+  stream?: boolean;
+  responseFormat?: any;
 }) {
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
@@ -33,6 +37,8 @@ export async function getAiResponse({
         messages: fullMessages,
         tools,
         tool_choice: toolChoice,
+        stream,
+        response_format: responseFormat,
       }),
     });
     if (resp.ok) return resp;
@@ -55,6 +61,8 @@ export async function getAiResponse({
         messages: fullMessages,
         tools,
         tool_choice: toolChoice,
+        stream,
+        response_format: responseFormat,
       }),
     });
     if (resp.ok) return resp;
