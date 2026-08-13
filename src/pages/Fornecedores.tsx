@@ -478,40 +478,46 @@ export default function Fornecedores() {
                   <div className="p-3 rounded-lg border bg-muted/20 space-y-3">
                     <p className="text-sm font-semibold flex items-center gap-2">🏛️ Registro SIPEAGRO — IN 17/2017</p>
                     <p className="text-[10px] text-muted-foreground">Estabelecimentos fornecedores de insumos para alimentação animal devem possuir registro no SIPEAGRO/MAPA.</p>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
-                      <div className="flex-1">
-                        <Label>Nº Registro SIPEAGRO</Label>
-                        <Input value={registroSipeagro} onChange={e => setRegistroSipeagro(e.target.value)} placeholder="Ex: BR-0000000000" />
-                      </div>
-                      <Button type="button" variant="outline" size="sm" onClick={verificarNoMapa} disabled={verificandoMapa} className="gap-2">
-                        {verificandoMapa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                        Consultar base MAPA
-                      </Button>
+                    <div>
+                      <Label>Nº Registro SIPEAGRO</Label>
+                      <Input value={registroSipeagro} onChange={e => setRegistroSipeagro(e.target.value)} placeholder="Ex: BR-0000000000" />
                     </div>
-                    <p className="text-[10px] text-muted-foreground">Busca pelo Nº Registro acima ou pelo CNPJ já preenchido nesta ficha.</p>
+                    <p className="text-[10px] text-muted-foreground">Ao digitar (mín. 3 caracteres), a base MAPA é consultada automaticamente por este registro ou pelo CNPJ já preenchido acima.</p>
 
-                    {buscouMapa && !verificandoMapa && (
-                      <div className="space-y-2">
-                        {resultadosMapa.length === 0 ? (
-                          <p className="text-xs text-muted-foreground">Nenhum estabelecimento encontrado na base MAPA para este registro/CNPJ.</p>
+                    {mapaStatus !== "idle" && (
+                      <div
+                        className={`rounded border p-2 text-xs space-y-1 ${
+                          mapaStatus === "found" && (mapaResultado?.situacao || "").toLowerCase().includes("ativo")
+                            ? "bg-green-600/10 border-green-600/40"
+                            : mapaStatus === "found"
+                              ? "bg-destructive/10 border-destructive/40"
+                              : "bg-muted/30 border-muted"
+                        }`}
+                      >
+                        {mapaStatus === "loading" ? (
+                          <p className="text-muted-foreground flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Consultando base MAPA...
+                          </p>
+                        ) : mapaStatus === "not_found" ? (
+                          <p className="text-muted-foreground">Nenhum estabelecimento encontrado na base MAPA para este registro/CNPJ.</p>
                         ) : (
                           <>
-                            {resultadosMapa.map((item, idx) => (
-                              <div key={`${item.registro_estabelecimento || "sem-registro"}-${idx}`} className="rounded border bg-background p-2 text-xs space-y-1">
-                                <div className="flex items-start justify-between gap-2 flex-wrap">
-                                  <p className="font-medium">{item.razao_social}</p>
-                                  <Badge variant={(item.situacao || "").toLowerCase().includes("ativo") ? "default" : "destructive"}>
-                                    {item.situacao || "Sem status"}
-                                  </Badge>
-                                </div>
-                                <p className="text-muted-foreground">
-                                  Reg.: <strong>{item.registro_estabelecimento || "—"}</strong> · {item.municipio || "—"}/{item.uf || "—"}
-                                </p>
-                              </div>
-                            ))}
-                            {resultadosMapa[0].data_atualizacao_fonte && (
+                            <div className="flex items-start justify-between gap-2 flex-wrap">
+                              <p className="font-medium">{mapaResultado?.razao_social}</p>
+                              <Badge
+                                className={
+                                  (mapaResultado?.situacao || "").toLowerCase().includes("ativo")
+                                    ? "bg-green-600 text-white"
+                                    : "bg-destructive text-destructive-foreground"
+                                }
+                              >
+                                {mapaResultado?.situacao || "Sem status"}
+                              </Badge>
+                            </div>
+                            <p className="text-muted-foreground">{mapaResultado?.municipio || "—"}/{mapaResultado?.uf || "—"}</p>
+                            {mapaResultado?.data_atualizacao_fonte && (
                               <p className="text-[10px] text-muted-foreground">
-                                Base MAPA de {format(new Date(resultadosMapa[0].data_atualizacao_fonte), "dd/MM/yyyy")}.
+                                Base MAPA de {format(new Date(mapaResultado.data_atualizacao_fonte), "dd/MM/yyyy")}.
                               </p>
                             )}
                           </>
@@ -519,9 +525,15 @@ export default function Fornecedores() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Checkbox checked={sipeagroVerificado} onCheckedChange={(v) => setSipeagroVerificado(!!v)} />
                       <Label className="text-sm">Registro verificado e ativo no SIPEAGRO</Label>
+                      {mapaStatus === "found" && !(mapaResultado?.situacao || "").toLowerCase().includes("ativo") && (
+                        <span className="text-xs text-destructive flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          Situação no MAPA: {mapaResultado?.situacao || "desconhecida"} — confirme antes de marcar
+                        </span>
+                      )}
                     </div>
                   </div>
 
