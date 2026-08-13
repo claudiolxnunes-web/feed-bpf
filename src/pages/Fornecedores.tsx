@@ -65,6 +65,7 @@ interface FornecedorRow {
 
 interface MapaEstabelecimentoResumo {
   razao_social: string;
+  cnpj: string | null;
   registro_estabelecimento: string | null;
   situacao: string | null;
   municipio: string | null;
@@ -144,7 +145,7 @@ export default function Fornecedores() {
   const [registroSipeagro, setRegistroSipeagro] = useState("");
   const [sipeagroVerificado, setSipeagroVerificado] = useState(false);
   const [mapaStatus, setMapaStatus] = useState<"idle" | "loading" | "found" | "not_found">("idle");
-  const [mapaResultado, setMapaResultado] = useState<MapaEstabelecimentoResumo | null>(null);
+  const [mapaResultados, setMapaResultados] = useState<MapaEstabelecimentoResumo[]>([]);
 
   // Avaliação
   const [nota, setNota] = useState(0);
@@ -175,7 +176,7 @@ export default function Fornecedores() {
     setDocCertRegistroMapa(false); setDocAlvara(false); setDocCertRegistroProduto(false);
     setDocFichaTecnica(false); setDocCertAnalise(false); setResultadoQualificacao("pendente");
     setObservacoes(""); setRegistroSipeagro(""); setSipeagroVerificado(false);
-    setMapaStatus("idle"); setMapaResultado(null);
+    setMapaStatus("idle"); setMapaResultados([]);
     setDataAvaliacao(new Date().toISOString().split("T")[0]); setFormTab("dados");
   };
 
@@ -188,26 +189,32 @@ export default function Fornecedores() {
 
     const { data, error } = await supabase
       .from("mapa_estabelecimentos")
-      .select("razao_social, registro_estabelecimento, situacao, municipio, uf, data_atualizacao_fonte")
+      .select("razao_social, cnpj, registro_estabelecimento, situacao, municipio, uf, data_atualizacao_fonte")
       .or(filtros.join(","))
-      .limit(1);
+      .limit(10);
 
     if (error) {
       setMapaStatus("idle");
-      setMapaResultado(null);
+      setMapaResultados([]);
       return;
     }
 
-    const encontrado = ((data as MapaEstabelecimentoResumo[]) || [])[0] || null;
-    setMapaResultado(encontrado);
-    setMapaStatus(encontrado ? "found" : "not_found");
+    const encontrados = (data as MapaEstabelecimentoResumo[]) || [];
+    setMapaResultados(encontrados);
+    setMapaStatus(encontrados.length > 0 ? "found" : "not_found");
+  };
+
+  const selecionarResultadoMapa = (item: MapaEstabelecimentoResumo) => {
+    setNome(item.razao_social || "");
+    if (item.cnpj) setCnpj(item.cnpj);
+    setRegistroSipeagro(item.registro_estabelecimento || "");
   };
 
   useEffect(() => {
     const registro = registroSipeagro.trim();
     if (!open || registro.length < 3) {
       setMapaStatus("idle");
-      setMapaResultado(null);
+      setMapaResultados([]);
       return;
     }
 
@@ -262,7 +269,7 @@ export default function Fornecedores() {
     setDocCertRegistroMapa(!!f.doc_certificado_registro_mapa); setDocAlvara(!!f.doc_alvara_funcionamento); setDocCertRegistroProduto(!!f.doc_certificado_registro_produto);
     setDocFichaTecnica(!!f.doc_ficha_tecnica); setDocCertAnalise(!!f.doc_certificado_analise); setResultadoQualificacao(f.resultado_qualificacao || "pendente");
     setObservacoes(f.observacoes || ""); setRegistroSipeagro(f.registro_sipeagro || ""); setSipeagroVerificado(!!f.sipeagro_verificado);
-    setMapaStatus("idle"); setMapaResultado(null);
+    setMapaStatus("idle"); setMapaResultados([]);
     setOpen(true);
   };
 
@@ -485,55 +492,63 @@ export default function Fornecedores() {
                     <p className="text-[10px] text-muted-foreground">Ao digitar (mín. 3 caracteres), a base MAPA é consultada automaticamente por este registro ou pelo CNPJ já preenchido acima.</p>
 
                     {mapaStatus !== "idle" && (
-                      <div
-                        className={`rounded border p-2 text-xs space-y-1 ${
-                          mapaStatus === "found" && (mapaResultado?.situacao || "").toLowerCase().includes("ativo")
-                            ? "bg-green-600/10 border-green-600/40"
-                            : mapaStatus === "found"
-                              ? "bg-destructive/10 border-destructive/40"
-                              : "bg-muted/30 border-muted"
-                        }`}
-                      >
+                      <div className="space-y-1">
                         {mapaStatus === "loading" ? (
-                          <p className="text-muted-foreground flex items-center gap-1">
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <Loader2 className="w-3 h-3 animate-spin" /> Consultando base MAPA...
                           </p>
                         ) : mapaStatus === "not_found" ? (
-                          <p className="text-muted-foreground">Nenhum estabelecimento encontrado na base MAPA para este registro/CNPJ.</p>
+                          <p className="rounded border bg-muted/30 border-muted p-2 text-xs text-muted-foreground">
+                            Nenhum estabelecimento encontrado na base MAPA para este registro/CNPJ.
+                          </p>
                         ) : (
                           <>
-                            <div className="flex items-start justify-between gap-2 flex-wrap">
-                              <p className="font-medium">{mapaResultado?.razao_social}</p>
-                              <Badge
-                                className={
-                                  (mapaResultado?.situacao || "").toLowerCase().includes("ativo")
-                                    ? "bg-green-600 text-white"
-                                    : "bg-destructive text-destructive-foreground"
-                                }
-                              >
-                                {mapaResultado?.situacao || "Sem status"}
-                              </Badge>
-                            </div>
-                            <p className="text-muted-foreground">{mapaResultado?.municipio || "—"}/{mapaResultado?.uf || "—"}</p>
-                            {mapaResultado?.data_atualizacao_fonte && (
-                              <p className="text-[10px] text-muted-foreground">
-                                Base MAPA de {format(new Date(mapaResultado.data_atualizacao_fonte), "dd/MM/yyyy")}.
-                              </p>
-                            )}
+                            <p className="text-[10px] text-muted-foreground">
+                              {mapaResultados.length > 1
+                                ? `${mapaResultados.length} resultados — clique no correto para preencher a ficha:`
+                                : "Clique para preencher a ficha com estes dados:"}
+                            </p>
+                            {mapaResultados.map((item, idx) => {
+                              const ativo = (item.situacao || "").toLowerCase().includes("ativo");
+                              return (
+                                <button
+                                  key={`${item.registro_estabelecimento || "sem-registro"}-${idx}`}
+                                  type="button"
+                                  onClick={() => selecionarResultadoMapa(item)}
+                                  className={`w-full text-left rounded border p-2 text-xs space-y-1 transition-colors hover:brightness-95 ${
+                                    ativo ? "bg-green-600/10 border-green-600/40" : "bg-destructive/10 border-destructive/40"
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-2 flex-wrap">
+                                    <p className="font-medium">{item.razao_social}</p>
+                                    <Badge className={ativo ? "bg-green-600 text-white" : "bg-destructive text-destructive-foreground"}>
+                                      {item.situacao || "Sem status"}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-muted-foreground">
+                                    Reg.: <strong>{item.registro_estabelecimento || "—"}</strong> · {item.municipio || "—"}/{item.uf || "—"}
+                                  </p>
+                                  {item.data_atualizacao_fonte && (
+                                    <p className="text-[10px] text-muted-foreground">
+                                      Base MAPA de {format(new Date(item.data_atualizacao_fonte), "dd/MM/yyyy")}.
+                                    </p>
+                                  )}
+                                </button>
+                              );
+                            })}
                           </>
                         )}
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Checkbox checked={sipeagroVerificado} onCheckedChange={(v) => setSipeagroVerificado(!!v)} />
-                      <Label className="text-sm">Registro verificado e ativo no SIPEAGRO</Label>
-                      {mapaStatus === "found" && !(mapaResultado?.situacao || "").toLowerCase().includes("ativo") && (
-                        <span className="text-xs text-destructive flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          Situação no MAPA: {mapaResultado?.situacao || "desconhecida"} — confirme antes de marcar
-                        </span>
-                      )}
+                    <div className="flex items-start gap-2">
+                      <Checkbox checked={sipeagroVerificado} onCheckedChange={(v) => setSipeagroVerificado(!!v)} className="mt-0.5" />
+                      <div>
+                        <Label className="text-sm">Registro verificado e ativo no SIPEAGRO</Label>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Ao marcar, você declara ter conferido o registro na fonte oficial. A base interna é um apoio à consulta e reflete a última importação.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
