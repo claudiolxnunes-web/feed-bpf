@@ -574,14 +574,14 @@ export default function ConsultaSipeagro() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Upload className="w-5 h-5 text-primary" />
-              Atualizar base por Excel
+              Atualizar base de estabelecimentos
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2 rounded-md border p-3">
-              <p className="text-sm font-medium">Atualização semi-automática por URL oficial</p>
+              <p className="text-sm font-medium">Acesso à página oficial do MAPA</p>
               <p className="text-sm text-muted-foreground">
-                Informe a página oficial do órgão. O sistema tenta localizar o Excel publicado e atualizar a base automaticamente.
+                Abre a página oficial onde o MAPA publica a lista. Hoje o arquivo é disponibilizado em PDF — baixe, converta para Excel e importe abaixo.
               </p>
               <div className="flex flex-col gap-3 lg:flex-row">
                 <Input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} placeholder="https://..." className="flex-1" />
