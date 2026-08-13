@@ -528,7 +528,7 @@ export default function ConsultaSipeagro() {
     <div className="space-y-6">
       <PageHeader
         title="Consulta SIPEAGRO"
-        description="Base interna pesquisável de estabelecimentos MAPA com atualização por planilha Excel"
+        description="Base interna pesquisável de estabelecimentos MAPA atualizada a partir da lista oficial"
         icon={Search}
         orientacaoModuloId="consulta-sipeagro"
       />
