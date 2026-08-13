@@ -357,7 +357,7 @@ export default function Recebimento() {
                 <div className="space-y-2">
                   <Label>Upload da Nota Fiscal</Label>
                   <FileUploadComponent 
-                    bucket="documentos_bpf" 
+                    bucket="documentos-bpf" 
                     onUploadComplete={(url) => setNfUrl(url)} 
                     label="Clique para subir a NF"
                   />
@@ -365,7 +365,7 @@ export default function Recebimento() {
                 <div className="space-y-2">
                   <Label>Upload do Laudo/Certificado</Label>
                   <FileUploadComponent 
-                    bucket="documentos_bpf" 
+                    bucket="documentos-bpf" 
                     onUploadComplete={(url) => setCertUrl(url)} 
                     label="Clique para subir o Laudo"
                   />

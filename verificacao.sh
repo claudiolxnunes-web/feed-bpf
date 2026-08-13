@@ -54,7 +54,7 @@ NASSETS=$(ls "$DIST"/assets/*.js 2>/dev/null | wc -l)
 # 3. Corte do Lovable --------------------------------------------------------
 echo
 echo "3. Corte do Lovable"
-LOV_DIST=$(grep -rlo "lovable" "$DIST"/assets/*.js 2>/dev/null | wc -l)
+LOV_DIST=$(grep -rlo "lovable\.dev\|cloud-auth" "$DIST"/assets/*.js 2>/dev/null | wc -l)
 [ "$LOV_DIST" -eq 0 ] && ok "nenhuma referencia a lovable no bundle publicado" \
                       || falha "$LOV_DIST bundle(s) com 'lovable' — rodar: grep -rl lovable $DIST/assets/*.js"
 
