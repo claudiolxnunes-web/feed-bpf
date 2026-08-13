@@ -89,11 +89,11 @@ Não inclua markdown, apenas JSON puro.`;
 
     const userPrompt = `Lead:\n${JSON.stringify(contexto, null, 2)}`;
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+        Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",

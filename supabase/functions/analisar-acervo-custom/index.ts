@@ -54,8 +54,8 @@ serve(async (req) => {
     const modelosResumo = (modelos || []).map(m => ({ nome: m.nome, pop: m.pop_codigo || "sem-pop" }));
 
     // 2. Monta o prompt para o Lovable AI Gateway
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY ausente");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY ausente");
 
     const systemPrompt = `Você é um auditor BPF (Boas Práticas de Fabricação) especialista em nutrição animal, IN MAPA 04/2007 e Decreto 12.031/2024.
 Sua tarefa: analisar o ACERVO DOCUMENTAL de uma fábrica e apontar o que está OK, o que FALTA e o que precisa de ATENÇÃO.
@@ -88,10 +88,10 @@ Retorne JSON:
   "recomendacoes_prioritarias": ["ação 1", "ação 2", "ação 3"]
 }`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
