@@ -221,7 +221,7 @@ export default function ConsultaSipeagro() {
   const [latestImport, setLatestImport] = useState<MapaImportacao | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
-  const [sourceUrl, setSourceUrl] = useState("https://www.gov.br/agricultura/pt-br/assuntos/insumos-agropecuarios/insumos-pecuarios/alimentacao-animal/arquivos-alimentacao-animal/estabelecimentos-registrados");
+  const [sourceUrl, setSourceUrl] = useState("https://www.gov.br/agricultura/pt-br/assuntos/insumos-agropecuarios/insumos-pecuarios/alimentacao-animal/arquivos-alimentacao-animal");
   const [importing, setImporting] = useState(false);
 
   const usingEmbeddedFallback = baseTotal === 0 && !latestImport;
@@ -595,7 +595,7 @@ export default function ConsultaSipeagro() {
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
               <div className="flex-1 space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Se preferir, envie manualmente a planilha oficial em Excel. A nova carga substitui a base anterior e registra o histórico da importação.
+                  O MAPA publica a lista em PDF. Baixe o arquivo no site oficial, converta para Excel (iLovePDF ou similar) e envie aqui. A nova carga substitui a base anterior e registra o histórico da importação.
                 </p>
                 <Input type="file" accept=".xlsx,.xls" onChange={(e) => setImportFile(e.target.files?.[0] || null)} />
               </div>

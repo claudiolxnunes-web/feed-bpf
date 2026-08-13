@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Users, Plus, Loader2, Star, AlertCircle, CheckCircle2, Clock, FileText, Download, Printer, ExternalLink, Search, Edit } from "lucide-react";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,15 @@ interface FornecedorRow {
   auditorias?: any[];
 }
 
+interface MapaEstabelecimentoResumo {
+  razao_social: string;
+  registro_estabelecimento: string | null;
+  situacao: string | null;
+  municipio: string | null;
+  uf: string | null;
+  data_atualizacao_fonte: string | null;
+}
+
 interface RecebimentoRow {
   id: string;
   data: string;
@@ -78,6 +88,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: typeof
   reprovado: { label: "Reprovado", color: "bg-destructive text-destructive-foreground", icon: AlertCircle },
   em_avaliacao: { label: "Em Avaliação", color: "bg-yellow-500/20 text-yellow-700", icon: Clock },
 };
+
+const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
+const cleanLikeValue = (s: string) => s.replace(/[%_,]/g, " ").trim();
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -130,6 +143,8 @@ export default function Fornecedores() {
   // SIPEAGRO
   const [registroSipeagro, setRegistroSipeagro] = useState("");
   const [sipeagroVerificado, setSipeagroVerificado] = useState(false);
+  const [mapaStatus, setMapaStatus] = useState<"idle" | "loading" | "found" | "not_found">("idle");
+  const [mapaResultado, setMapaResultado] = useState<MapaEstabelecimentoResumo | null>(null);
 
   // Avaliação
   const [nota, setNota] = useState(0);
@@ -160,8 +175,49 @@ export default function Fornecedores() {
     setDocCertRegistroMapa(false); setDocAlvara(false); setDocCertRegistroProduto(false);
     setDocFichaTecnica(false); setDocCertAnalise(false); setResultadoQualificacao("pendente");
     setObservacoes(""); setRegistroSipeagro(""); setSipeagroVerificado(false);
+    setMapaStatus("idle"); setMapaResultado(null);
     setDataAvaliacao(new Date().toISOString().split("T")[0]); setFormTab("dados");
   };
+
+  const verificarNoMapa = async (registro: string) => {
+    const cnpjDigits = onlyDigits(cnpj);
+    const filtros = [`registro_estabelecimento.ilike.%${cleanLikeValue(registro)}%`];
+    if (cnpjDigits.length >= 11) filtros.push(`cnpj.ilike.%${cnpjDigits}%`);
+
+    setMapaStatus("loading");
+
+    const { data, error } = await supabase
+      .from("mapa_estabelecimentos")
+      .select("razao_social, registro_estabelecimento, situacao, municipio, uf, data_atualizacao_fonte")
+      .or(filtros.join(","))
+      .limit(1);
+
+    if (error) {
+      setMapaStatus("idle");
+      setMapaResultado(null);
+      return;
+    }
+
+    const encontrado = ((data as MapaEstabelecimentoResumo[]) || [])[0] || null;
+    setMapaResultado(encontrado);
+    setMapaStatus(encontrado ? "found" : "not_found");
+  };
+
+  useEffect(() => {
+    const registro = registroSipeagro.trim();
+    if (!open || registro.length < 3) {
+      setMapaStatus("idle");
+      setMapaResultado(null);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      verificarNoMapa(registro);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registroSipeagro, open]);
 
   const handleAdd = async () => {
     if (!nome || !user) return;
@@ -206,6 +262,7 @@ export default function Fornecedores() {
     setDocCertRegistroMapa(!!f.doc_certificado_registro_mapa); setDocAlvara(!!f.doc_alvara_funcionamento); setDocCertRegistroProduto(!!f.doc_certificado_registro_produto);
     setDocFichaTecnica(!!f.doc_ficha_tecnica); setDocCertAnalise(!!f.doc_certificado_analise); setResultadoQualificacao(f.resultado_qualificacao || "pendente");
     setObservacoes(f.observacoes || ""); setRegistroSipeagro(f.registro_sipeagro || ""); setSipeagroVerificado(!!f.sipeagro_verificado);
+    setMapaStatus("idle"); setMapaResultado(null);
     setOpen(true);
   };
 
@@ -421,7 +478,47 @@ export default function Fornecedores() {
                   <div className="p-3 rounded-lg border bg-muted/20 space-y-3">
                     <p className="text-sm font-semibold flex items-center gap-2">🏛️ Registro SIPEAGRO — IN 17/2017</p>
                     <p className="text-[10px] text-muted-foreground">Estabelecimentos fornecedores de insumos para alimentação animal devem possuir registro no SIPEAGRO/MAPA.</p>
-                    <div><Label>Nº Registro SIPEAGRO</Label><Input value={registroSipeagro} onChange={e => setRegistroSipeagro(e.target.value)} placeholder="Ex: BR-0000000000" /></div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+                      <div className="flex-1">
+                        <Label>Nº Registro SIPEAGRO</Label>
+                        <Input value={registroSipeagro} onChange={e => setRegistroSipeagro(e.target.value)} placeholder="Ex: BR-0000000000" />
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={verificarNoMapa} disabled={verificandoMapa} className="gap-2">
+                        {verificandoMapa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                        Consultar base MAPA
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Busca pelo Nº Registro acima ou pelo CNPJ já preenchido nesta ficha.</p>
+
+                    {buscouMapa && !verificandoMapa && (
+                      <div className="space-y-2">
+                        {resultadosMapa.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">Nenhum estabelecimento encontrado na base MAPA para este registro/CNPJ.</p>
+                        ) : (
+                          <>
+                            {resultadosMapa.map((item, idx) => (
+                              <div key={`${item.registro_estabelecimento || "sem-registro"}-${idx}`} className="rounded border bg-background p-2 text-xs space-y-1">
+                                <div className="flex items-start justify-between gap-2 flex-wrap">
+                                  <p className="font-medium">{item.razao_social}</p>
+                                  <Badge variant={(item.situacao || "").toLowerCase().includes("ativo") ? "default" : "destructive"}>
+                                    {item.situacao || "Sem status"}
+                                  </Badge>
+                                </div>
+                                <p className="text-muted-foreground">
+                                  Reg.: <strong>{item.registro_estabelecimento || "—"}</strong> · {item.municipio || "—"}/{item.uf || "—"}
+                                </p>
+                              </div>
+                            ))}
+                            {resultadosMapa[0].data_atualizacao_fonte && (
+                              <p className="text-[10px] text-muted-foreground">
+                                Base MAPA de {format(new Date(resultadosMapa[0].data_atualizacao_fonte), "dd/MM/yyyy")}.
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2">
                       <Checkbox checked={sipeagroVerificado} onCheckedChange={(v) => setSipeagroVerificado(!!v)} />
                       <Label className="text-sm">Registro verificado e ativo no SIPEAGRO</Label>

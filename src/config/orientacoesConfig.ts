@@ -828,7 +828,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     descricao: "Validação de registros MAPA de fornecedores e produtos.",
     base_legal: ["IN 04/2007 Art. 12"],
     passos: [
-      { titulo: "1. Informar CNPJ ou nº de registro", descricao: "Sistema consulta SIPEAGRO online." },
+      { titulo: "1. Informar CNPJ ou nº de registro", descricao: "Busca na base interna. Para atualizar: baixe o PDF no site do MAPA, converta para Excel (ex.: iLovePDF) e importe nesta tela." },
       { titulo: "2. Validar status", descricao: "Ativo / Suspenso / Cancelado." },
       { titulo: "3. Vincular ao fornecedor", descricao: "Resultado é salvo no cadastro." },
       { titulo: "4. Re-verificar", descricao: "Sistema sugere re-consulta semestral.", dica: "Fornecedor com registro suspenso é bloqueado automaticamente." },
