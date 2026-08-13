@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -81,7 +80,6 @@ export default function Auth() {
   const [telefone, setTelefone] = useState("");
   const [tipoUsuario, setTipoUsuario] = useState<"cliente" | "consultoria">("cliente");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
@@ -195,27 +193,6 @@ export default function Auth() {
       toast.error(getAuthErrorMessage(error));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth?product=${encodeURIComponent(product)}&redirect=${encodeURIComponent(preferredRedirect)}`,
-        extraParams: {
-          prompt: "select_account",
-        },
-      });
-
-      if (result.error) throw result.error;
-
-       if (!result.redirected) {
-         navigate(preferredRedirect, { replace: true });
-       }
-    } catch (error: any) {
-      toast.error(getAuthErrorMessage(error));
-      setGoogleLoading(false);
     }
   };
 
@@ -351,24 +328,6 @@ export default function Auth() {
                 </div>
               </div>
             )}
-            <Button type="button" variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={googleLoading || loading}>
-              {googleLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="w-4 h-4">
-                <path fill="#4285F4" d="M21.805 10.023H12v3.955h5.617c-.496 2.512-2.632 3.955-5.617 3.955a6.227 6.227 0 1 1 0-12.455c1.77 0 3.347.672 4.576 1.773l2.985-2.985A10.52 10.52 0 0 0 12 1.5C6.201 1.5 1.5 6.201 1.5 12S6.201 22.5 12 22.5c5.25 0 10.023-3.814 10.023-10.5 0-.709-.077-1.386-.218-1.977Z" />
-                <path fill="#34A853" d="M3.733 7.846 6.983 10.23A6.227 6.227 0 0 1 12 5.478c1.77 0 3.347.672 4.576 1.773l2.985-2.985A10.52 10.52 0 0 0 12 1.5 10.49 10.49 0 0 0 3.733 7.846Z" />
-                <path fill="#FBBC05" d="M1.5 12c0 1.693.403 3.291 1.118 4.707l3.775-2.92A6.182 6.182 0 0 1 5.773 12c0-.622.093-1.224.266-1.787l-3.775-2.92A10.458 10.458 0 0 0 1.5 12Z" />
-                <path fill="#EA4335" d="M12 22.5c2.84 0 5.222-.93 6.963-2.516l-3.385-2.62c-.951.638-2.167 1.024-3.578 1.024-2.973 0-5.111-1.432-5.617-3.935l-3.746 2.89A10.497 10.497 0 0 0 12 22.5Z" />
-              </svg>
-              Entrar com Google
-            </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">ou continue com e-mail</span>
-              </div>
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
