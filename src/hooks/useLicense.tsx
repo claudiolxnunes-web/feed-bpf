@@ -24,6 +24,18 @@ const isValidLicense = (license: LicenseInfo | null) => {
   return license.liberado_admin || (license.status === "ativa" && !expired);
 };
 
+const produtoAliases = (p: string): string[] => {
+  const map: Record<string, string[]> = {
+    feedbpf: ["feedbpf", "feed_bpf"],
+    auditsbpf: ["auditsbpf", "audits_bpf"],
+    feedbpfcustom: ["feedbpfcustom", "feedbpf_custom", "feed_bpf_custom"],
+    nutricrm: ["nutricrm", "nutri_crm"],
+    agrogestao: ["agrogestao", "agro_gestao"],
+    agrorc: ["agrorc", "agro_rc"],
+  };
+  return map[p] ?? [p];
+};
+
 export function useLicense(productParam?: string) {
   const { user } = useAuth();
   const { empresaAtiva } = useEmpresa();
@@ -64,7 +76,7 @@ export function useLicense(productParam?: string) {
             supabase
               .from("licencas")
               .select("*")
-              .eq("produto", targetProduct)
+              .in("produto", produtoAliases(targetProduct))
               .eq("empresa_id", empresaAtiva.id)
               .order("created_at", { ascending: false })
               .limit(1)
@@ -76,7 +88,7 @@ export function useLicense(productParam?: string) {
           supabase
             .from("licencas")
             .select("*")
-            .eq("produto", targetProduct)
+            .in("produto", produtoAliases(targetProduct))
             .eq("user_id", user.id)
             .is("empresa_id", null)
             .order("created_at", { ascending: false })
@@ -89,7 +101,7 @@ export function useLicense(productParam?: string) {
             supabase
               .from("licencas")
               .select("*")
-              .eq("produto", targetProduct)
+              .in("produto", produtoAliases(targetProduct))
               .eq("user_id", user.id)
               .eq("empresa_id", empresaAtiva.id)
               .order("created_at", { ascending: false })
@@ -135,7 +147,7 @@ export function useLicense(productParam?: string) {
     const refreshQuery = supabase
       .from("licencas")
       .select("*")
-      .eq("produto", targetProduct)
+      .in("produto", produtoAliases(targetProduct))
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1);
