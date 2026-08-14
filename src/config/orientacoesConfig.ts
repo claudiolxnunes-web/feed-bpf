@@ -42,11 +42,11 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     descricao: "Cadastro e qualificação de fornecedores de matérias-primas e embalagens conforme PL POP 1.1.",
     base_legal: ["IN 04/2007 (MAPA)", "Decreto 12.031/2024", "IN 15/2009"],
     passos: [
-      { titulo: "1. Cadastrar fornecedor", descricao: "Clique em 'Novo Fornecedor' e preencha CNPJ, razão social e contato.", dica: "Confira o CNPJ digitado — a validação é apenas de formato." },
+      { titulo: "1. Cadastrar fornecedor", descricao: "Clique em 'Novo Fornecedor' e preencha CNPJ, razão social e contato.", dica: "Confira o CNPJ digitado — a validação é apenas de formato, não de existência." },
       { titulo: "2. Verificar SIPEAGRO", descricao: "Use o botão 'Consultar SIPEAGRO' para validar o registro no MAPA.", base_legal: "IN 04/2007 Art. 12" },
-      { titulo: "3. Aplicar questionário", descricao: "Responda o questionário de qualificação (PL POP 1.1) — 25 critérios.", dica: "Resultado gera ranking automático de 1 a 5 estrelas." },
+      { titulo: "3. Aplicar questionário", descricao: "Responda o questionário de qualificação (PL POP 1.1) — 25 critérios.", dica: "O resultado do questionário orienta a classificação do fornecedor." },
       { titulo: "4. Anexar documentos", descricao: "Anexe Alvará, Registro MAPA, Ficha Técnica e Certificado de Análise.", base_legal: "IN 04/2007 Art. 18" },
-      { titulo: "5. Definir próxima avaliação", descricao: "O sistema agenda automaticamente nova avaliação em 12 meses." },
+      { titulo: "5. Definir próxima avaliação", descricao: "Defina a data da próxima avaliação (referência: 12 meses)." },
     ],
     campos_simulacao: [
       { nome: "nome", label: "Razão Social", tipo: "text", exemplo: "Nutrigrãos Indústria de Alimentos Ltda" },
@@ -56,7 +56,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "nota_avaliacao", label: "Nota (1-5)", tipo: "number", exemplo: 4 },
       { nome: "status_qualificacao", label: "Status", tipo: "select", exemplo: "Aprovado", opcoes: ["Aprovado", "Aprovado c/ Restrição", "Reprovado"] },
     ],
-    exemplo_resultado: "Fornecedor aprovado, próxima avaliação agendada para 12 meses, alerta de vencimento em 60 dias.",
+    exemplo_resultado: "Fornecedor aprovado, próxima avaliação registrada para 12 meses. Acompanhe o vencimento no painel.",
   },
   {
     id: "recebimento",
@@ -69,9 +69,9 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Selecionar fornecedor", descricao: "Escolha do cadastro qualificado. Confira o status antes de prosseguir — fornecedor reprovado não deve ser aceito." },
       { titulo: "2. Identificar MP e lote", descricao: "Informe matéria-prima, lote do fornecedor, NF e quantidade." },
       { titulo: "3. Inspeção visual", descricao: "Marque conformidade de embalagem, odor, presença de pragas e contaminantes." },
-      { titulo: "4. Medir umidade (grãos)", descricao: "Para milho/soja, registre umidade. Alerta automático se >14%.", base_legal: "IN 60/2011" },
+      { titulo: "4. Medir umidade (grãos)", descricao: "Para milho/soja, registre umidade. Limite de referência: 14%.", base_legal: "IN 60/2011" },
       { titulo: "5. Anexar laudo", descricao: "Upload do Certificado de Análise do fornecedor e checagem de Registro MAPA.", base_legal: "IN 04/2007 Art. 18" },
-      { titulo: "6. Decisão", descricao: "Aprovar / Reprovar / Aprovar com Restrição (gera RNC automático)." },
+      { titulo: "6. Decisão", descricao: "Aprovar / Reprovar / Aprovar com Restrição. Em caso de restrição, abra a RNC correspondente." },
     ],
     campos_simulacao: [
       { nome: "data", label: "Data do Recebimento", tipo: "date", exemplo: "2025-04-15" },
@@ -80,7 +80,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "lote", label: "Lote do Fornecedor", tipo: "text", exemplo: "MIL-2025-04-0123" },
       { nome: "nota_fiscal", label: "Nota Fiscal", tipo: "text", exemplo: "045892" },
       { nome: "quantidade_kg", label: "Quantidade (kg)", tipo: "number", exemplo: 28000 },
-      { nome: "umidade", label: "Umidade (%)", tipo: "number", exemplo: 13.2, ajuda: "Limite: 14% (alerta automático acima)" },
+      { nome: "umidade", label: "Umidade (%)", tipo: "number", exemplo: 13.2, ajuda: "Limite: 14% — acima disso, registre a não conformidade" },
       { nome: "registro_mapa", label: "Registro MAPA do produto", tipo: "text", exemplo: "SP-001234-5" },
       { nome: "decisao", label: "Decisão", tipo: "select", exemplo: "Aprovado", opcoes: ["Aprovado", "Reprovado", "Aprovado c/ Restrição"] },
     ],
@@ -98,7 +98,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "2. Definir parâmetros", descricao: "Selecione parâmetros (umidade, proteína, micotoxinas, salmonella, etc.)." },
       { titulo: "3. Lançar resultados", descricao: "Insira resultado, unidade e limite de referência." },
       { titulo: "4. Anexar laudo", descricao: "Upload do laudo PDF do laboratório acreditado." },
-      { titulo: "5. Tratar não conformidade", descricao: "Resultados fora do limite geram RNC automático.", base_legal: "Decreto 12.031/2024" },
+      { titulo: "5. Tratar não conformidade", descricao: "Resultados fora do limite exigem abertura de RNC.", base_legal: "Decreto 12.031/2024" },
     ],
     campos_simulacao: [
       { nome: "produto", label: "Produto/MP", tipo: "text", exemplo: "Farelo de Soja" },
@@ -111,7 +111,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "limite_referencia", label: "Limite Referência", tipo: "text", exemplo: "20 ppb (IN 07/1988)" },
       { nome: "conforme", label: "Conforme?", tipo: "boolean", exemplo: true },
     ],
-    exemplo_resultado: "Laudo arquivado por 2 anos. Se NC, gera RNC e bloqueia uso do lote.",
+    exemplo_resultado: "Laudo arquivado por 2 anos. Se houver NC, abra a RNC e bloqueie o uso do lote.",
   },
   {
     id: "substancias",
@@ -122,7 +122,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     base_legal: ["IN 17/2017", "IN 65/2020"],
     passos: [
       { titulo: "1. Cadastrar análise", descricao: "Selecione MP, lote e substância a ser monitorada." },
-      { titulo: "2. Limite máximo", descricao: "Sistema preenche automaticamente o limite legal." },
+      { titulo: "2. Limite máximo", descricao: "Confira o limite legal aplicável ao produto." },
       { titulo: "3. Resultado", descricao: "Lance resultado em mg/kg ou 'Não Detectado'." },
       { titulo: "4. Certificação", descricao: "Resultados 'Não Detectado' alimentam o certificado Ractopamina Free." },
     ],
@@ -159,7 +159,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "responsavel", label: "Responsável", tipo: "text", exemplo: "João Silva — Operador" },
       { nome: "status", label: "Status", tipo: "select", exemplo: "Concluído", opcoes: ["Pendente", "Em andamento", "Concluído"] },
     ],
-    exemplo_resultado: "Registro arquivado com timestamp para auditoria. Próxima limpeza calculada automaticamente.",
+    exemplo_resultado: "Registro arquivado com timestamp para auditoria. Próxima limpeza definida conforme a periodicidade cadastrada.",
   },
   {
     id: "validacao-limpeza",
@@ -195,7 +195,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     base_legal: ["IN 04/2007", "NR 7 / NR 6"],
     passos: [
       { titulo: "1. Cadastrar colaborador", descricao: "Nome, função, setor e data de admissão." },
-      { titulo: "2. Registrar ASO", descricao: "Anexe ASO admissional/periódico/demissional. Sistema alerta vencimento.", base_legal: "NR 7" },
+      { titulo: "2. Registrar ASO", descricao: "Anexe ASO admissional/periódico/demissional e acompanhe o vencimento no painel.", base_legal: "NR 7" },
       { titulo: "3. Treinamento de higiene", descricao: "Registre treinamento anual de BPF/Higiene." },
       { titulo: "4. EPI fornecido", descricao: "Liste EPIs entregues (touca, máscara, uniforme, botas)." },
     ],
@@ -207,7 +207,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "treinamento_higiene", label: "Última Capacitação BPF", tipo: "date", exemplo: "2024-11-20" },
       { nome: "epi_entregue", label: "EPIs Entregues", tipo: "text", exemplo: "Touca, máscara N95, uniforme, botas" },
     ],
-    exemplo_resultado: "Alerta automático 30 dias antes do vencimento do ASO. Bloqueio de acesso à produção se vencido.",
+    exemplo_resultado: "Acompanhe o vencimento do ASO no painel. Colaborador com ASO vencido não deve ter acesso à produção.",
   },
   {
     id: "treinamentos",
@@ -281,7 +281,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "ecoli", label: "E. coli", tipo: "text", exemplo: "Ausentes em 100mL" },
       { nome: "conforme", label: "Conforme?", tipo: "boolean", exemplo: true },
     ],
-    exemplo_resultado: "Resultado dentro dos parâmetros. Próxima análise laboratorial agendada para 6 meses.",
+    exemplo_resultado: "Resultado dentro dos parâmetros. Defina a data da próxima análise laboratorial (referência: 6 meses).",
   },
   // ============ POP 05 ============
   {
@@ -293,7 +293,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     base_legal: ["IN 04/2007", "IN 15/2009 — Carry-over"],
     passos: [
       { titulo: "1. Criar ordem de produção", descricao: "Selecione produto, fórmula versionada e quantidade programada." },
-      { titulo: "2. Verificar matriz de sensibilidade", descricao: "Sistema alerta necessidade de flushing entre lotes críticos.", base_legal: "IN 15/2009" },
+      { titulo: "2. Verificar matriz de sensibilidade", descricao: "Consulte a matriz de sensibilidade para decidir sobre o flushing entre lotes críticos.", base_legal: "IN 15/2009" },
       { titulo: "3. Sequenciar produção", descricao: "Defina ordem das batidas (priorize produtos sem medicamento → com medicamento)." },
       { titulo: "4. Registrar batidas", descricao: "Cada batida com lote MP, peso, hora início/fim, operador." },
       { titulo: "5. Imprimir Ficha Digital", descricao: "PDF com carimbo SHA-256 anti-fraude e timestamp." },
@@ -345,7 +345,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     passos: [
       { titulo: "1. Cadastro básico", descricao: "Nome, marca, classificação, espécie alvo, registro MAPA." },
       { titulo: "2. Níveis de garantia", descricao: "Lance níveis com unidades (auto-conversão g↔mg, exceções UFC/FTU/UI).", base_legal: "IN 30/2009" },
-      { titulo: "3. Editor de Rótulo", descricao: "Layout conforme IN 22/2009. Sistema avisa para inserir selo MAPA na sacaria, não no rótulo." },
+      { titulo: "3. Editor de Rótulo", descricao: "Layout conforme IN 22/2009. Confira se o selo MAPA deve constar na sacaria, não no rótulo." },
       { titulo: "4. RTPI (18 campos)", descricao: "Para produtos com aditivos restritos (ionóforos, ureia)." },
       { titulo: "5. Exportar", descricao: "PDF com carimbo, ZPL para Zebra ou Excel para layout." },
     ],
@@ -370,7 +370,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Vincular ao produto", descricao: "Selecione produto e crie nova versão (v1.0, v2.0)." },
       { titulo: "2. Adicionar ingredientes", descricao: "MP, percentual, ordem de inclusão e observações." },
       { titulo: "3. Validar 100%", descricao: "Sistema verifica soma de percentuais." },
-      { titulo: "4. Aprovar e arquivar", descricao: "Versão aprovada bloqueia edição (apenas nova versão é permitida)." },
+      { titulo: "4. Aprovar e arquivar", descricao: "Versão aprovada não deve ser editada — registre uma nova versão." },
     ],
     campos_simulacao: [
       { nome: "codigo", label: "Código Fórmula", tipo: "text", exemplo: "FORM-BOV-CONF" },
@@ -380,7 +380,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "status", label: "Status", tipo: "select", exemplo: "Ativa", opcoes: ["Rascunho", "Ativa", "Obsoleta"] },
       { nome: "observacoes", label: "Observações", tipo: "textarea", exemplo: "Ajuste de NDT após análise bromatológica do milho safra 2025." },
     ],
-    exemplo_resultado: "Fórmula v2.3 ativa. Versão anterior (v2.2) marcada como Obsoleta automaticamente.",
+    exemplo_resultado: "Fórmula v2.3 ativa. Marque a versão anterior (v2.2) como Obsoleta.",
   },
   {
     id: "armazenamento-transporte",
@@ -430,7 +430,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "responsavel", label: "Responsável", tipo: "text", exemplo: "Equipe Manutenção Interna" },
       { nome: "proxima_manutencao", label: "Próxima", tipo: "date", exemplo: "2025-07-20" },
     ],
-    exemplo_resultado: "OS registrada. Próxima preventiva agendada (90 dias). Histórico do equipamento atualizado.",
+    exemplo_resultado: "OS registrada. Programe a próxima preventiva (referência: 90 dias). Histórico disponível no equipamento.",
   },
   // ============ POP 07 ============
   {
@@ -453,7 +453,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "acao", label: "Ação Tomada", tipo: "text", exemplo: "Reposição de isca rodenticida e vedação de fresta" },
       { nome: "responsavel", label: "Responsável", tipo: "text", exemplo: "DedetSP — Empresa especializada" },
     ],
-    exemplo_resultado: "Monitoramento registrado. Tendência de pragas atualizada para análise.",
+    exemplo_resultado: "Monitoramento registrado. Consulte o histórico para análise de tendência.",
   },
   // ============ POP 08 ============
   {
@@ -518,7 +518,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     passos: [
       { titulo: "1. Buscar lote", descricao: "Informe lote do produto acabado." },
       { titulo: "2. Visualizar árvore", descricao: "Sistema mostra MPs (com lote/fornecedor) e clientes que receberam." },
-      { titulo: "3. Alertas de espécie", descricao: "Sistema alerta sobre uso cruzado conforme IN 34/2008 (ex: ruminantes ↔ não-ruminantes)." },
+      { titulo: "3. Alertas de espécie", descricao: "Sistema alerta sobre uso cruzado conforme IN 34/2008 (ex: ruminantes ↔ não-ruminantes). A decisão de prosseguir é do responsável técnico." },
       { titulo: "4. Exportar para recall", descricao: "Lista de clientes/lotes pronta para acionamento." },
     ],
     campos_simulacao: [
@@ -540,7 +540,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Iniciar simulação", descricao: "Defina lote-alvo (real ou fictício)." },
       { titulo: "2. Cronômetro inicia", descricao: "Sistema mede tempo de cada etapa para avaliar eficiência." },
       { titulo: "3. 10 etapas", descricao: "Identificação → Comunicação → Coleta → Segregação → Destino → Relatório." },
-      { titulo: "4. Gera RNC automática", descricao: "Toda simulação gera RNC para análise de gaps." },
+      { titulo: "4. Registrar RNC dos gaps", descricao: "Registre RNC para os gaps identificados na simulação." },
     ],
     campos_simulacao: [
       { nome: "lote_alvo", label: "Lote Alvo", tipo: "text", exemplo: "BOV-CONF-20250416-01" },
@@ -574,7 +574,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "prazo", label: "Prazo", tipo: "date", exemplo: "2025-04-30" },
       { nome: "status", label: "Status", tipo: "select", exemplo: "Em andamento", opcoes: ["Aberta", "Em andamento", "Fechada"] },
     ],
-    exemplo_resultado: "RNC registrada com plano de ação. Alerta automático no prazo de verificação.",
+    exemplo_resultado: "RNC registrada com plano de ação. Acompanhe o prazo de verificação no painel.",
   },
   // ============ POP 10 ============
   {
@@ -598,7 +598,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "itens_conformes", label: "Nº Conformes", tipo: "number", exemplo: 79 },
       { nome: "percentual_conformidade", label: "% Conformidade", tipo: "number", exemplo: 91 },
     ],
-    exemplo_resultado: "Auditoria 91% conforme. 8 NCs geradas com plano de ação automático.",
+    exemplo_resultado: "Auditoria 91% conforme. 8 NCs registradas — defina o plano de ação de cada uma.",
   },
   {
     id: "matriz-risco",
@@ -645,7 +645,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "lotes_produzidos", label: "Lotes Produzidos", tipo: "number", exemplo: 142 },
       { nome: "analises_no_prazo", label: "% Análises no Prazo", tipo: "number", exemplo: 100 },
     ],
-    exemplo_resultado: "Painel atualizado em tempo real. Tendências disponíveis para análise gerencial.",
+    exemplo_resultado: "Painel atualizado a cada carregamento. Tendências disponíveis para análise gerencial.",
   },
   {
     id: "legislacao",
@@ -658,7 +658,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Buscar norma", descricao: "Use a busca por código ('IN 04') ou tema ('rotulagem', 'pragas')." },
       { titulo: "2. Consultar IA", descricao: "Pergunte em linguagem natural sobre qualquer norma.", dica: "IA usa Lovable AI Gateway, sem custo de API key." },
       { titulo: "3. Anexar suas próprias normas", descricao: "Upload de PDFs internos ou licenças ambientais." },
-      { titulo: "4. Receber alertas", descricao: "Sistema avisa quando uma IN é alterada/revogada." },
+      { titulo: "4. Verificar alterações", descricao: "Consulte periodicamente a legislação — a verificação de alterações é manual." },
     ],
     campos_simulacao: [
       { nome: "busca", label: "Buscar norma ou tema", tipo: "text", exemplo: "IN 04/2007" },
@@ -748,7 +748,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "mes_inicio", label: "Mês Início", tipo: "number", exemplo: 3 },
       { nome: "responsavel", label: "Responsável", tipo: "text", exemplo: "Equipe Manutenção + Lab Acreditado" },
     ],
-    exemplo_resultado: "Atividade no calendário. Alerta 30 dias antes da próxima execução.",
+    exemplo_resultado: "Atividade no calendário. Acompanhe a data da próxima execução no painel.",
   },
   {
     id: "documentos",
@@ -763,7 +763,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "2. Definir próxima revisão", descricao: "Padrão MAPA: revisão anual ou a cada mudança significativa." },
       { titulo: "3. Vincular antes da execução", descricao: "Enquanto o POP/IT não estiver registrado em Documentos, ele não aparece para nova execução e não consegue gerar planilha operacional automática." , dica: "Fluxo prático: Documentos → registrar POP/IT → executar no tablet/diário operacional." },
       { titulo: "4. Histórico de versões", descricao: "Cada nova versão registra alterações, motivo e responsável.", dica: "Versão antiga fica arquivada para rastreabilidade." },
-      { titulo: "5. Alerta de vencimento", descricao: "Sistema avisa 60 dias antes da próxima revisão." },
+      { titulo: "5. Acompanhar vencimento", descricao: "Acompanhe no painel a data da próxima revisão." },
     ],
     campos_simulacao: [
       { nome: "codigo", label: "Código", tipo: "text", exemplo: "POP-01-RECEBIMENTO" },
@@ -773,7 +773,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "proxima_revisao", label: "Próxima Revisão", tipo: "date", exemplo: "2026-01-10" },
       { nome: "responsavel", label: "Responsável", tipo: "text", exemplo: "RT — Dr. Carlos Mendes" },
     ],
-    exemplo_resultado: "Documento registrado. Alerta de revisão programado.",
+    exemplo_resultado: "Documento registrado. Acompanhe a revisão programada no painel.",
   },
   {
     id: "planilhas-pop",
@@ -831,7 +831,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Informar CNPJ ou nº de registro", descricao: "Busca na base interna. Para atualizar: baixe o PDF no site do MAPA, converta para Excel (ex.: iLovePDF) e importe nesta tela." },
       { titulo: "2. Validar status", descricao: "Ativo / Suspenso / Cancelado." },
       { titulo: "3. Vincular ao fornecedor", descricao: "Resultado é salvo no cadastro." },
-      { titulo: "4. Re-verificar", descricao: "Sistema sugere re-consulta semestral.", dica: "Registro suspenso exige decisão do responsável técnico — o sistema não bloqueia sozinho." },
+      { titulo: "4. Re-verificar", descricao: "Programe uma nova consulta semestral.", dica: "Registro suspenso na base do MAPA exige decisão do responsável técnico — o sistema não bloqueia sozinho." },
     ],
     campos_simulacao: [
       { nome: "cnpj", label: "CNPJ", tipo: "text", exemplo: "12.345.678/0001-90" },
@@ -851,7 +851,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Ver alertas de atraso", descricao: "Painel mostra POPs cuja periodicidade venceu (ex: POP-02 deveria ser semanal e está há 10 dias sem registro).", dica: "Vermelho = ação urgente antes da auditoria." },
       { titulo: "2. Nova Execução", descricao: "Selecione o POP/IT já vinculado em Documentos, informe executor, setor e status." },
       { titulo: "3. Criação automática da planilha", descricao: "Se o POP/IT estiver cadastrado em Documentos, o registro da execução também cria automaticamente a planilha operacional do mês/período quando ela ainda não existir.", dica: "Se não aparecer opção para executar ou a planilha não nascer, o primeiro lugar para conferir é o módulo Documentos." },
-      { titulo: "4. Preencher checklist específico", descricao: "POP-02 (12 itens triagem + ASO), POP-03 (15 itens limpeza + produto químico), POP-04 (11 itens água + laudo), POP-05 (16 itens higiene pessoal), POP-09 (8 itens veículo) — sistema carrega automaticamente conforme o POP escolhido." },
+      { titulo: "4. Preencher checklist específico", descricao: "POP-02 (12 itens triagem + ASO), POP-03 (15 itens limpeza + produto químico), POP-04 (11 itens água + laudo), POP-05 (16 itens higiene pessoal), POP-09 (8 itens veículo) — o checklist correspondente ao POP escolhido é apresentado." },
       { titulo: "5. Filtrar por período", descricao: "Use Status + POP + Data início/fim para auditoria mensal, trimestral ou por setor." },
       { titulo: "6. Exportar histórico", descricao: "PDF com carimbo SHA-256 do período filtrado — entregar ao auditor MAPA." },
     ],
