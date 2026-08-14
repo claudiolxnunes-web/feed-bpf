@@ -7,7 +7,7 @@ import { ArrowLeft, Check, Loader2, ShieldCheck, Users, UsersRound, Sparkles } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_WHATSAPP_URL, PADDLE_CHECKOUT_DISABLED_LABEL } from "@/config/paddleCheckout";
 
 type Nivel = "empresa" | "consultor10" | "consultor20";
 type Periodo = "mensal" | "semestral" | "anual";
@@ -105,7 +105,7 @@ export default function AuditsBPFPlanos() {
       return;
     }
     if (!PADDLE_CHECKOUT_ENABLED) {
-      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
+      window.open(PADDLE_CHECKOUT_WHATSAPP_URL, "_blank", "noopener,noreferrer");
       return;
     }
     setLoading(periodo);
@@ -236,7 +236,9 @@ export default function AuditsBPFPlanos() {
                     disabled={loading !== null}
                     onClick={() => handleCheckout(p.key)}
                   >
-                    {loading === p.key ? (
+                    {!PADDLE_CHECKOUT_ENABLED ? (
+                      PADDLE_CHECKOUT_DISABLED_LABEL
+                    ) : loading === p.key ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Processando...

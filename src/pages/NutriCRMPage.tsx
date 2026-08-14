@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_WHATSAPP_URL, PADDLE_CHECKOUT_DISABLED_LABEL } from "@/config/paddleCheckout";
 import logoNutricrm from "@/assets/logo-nutricrm.png";
 import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 import dashboardPreview from "@/assets/nutricrm-dashboard-preview.jpg";
@@ -37,7 +37,7 @@ export default function NutriCRMPage() {
 
   const handleCheckout = async (tipo: "individual" | "grupo10" | "grupo20", plano: "mensal" | "semestral" | "anual") => {
     if (!PADDLE_CHECKOUT_ENABLED) {
-      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
+      window.open(PADDLE_CHECKOUT_WHATSAPP_URL, "_blank", "noopener,noreferrer");
       return;
     }
     const key = `${tipo}-${plano}`;
@@ -195,8 +195,14 @@ export default function NutriCRMPage() {
                       disabled={isLoading}
                       onClick={() => handleCheckout("individual", plan.planoKey)}
                     >
-                      {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                      Assinar {plan.periodo}
+                      {!PADDLE_CHECKOUT_ENABLED ? (
+                        PADDLE_CHECKOUT_DISABLED_LABEL
+                      ) : (
+                        <>
+                          {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          Assinar {plan.periodo}
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </Card>
@@ -235,8 +241,14 @@ export default function NutriCRMPage() {
                       disabled={isLoading}
                       onClick={() => handleCheckout("grupo10", plan.planoKey)}
                     >
-                      {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                      Assinar {plan.periodo}
+                      {!PADDLE_CHECKOUT_ENABLED ? (
+                        PADDLE_CHECKOUT_DISABLED_LABEL
+                      ) : (
+                        <>
+                          {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          Assinar {plan.periodo}
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </Card>
@@ -272,8 +284,14 @@ export default function NutriCRMPage() {
                       disabled={isLoading}
                       onClick={() => handleCheckout("grupo20", plan.planoKey)}
                     >
-                      {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                      Assinar {plan.periodo}
+                      {!PADDLE_CHECKOUT_ENABLED ? (
+                        PADDLE_CHECKOUT_DISABLED_LABEL
+                      ) : (
+                        <>
+                          {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          Assinar {plan.periodo}
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </Card>
