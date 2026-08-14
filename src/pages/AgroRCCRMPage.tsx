@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
 import logoAgrorc from "@/assets/logo-agrorc.png";
 import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 
@@ -34,6 +35,10 @@ export default function AgroRCCRMPage() {
   const loginLink = "/auth?product=agrorc&mode=login&redirect=%2Fagrorc%2Fdashboard";
 
   const handleCheckout = async (tipo: "individual" | "grupo10" | "grupo20", plano: "mensal" | "semestral" | "anual") => {
+    if (!PADDLE_CHECKOUT_ENABLED) {
+      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
+      return;
+    }
     const key = `${tipo}-${plano}`;
     setLoadingPlan(key);
     try {

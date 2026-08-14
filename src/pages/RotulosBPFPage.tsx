@@ -11,6 +11,7 @@ import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
 import { Seo } from "@/components/Seo";
 
 const PLANOS_INFO: Record<string, { titulo: string; preco: string; periodo: string; nota: string }> = {
@@ -79,6 +80,10 @@ export default function RotulosBPFPage() {
   };
 
   const handleCheckout = async (tipo: "individual" | "grupo10" | "grupo20", plano: "mensal" | "semestral" | "anual") => {
+    if (!PADDLE_CHECKOUT_ENABLED) {
+      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
+      return;
+    }
     const key = `${tipo}-${plano}`;
     setLoadingKey(key);
     try {

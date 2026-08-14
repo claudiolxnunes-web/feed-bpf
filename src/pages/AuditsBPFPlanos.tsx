@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Loader2, ShieldCheck, Users, UsersRound, Sparkles } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
 
 type Nivel = "empresa" | "consultor10" | "consultor20";
 type Periodo = "mensal" | "semestral" | "anual";
@@ -101,6 +102,10 @@ export default function AuditsBPFPlanos() {
   const handleCheckout = async (periodo: Periodo) => {
     if (!session) {
       navigate("/auth?product=auditsbpf");
+      return;
+    }
+    if (!PADDLE_CHECKOUT_ENABLED) {
+      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
       return;
     }
     setLoading(periodo);
