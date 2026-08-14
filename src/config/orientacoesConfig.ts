@@ -42,7 +42,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     descricao: "Cadastro e qualificação de fornecedores de matérias-primas e embalagens conforme PL POP 1.1.",
     base_legal: ["IN 04/2007 (MAPA)", "Decreto 12.031/2024", "IN 15/2009"],
     passos: [
-      { titulo: "1. Cadastrar fornecedor", descricao: "Clique em 'Novo Fornecedor' e preencha CNPJ, razão social e contato.", dica: "O CNPJ é validado automaticamente." },
+      { titulo: "1. Cadastrar fornecedor", descricao: "Clique em 'Novo Fornecedor' e preencha CNPJ, razão social e contato.", dica: "Confira o CNPJ digitado — a validação é apenas de formato." },
       { titulo: "2. Verificar SIPEAGRO", descricao: "Use o botão 'Consultar SIPEAGRO' para validar o registro no MAPA.", base_legal: "IN 04/2007 Art. 12" },
       { titulo: "3. Aplicar questionário", descricao: "Responda o questionário de qualificação (PL POP 1.1) — 25 critérios.", dica: "Resultado gera ranking automático de 1 a 5 estrelas." },
       { titulo: "4. Anexar documentos", descricao: "Anexe Alvará, Registro MAPA, Ficha Técnica e Certificado de Análise.", base_legal: "IN 04/2007 Art. 18" },
@@ -66,7 +66,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     descricao: "Lançamento único do recebimento de MP — inclui lote, fornecedor, laudo e umidade (PL POP 1.2 / 1.3 / 1.5).",
     base_legal: ["IN 04/2007", "IN 15/2009"],
     passos: [
-      { titulo: "1. Selecionar fornecedor", descricao: "Escolha do cadastro qualificado. Sistema bloqueia recebimento se status = Reprovado." },
+      { titulo: "1. Selecionar fornecedor", descricao: "Escolha do cadastro qualificado. Confira o status antes de prosseguir — fornecedor reprovado não deve ser aceito." },
       { titulo: "2. Identificar MP e lote", descricao: "Informe matéria-prima, lote do fornecedor, NF e quantidade." },
       { titulo: "3. Inspeção visual", descricao: "Marque conformidade de embalagem, odor, presença de pragas e contaminantes." },
       { titulo: "4. Medir umidade (grãos)", descricao: "Para milho/soja, registre umidade. Alerta automático se >14%.", base_legal: "IN 60/2011" },
@@ -518,7 +518,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
     passos: [
       { titulo: "1. Buscar lote", descricao: "Informe lote do produto acabado." },
       { titulo: "2. Visualizar árvore", descricao: "Sistema mostra MPs (com lote/fornecedor) e clientes que receberam." },
-      { titulo: "3. Alertas de espécie", descricao: "Sistema bloqueia uso cruzado conforme IN 34/2008 (ex: ruminantes ↔ não-ruminantes)." },
+      { titulo: "3. Alertas de espécie", descricao: "Sistema alerta sobre uso cruzado conforme IN 34/2008 (ex: ruminantes ↔ não-ruminantes)." },
       { titulo: "4. Exportar para recall", descricao: "Lista de clientes/lotes pronta para acionamento." },
     ],
     campos_simulacao: [
@@ -831,7 +831,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Informar CNPJ ou nº de registro", descricao: "Busca na base interna. Para atualizar: baixe o PDF no site do MAPA, converta para Excel (ex.: iLovePDF) e importe nesta tela." },
       { titulo: "2. Validar status", descricao: "Ativo / Suspenso / Cancelado." },
       { titulo: "3. Vincular ao fornecedor", descricao: "Resultado é salvo no cadastro." },
-      { titulo: "4. Re-verificar", descricao: "Sistema sugere re-consulta semestral.", dica: "Fornecedor com registro suspenso é bloqueado automaticamente." },
+      { titulo: "4. Re-verificar", descricao: "Sistema sugere re-consulta semestral.", dica: "Registro suspenso exige decisão do responsável técnico — o sistema não bloqueia sozinho." },
     ],
     campos_simulacao: [
       { nome: "cnpj", label: "CNPJ", tipo: "text", exemplo: "12.345.678/0001-90" },
