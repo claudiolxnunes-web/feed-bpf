@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/hooks/useAuth";
-import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_WHATSAPP_URL, PADDLE_CHECKOUT_DISABLED_LABEL } from "@/config/paddleCheckout";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
 
 type ProductKey = "feedbpf" | "nutricrm" | "agrogestao" | "auditsbpf" | "agrorc" | "rotulos" | "feedbpfcustom";
 type NivelKey = "entrada" | "intermediario" | "avancado";
@@ -184,7 +184,7 @@ export default function LicenseGate({ children, product: initialProduct }: Licen
   const handleCheckout = async (planoKey: string) => {
     if (!empresaAtiva) return;
     if (!PADDLE_CHECKOUT_ENABLED) {
-      window.open(PADDLE_CHECKOUT_WHATSAPP_URL, "_blank", "noopener,noreferrer");
+      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
       return;
     }
     const loadingKey = `${nivelSelecionado}-${planoKey}`;
@@ -310,18 +310,12 @@ export default function LicenseGate({ children, product: initialProduct }: Licen
                     onClick={() => handleCheckout(plan.key)}
                     disabled={!!checkoutLoading}
                   >
-                    {!PADDLE_CHECKOUT_ENABLED ? (
-                      PADDLE_CHECKOUT_DISABLED_LABEL
+                    {checkoutLoading === loadingKey ? (
+                      <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin mr-2" />
                     ) : (
-                      <>
-                        {checkoutLoading === loadingKey ? (
-                          <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                          <CreditCard aria-hidden="true" className="w-4 h-4 mr-2" />
-                        )}
-                        Assinar Agora
-                      </>
+                      <CreditCard aria-hidden="true" className="w-4 h-4 mr-2" />
                     )}
+                    Assinar Agora
                   </Button>
                 </CardContent>
               </Card>
