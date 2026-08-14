@@ -11,6 +11,7 @@ import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_WHATSAPP_URL, PADDLE_CHECKOUT_DISABLED_LABEL } from "@/config/paddleCheckout";
 import { Seo } from "@/components/Seo";
 
 const PLANOS_INFO: Record<string, { titulo: string; preco: string; periodo: string; nota: string }> = {
@@ -79,6 +80,10 @@ export default function RotulosBPFPage() {
   };
 
   const handleCheckout = async (tipo: "individual" | "grupo10" | "grupo20", plano: "mensal" | "semestral" | "anual") => {
+    if (!PADDLE_CHECKOUT_ENABLED) {
+      window.open(PADDLE_CHECKOUT_WHATSAPP_URL, "_blank", "noopener,noreferrer");
+      return;
+    }
     const key = `${tipo}-${plano}`;
     setLoadingKey(key);
     try {
@@ -302,8 +307,14 @@ export default function RotulosBPFPage() {
                       disabled={isLoading}
                       onClick={() => handleCheckout("individual", plan.planoKey)}
                     >
-                      {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                      Assinar {plan.periodo}
+                      {!PADDLE_CHECKOUT_ENABLED ? (
+                        PADDLE_CHECKOUT_DISABLED_LABEL
+                      ) : (
+                        <>
+                          {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          Assinar {plan.periodo}
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </Card>
@@ -372,7 +383,13 @@ export default function RotulosBPFPage() {
                               onClick={() => handleCheckout(grupo.tipo, p.plano)}
                               className="shrink-0"
                             >
-                              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Assinar"}
+                              {!PADDLE_CHECKOUT_ENABLED ? (
+                                PADDLE_CHECKOUT_DISABLED_LABEL
+                              ) : loading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Assinar"
+                              )}
                             </Button>
                           </div>
                         );
