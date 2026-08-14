@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PADDLE_CHECKOUT_ENABLED, PADDLE_CHECKOUT_DISABLED_MESSAGE } from "@/config/paddleCheckout";
 import logoNutricrm from "@/assets/logo-nutricrm.png";
 import logoBpfConsult from "@/assets/logo-bpf-consult.png";
 import dashboardPreview from "@/assets/nutricrm-dashboard-preview.jpg";
@@ -36,10 +35,6 @@ export default function NutriCRMPage() {
   const loginLink = "/auth?product=nutricrm&mode=login&redirect=%2Fnutricrm%2Fdashboard";
 
   const handleCheckout = async (tipo: "individual" | "grupo10" | "grupo20", plano: "mensal" | "semestral" | "anual") => {
-    if (!PADDLE_CHECKOUT_ENABLED) {
-      toast.info(PADDLE_CHECKOUT_DISABLED_MESSAGE);
-      return;
-    }
     const key = `${tipo}-${plano}`;
     setLoadingPlan(key);
     try {
