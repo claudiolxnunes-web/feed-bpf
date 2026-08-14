@@ -31,7 +31,7 @@ const sections: ManualSection[] = [
     icon: LayoutDashboard,
     badge: "Início",
     description:
-      "Tela inicial do sistema com visão geral de todos os indicadores de BPF. Apresenta cards com métricas em tempo real e gráficos de evolução.",
+      "Tela inicial do sistema com visão geral de todos os indicadores de BPF. Apresenta cards com métricas atualizadas ao carregar a tela e gráficos de evolução.",
     features: [
       { title: "Cards de Indicadores", text: "Exibe a conformidade BPF geral (%), total de NCs abertas, auditorias realizadas e treinamentos pendentes (vencidos ou a vencer em 30 dias)." },
       { title: "Conformidade por Área", text: "Barras de progresso mostrando o percentual de conformidade de cada área avaliada nas auditorias." },
@@ -39,7 +39,7 @@ const sections: ManualSection[] = [
       { title: "Gráfico de NCs", text: "Gráfico de barras mostrando a evolução de NCs abertas vs. fechadas nos últimos 6 meses." },
       { title: "Gráfico de Conformidade", text: "Gráfico de linha mostrando a evolução do percentual de conformidade BPF ao longo do tempo." },
     ],
-    tips: ["Os dados são atualizados em tempo real a cada acesso à tela."],
+    tips: ["Os dados são consultados ao acessar a tela e podem permanecer em cache por até 5 minutos."],
   },
   {
     id: "cadastro",
@@ -111,7 +111,7 @@ const sections: ManualSection[] = [
     features: [
       { title: "Registro de Análises", text: "Cadastre análises com tipo (físico-química, microbiológica, bromatológica), produto, lote e laboratório." },
       { title: "Resultados e Laudos", text: "Registre resultados, método de análise, limites de referência e número do laudo." },
-      { title: "Conformidade", text: "Classifique automaticamente como conforme ou não conforme baseado nos limites cadastrados." },
+      { title: "Conformidade", text: "Compare o resultado com o limite cadastrado e marque a análise como conforme ou não conforme." },
       { title: "Upload de Laudos", text: "Faça upload dos laudos em PDF para arquivo digital vinculado à análise." },
     ],
   },
@@ -155,7 +155,7 @@ const sections: ManualSection[] = [
       "Gestão completa de Atestados de Saúde Ocupacional (ASO), exames laboratoriais e monitoramento de saúde dos manipuladores conforme POP 03 (IN 04/2007) e NR-7.",
     features: [
       { title: "Cadastro de Colaboradores", text: "Registre nome, cargo, data de admissão e tipo de exame (admissional, periódico, demissional, retorno ao trabalho)." },
-      { title: "Controle de ASO", text: "Acompanhe a validade dos ASOs com alertas automáticos para exames vencidos ou a vencer em 30 dias." },
+      { title: "Controle de ASO", text: "Acompanhe no painel os ASOs vencidos ou a vencer em até 60 dias." },
       { title: "Exames Laboratoriais", text: "Registre coprocultura, hemograma, VDRL e outros exames com datas e resultados." },
       { title: "Dashboard de Conformidade", text: "Visualize rapidamente: total de colaboradores, ASOs válidos/vencidos e próximos vencimentos." },
       { title: "Histórico por Colaborador", text: "Consulte o histórico completo de exames e ASOs de cada manipulador para auditorias." },
@@ -208,7 +208,7 @@ const sections: ManualSection[] = [
       { title: "Pontos de Coleta", text: "Mapeamento dos pontos de coleta de água (entrada, produção, bebedouro, lavagem) com monitoramento diário de cloro e pH." },
       { title: "Laudos Laboratoriais", text: "Registro de análises microbiológicas e físico-químicas com upload de laudos em PDF e controle de conformidade." },
       { title: "Higienização de Reservatórios", text: "Checklist de 16 itens para limpeza semestral de caixas d'água com registro de executor, data e observações." },
-      { title: "Alertas Automáticos", text: "Sistema alerta quando cloro residual está fora da faixa (0,2–2,0 mg/L) ou laudos estão vencidos." },
+      { title: "Conferência de Limites", text: "Confira se o cloro residual está na faixa de 0,2–2,0 mg/L e acompanhe a validade dos laudos." },
     ],
     tips: [
       "A higienização de reservatórios deve ser feita semestralmente por empresa especializada.",
@@ -516,11 +516,11 @@ const sections: ManualSection[] = [
     icon: Scale,
     badge: "Gestão",
     description:
-      "Acompanhe atualizações da legislação de alimentação animal (MAPA) com alertas por IA, consulta inteligente e pesquisa SISLEGIS.",
+      "Consulte atualizações da legislação de alimentação animal (MAPA) usando busca assistida por IA, consulta inteligente e pesquisa SISLEGIS.",
     features: [
-      { title: "Alertas de Legislação", text: "Receba alertas sobre novas normas, atualizações e revogações relevantes para sua produção." },
-      { title: "Classificação por Relevância", text: "Cada alerta é classificado como Alta, Média ou Baixa relevância automaticamente." },
-      { title: "Resumo por IA", text: "A IA gera um resumo claro de cada publicação, facilitando o entendimento rápido." },
+      { title: "Buscar Atualizações", text: "Clique em “Buscar Atualizações com IA” para consultar novas normas, atualizações e revogações relevantes para sua produção." },
+      { title: "Classificação por Relevância", text: "Os resultados retornados pela busca com IA são classificados como relevância Alta, Média ou Baixa." },
+      { title: "Resumo por IA", text: "Ao executar a busca, a IA gera um resumo claro de cada publicação." },
       { title: "Consulta à IA", text: "Faça perguntas sobre legislação diretamente ao assistente de IA integrado." },
       { title: "Pesquisa SISLEGIS", text: "Pesquise normas diretamente na base do SISLEGIS/DOU do MAPA, com filtros por categoria." },
       { title: "Base de Normas", text: "Cadastre e consulte normas com código, órgão, tipo, data de publicação e tags para busca rápida." },

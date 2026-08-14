@@ -540,7 +540,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Iniciar simulação", descricao: "Defina lote-alvo (real ou fictício)." },
       { titulo: "2. Cronômetro inicia", descricao: "Sistema mede tempo de cada etapa para avaliar eficiência." },
       { titulo: "3. 10 etapas", descricao: "Identificação → Comunicação → Coleta → Segregação → Destino → Relatório." },
-      { titulo: "4. Registrar RNC dos gaps", descricao: "Registre RNC para os gaps identificados na simulação." },
+      { titulo: "4. Registrar resultado", descricao: "Ao finalizar, o sistema salva automaticamente a simulação como registro de NC para fins de auditoria." },
     ],
     campos_simulacao: [
       { nome: "lote_alvo", label: "Lote Alvo", tipo: "text", exemplo: "BOV-CONF-20250416-01" },
@@ -588,7 +588,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "1. Selecionar checklist", descricao: "Auditoria interna ou pré-fiscalização MAPA." },
       { titulo: "2. Avaliar item por item", descricao: "Conforme/Não Conforme/Não Aplicável + observação." },
       { titulo: "3. % Conformidade", descricao: "Sistema calcula automaticamente." },
-      { titulo: "4. Gerar plano de ação", descricao: "NCs viram RNCs com prazos." },
+      { titulo: "4. Definir plano de ação", descricao: "Para cada item não conforme, registre a RNC correspondente, o responsável e o prazo." },
     ],
     campos_simulacao: [
       { nome: "data", label: "Data Auditoria", tipo: "date", exemplo: "2025-04-10" },
@@ -706,7 +706,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { nome: "percentual_prontidao", label: "% Prontidão", tipo: "number", exemplo: 88 },
       { nome: "itens_pendentes", label: "Itens Pendentes", tipo: "number", exemplo: 6 },
     ],
-    exemplo_resultado: "88% pronto. 6 pendências geraram tarefas com prazo antes da auditoria.",
+    exemplo_resultado: "88% pronto. Revise as 6 pendências e registre responsáveis e prazos antes da auditoria.",
   },
   {
     id: "sala-auditor",
