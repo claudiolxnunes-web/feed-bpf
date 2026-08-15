@@ -787,7 +787,7 @@ export const ORIENTACOES: ModuloOrientacao[] = [
       { titulo: "2. Criar ou localizar a planilha", descricao: "Ao registrar a execução no tablet/diário operacional, o sistema cria automaticamente a planilha do período se o POP/IT já estiver vinculado em Documentos." },
       { titulo: "3. Lançar registros", descricao: "Cada item tem responsável, conformidade e observações." },
       { titulo: "4. Assinar digitalmente", descricao: "Executor → Supervisor → RT (CRMV obrigatório).", dica: "Cada assinatura grava data/hora e usuário." },
-      { titulo: "5. Carimbo anti-fraude", descricao: "Planilha fechada gera SHA-256 — não pode mais ser editada." },
+      { titulo: "5. Carimbo anti-fraude", descricao: "Cada execução registrada gera um carimbo SHA-256 imutável, com data/hora e usuário." },
     ],
     campos_simulacao: [
       { nome: "pop_codigo", label: "Código POP", tipo: "select", exemplo: "POP-02", opcoes: ["POP-01", "POP-02", "POP-03", "POP-04", "POP-05", "POP-06", "POP-07", "POP-08", "POP-09", "POP-10"] },
