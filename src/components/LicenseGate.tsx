@@ -159,11 +159,11 @@ export default function LicenseGate({ children, product: initialProduct }: Licen
   if (isActive) {
     return (
       <>
-        {license?.plano === "trial" && daysRemaining <= 3 && (
+        {daysRemaining <= 7 && (
           <div className="mb-4 p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-center gap-3 text-sm">
             <Clock aria-hidden="true" className="w-5 h-5 text-warning shrink-0" />
             <span>
-              Seu período de teste expira em <strong>{daysRemaining} dia{daysRemaining !== 1 ? "s" : ""}</strong>.
+              Sua licença expira em <strong>{daysRemaining} dia{daysRemaining !== 1 ? "s" : ""}</strong>.
             </span>
             <Button
               size="sm"
