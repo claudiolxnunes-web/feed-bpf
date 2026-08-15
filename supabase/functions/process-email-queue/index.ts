@@ -1,4 +1,4 @@
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
+import { sendResendEmail } from '../_shared/resend.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const MAX_RETRIES = 5
@@ -79,7 +79,7 @@ async function moveToDlq(
 }
 
 Deno.serve(async (req) => {
-  const apiKey = Deno.env.get('LOVABLE_API_KEY')
+  const apiKey = Deno.env.get('RESEND_API_KEY')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
       }
 
       try {
-        await sendLovableEmail(
+        await sendResendEmail(
           {
             run_id: payload.run_id,
             to: payload.to,
@@ -264,10 +264,12 @@ Deno.serve(async (req) => {
             unsubscribe_token: payload.unsubscribe_token,
             message_id: payload.message_id,
           },
-          // sendUrl is optional — when LOVABLE_SEND_URL is not set, the library
-          // falls back to the default Lovable API endpoint (https://api.lovable.dev).
-          // Set LOVABLE_SEND_URL as a Supabase secret to override (e.g. for local dev).
-          { apiKey, sendUrl: Deno.env.get('LOVABLE_SEND_URL') }
+          // sendUrl is optional — when RESEND_SEND_URL is not set, the helper
+          // uses the default Resend endpoint (https://api.resend.com/emails).
+          // Set RESEND_SEND_URL as a Supabase secret to override (e.g. for local dev).
+          // payload.from / payload.sender_domain are ignored on purpose: they point
+          // at the Lovable-delegated subdomain. See _shared/resend.ts.
+          { apiKey, sendUrl: Deno.env.get('RESEND_SEND_URL') }
         )
 
         // Log success
