@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, Loader2, Wrench, Gauge, AlertCircle, ExternalLink, Upload, FolderOpen, Trash2, History, GitBranch, Send, CheckCircle2, Archive } from "lucide-react";
+import { FileText, Plus, Loader2, Wrench, Gauge, AlertCircle, ExternalLink, Upload, FolderOpen, Trash2, History, GitBranch, Send, CheckCircle2, Archive, BookOpen } from "lucide-react";
 import { registrarAuditLog, registrarVersaoDocumento } from "@/utils/auditLog";
 import { WorkflowBadge, type WorkflowStatus } from "@/components/documentos/WorkflowBadge";
 import { AprovarPopDialog } from "@/components/documentos/AprovarPopDialog";
@@ -32,6 +32,7 @@ import {
   nomePadronizado,
 } from "@/utils/nomenclaturaDoc";
 import { SeletorItFrequencia } from "@/components/SeletorItFrequencia";
+import { importarModelosIt } from "@/lib/importadorIts";
 import {
   uploadArquivoBpf,
   montarPathBpf,
@@ -190,6 +191,7 @@ export default function Documentos() {
   const [arqDescricao, setArqDescricao] = useState("");
   const [arqFile, setArqFile] = useState<File | null>(null);
   const [arqItCodigo, setArqItCodigo] = useState("");
+  const [importando, setImportando] = useState(false);
   const [arqFrequencia, setArqFrequencia] = useState("");
   const [padronizando, setPadronizando] = useState(false);
   const [arqFilterCat, setArqFilterCat] = useState("todos");
@@ -317,6 +319,42 @@ export default function Documentos() {
       fetchData();
     }
     setSaving(false);
+  };
+
+  /**
+   * Cria os modelos preenchíveis das ITs para a empresa ativa.
+   *
+   * Exige empresa ativa: `modelos_bpf.empresa_id` é NOT NULL, então sem
+   * empresa o insert seria recusado pelo banco. O botão fica desabilitado
+   * nesse caso, e a checagem aqui é a segunda linha de defesa.
+   *
+   * Reexecutar é seguro — o importador ignora o que já existe.
+   */
+  const handleImportarModelos = async () => {
+    if (!user || !empresaAtiva) {
+      toast.error("Selecione uma empresa ativa antes de importar os modelos.");
+      return;
+    }
+    setImportando(true);
+    try {
+      const r = await importarModelosIt({ empresaId: empresaAtiva.id, userId: user.id });
+
+      if (r.falhas.length > 0) {
+        toast.error(
+          `${r.falhas.length} modelo(s) não importado(s). Primeiro erro: ${r.falhas[0].erro}`,
+        );
+      }
+      if (r.criados.length > 0) {
+        toast.success(
+          `${r.criados.length} modelo(s) de IT importado(s)` +
+            (r.ignorados.length > 0 ? `; ${r.ignorados.length} já existia(m).` : "."),
+        );
+      } else if (r.falhas.length === 0) {
+        toast.info(`Nada a importar: os ${r.ignorados.length} modelos já estão cadastrados.`);
+      }
+    } finally {
+      setImportando(false);
+    }
   };
 
   const handleAddArquivo = async () => {
@@ -828,6 +866,21 @@ export default function Documentos() {
                 <Button size="sm" variant="outline" onClick={handlePadronizarNomes} disabled={padronizando}>
                   {padronizando && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
                   Padronizar nomes
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleImportarModelos}
+                  disabled={importando || !empresaAtiva}
+                  title={
+                    empresaAtiva
+                      ? "Cria os modelos preenchíveis das ITs para esta empresa"
+                      : "Selecione uma empresa ativa para importar os modelos"
+                  }
+                >
+                  {importando && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  Importar modelos de IT
                 </Button>
                 <Dialog open={arqOpen} onOpenChange={setArqOpen}>
                   <DialogTrigger asChild><Button size="sm"><Upload className="w-4 h-4 mr-1" /> Enviar Arquivo</Button></DialogTrigger>
