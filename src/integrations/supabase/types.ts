@@ -2461,12 +2461,15 @@ export type Database = {
           empresa_id: string | null
           executor: string
           id: string
+          it_codigo: string | null
+          modelo_id: string | null
           nome_pop: string
           observacoes: string | null
           setor: string | null
           status: string | null
           status_verificacao: string | null
           user_id: string
+          valores: Json
           verificado_por: string | null
         }
         Insert: {
@@ -2479,12 +2482,15 @@ export type Database = {
           empresa_id?: string | null
           executor: string
           id?: string
+          it_codigo?: string | null
+          modelo_id?: string | null
           nome_pop: string
           observacoes?: string | null
           setor?: string | null
           status?: string | null
           status_verificacao?: string | null
           user_id: string
+          valores?: Json
           verificado_por?: string | null
         }
         Update: {
@@ -2497,12 +2503,15 @@ export type Database = {
           empresa_id?: string | null
           executor?: string
           id?: string
+          it_codigo?: string | null
+          modelo_id?: string | null
           nome_pop?: string
           observacoes?: string | null
           setor?: string | null
           status?: string | null
           status_verificacao?: string | null
           user_id?: string
+          valores?: Json
           verificado_por?: string | null
         }
         Relationships: [
@@ -2518,6 +2527,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execucao_pops_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "modelos_bpf"
             referencedColumns: ["id"]
           },
         ]
