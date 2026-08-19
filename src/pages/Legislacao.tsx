@@ -141,7 +141,12 @@ export default function Legislacao() {
       .from("legislacao_alertas")
       .select("*")
       .order("created_at", { ascending: false });
-    if (empresaAtiva) q = q.eq("empresa_id", empresaAtiva.id);
+    // Normas sem empresa formam a base comum (legislacao federal, igual para
+    // todas as fabricas). Normas com empresa sao especificas do cliente.
+    // Filtrar apenas por empresa esconderia a base comum.
+    if (empresaAtiva) {
+      q = q.or(`empresa_id.is.null,empresa_id.eq.${empresaAtiva.id}`);
+    }
     const { data } = await q;
     if (data) setAlertas(data as unknown as AlertaDB[]);
     setFetchingDB(false);
@@ -214,7 +219,12 @@ export default function Legislacao() {
       .from("normas_legislacao")
       .select("*")
       .order("created_at", { ascending: false });
-    if (empresaAtiva) q = q.eq("empresa_id", empresaAtiva.id);
+    // Normas sem empresa formam a base comum (legislacao federal, igual para
+    // todas as fabricas). Normas com empresa sao especificas do cliente.
+    // Filtrar apenas por empresa esconderia a base comum.
+    if (empresaAtiva) {
+      q = q.or(`empresa_id.is.null,empresa_id.eq.${empresaAtiva.id}`);
+    }
     const { data } = await q;
     if (data) setNormas(data as unknown as NormaDB[]);
     setNormasLoading(false);
