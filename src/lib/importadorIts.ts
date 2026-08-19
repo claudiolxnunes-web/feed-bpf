@@ -12,6 +12,7 @@
 // ============================================================================
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { INSTRUCOES_TRABALHO, type InstrucaoTrabalho } from "@/config/instrucoesTrabalho";
 import { inferirFrequencia, type Frequencia } from "@/lib/bpfStorage";
 
@@ -290,10 +291,7 @@ export async function importarModelosIt({
   if (alvo.length === 0) return relatorio;
 
   // Uma consulta só para todo o conjunto existente.
-  // `supabase as any`: a tabela modelos_bpf é criada pela migração
-  // 20260819120000_modelos_bpf.sql e ainda não consta em
-  // src/integrations/supabase/types.ts, que é gerado a partir do banco.
-  const { data: existentes, error: erroConsulta } = await (supabase as any)
+  const { data: existentes, error: erroConsulta } = await supabase
     .from("modelos_bpf")
     .select("it_codigo")
     .eq("empresa_id", empresaId);
@@ -329,15 +327,18 @@ export async function importarModelosIt({
     frequencia: m.frequencia,
     objetivo: m.objetivo,
     base_legal: m.baseLegal ?? null,
+    // Cast só no valor jsonb: `Json` exige index signature, que uma interface
+    // TS não tem, então SecaoModelo[] não casa estruturalmente mesmo sendo
+    // serializável. O resto da linha continua checado pelos tipos gerados.
     conteudo: {
       epis: m.epis,
       passoAPasso: m.passoAPasso,
       criteriosAceitacao: m.criteriosAceitacao,
       secoes: m.secoes,
-    },
+    } as unknown as Json,
   }));
 
-  const { data: inseridos, error } = await (supabase as any)
+  const { data: inseridos, error } = await supabase
     .from("modelos_bpf")
     .insert(linhas)
     .select("it_codigo");
