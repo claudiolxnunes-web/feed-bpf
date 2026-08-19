@@ -28,7 +28,9 @@ interface Alerta {
 }
 
 interface ResumoSistema {
-  modulos_implementados: { modulo: string; descricao: string; status: string }[];
+  // Opcional de proposito: a resposta da IA nem sempre traz este campo.
+  // Declarar como obrigatorio nao impede a ausencia em tempo de execucao.
+  modulos_implementados?: { modulo: string; descricao: string; status: string }[];
   resumo_executivo: string;
   recomendacoes: string[];
 }
@@ -433,7 +435,7 @@ export default function Legislacao() {
           <p className="text-xs text-muted-foreground">Normas salvas</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4 text-center">
-          <p className="text-2xl font-bold font-display text-info">{resumoSistema ? resumoSistema.modulos_implementados.length : "—"}</p>
+          <p className="text-2xl font-bold font-display text-info">{resumoSistema?.modulos_implementados?.length ?? "—"}</p>
           <p className="text-xs text-muted-foreground">Módulos analisados</p>
         </CardContent></Card>
       </div>
@@ -805,7 +807,7 @@ export default function Legislacao() {
                   <div>
                     <h3 className="font-display font-semibold mb-3">Módulos Implementados</h3>
                     <div className="grid gap-3 md:grid-cols-2">
-                      {resumoSistema.modulos_implementados.map((m, i) => (
+                      {resumoSistema.modulos_implementados?.map((m, i) => (
                         <div key={i} className="p-3 rounded-lg border bg-card">
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-medium text-sm">{m.modulo}</span>
