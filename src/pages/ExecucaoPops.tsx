@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import PageHeader from "@/components/PageHeader";
+import { PreencherItDialog } from "@/components/documentos/PreencherItDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
@@ -196,6 +197,7 @@ export default function ExecucaoPops() {
       <Card className="mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Registros de Execução</CardTitle>
+              <PreencherItDialog onSalvo={fetchData} />
               <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild><Button size="sm"><Plus className="w-4 h-4 mr-1" /> Registrar Nova</Button></DialogTrigger>
                   <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">

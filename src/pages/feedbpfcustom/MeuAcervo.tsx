@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { POPS_CUSTOM } from "@/config/feedBpfCustomConfig";
+import { resolverUrlArquivo } from "@/lib/bpfStorage";
 import { toast } from "sonner";
 
 interface Doc {
@@ -97,13 +98,12 @@ export default function MeuAcervo() {
   const limparSelecao = () => setSelecionados(new Set());
 
   const handleDownload = async (d: Doc) => {
-    const { data, error } = await supabase.storage.from("documentos-bpf").createSignedUrl(d.arquivo_path, 300);
-    if (error || !data?.signedUrl) {
-      const alt = await supabase.storage.from("feed-bpf").createSignedUrl(d.arquivo_path, 300);
-      if (alt.data?.signedUrl) return window.open(alt.data.signedUrl, "_blank");
-      return toast.error("Erro ao gerar link");
-    }
-    window.open(data.signedUrl, "_blank");
+    // Antes tentava só documentos-bpf e feed-bpf. O resolvedor cobre todos os
+    // buckets conhecidos e ainda aceita arquivo_path gravado como URL absoluta,
+    // que é como parte do acervo antigo foi salvo.
+    const { url } = await resolverUrlArquivo(d.arquivo_path);
+    if (!url) return toast.error("Erro ao gerar link");
+    window.open(url, "_blank");
   };
 
   const executarExclusao = async () => {

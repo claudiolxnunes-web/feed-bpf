@@ -42,11 +42,13 @@ serve(async (req) => {
 
 Gere um rascunho COMPLETO de POP (Procedimento Operacional Padrão) personalizado para a fábrica, seguindo a estrutura padrão do MAPA.
 
+CRITICAL: Os "Adendos do Cliente / RT" fornecidos no input têm prioridade absoluta sobre modelos genéricos. Se o usuário especificar um equipamento ou fluxo local, incorpore-o como a verdade operacional principal no procedimento.
+
 Personalize o conteúdo de acordo com:
 - Espécies-alvo (aves, suínos, bovinos, aquicultura, equinos, pets)
 - Capacidade da fábrica (pequena <50t/dia, média 50-200t, grande >200t)
 - Equipamentos disponíveis
-- Observações específicas`;
+- Adendos e Observações específicas (Prioridade Máxima)`;
 
     const userPrompt = `Gere o POP completo:
 
@@ -55,7 +57,7 @@ Personalize o conteúdo de acordo com:
 **Espécies-alvo:** ${especies || "não especificado"}
 **Capacidade:** ${capacidade || "não especificado"}
 **Equipamentos:** ${equipamentos || "padrão"}
-**Observações:** ${observacoes || "nenhuma"}`;
+**Observações/Adendos:** ${observacoes || "nenhuma"}`;
 
     const response = await getAiResponse({
       messages: [{ role: "user", content: userPrompt }],

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, Loader2, Wrench, Gauge, AlertCircle, ExternalLink, Upload, FolderOpen, Trash2, History, GitBranch, Send, CheckCircle2, Archive } from "lucide-react";
+import { FileText, Plus, Loader2, Wrench, Gauge, AlertCircle, ExternalLink, Upload, FolderOpen, Trash2, History, GitBranch, Send, CheckCircle2, Archive, BookOpen } from "lucide-react";
 import { registrarAuditLog, registrarVersaoDocumento } from "@/utils/auditLog";
 import { WorkflowBadge, type WorkflowStatus } from "@/components/documentos/WorkflowBadge";
 import { AprovarPopDialog } from "@/components/documentos/AprovarPopDialog";
@@ -31,6 +31,14 @@ import {
   formatNumero,
   nomePadronizado,
 } from "@/utils/nomenclaturaDoc";
+import { SeletorItFrequencia } from "@/components/SeletorItFrequencia";
+import { importarModelosIt } from "@/lib/importadorIts";
+import {
+  uploadArquivoBpf,
+  montarPathBpf,
+  FREQUENCIA_LABEL,
+  isFrequencia,
+} from "@/lib/bpfStorage";
 
 const POPS_OBRIGATORIOS = POPS_CONFIG.map((p) => {
   const moduloMap: Record<string, { modulo: string; moduloLabel: string }> = {
@@ -67,6 +75,35 @@ const CATEGORIAS_ARQ = [
   { value: "certificado", label: "Certificado / Laudo" },
   { value: "outro", label: "Outro" },
 ];
+
+/**
+ * Etiquetas de IT e periodicidade na listagem.
+ *
+ * A grande maioria dos arquivos já existentes não tem essa classificação —
+ * as colunas são novas e opcionais. Linha sem classificação simplesmente não
+ * renderiza badge; ausência é o estado normal, não um erro a sinalizar.
+ */
+function BadgesClassificacao({ linha }: { linha: ArquivoBpf }) {
+  const { it_codigo, frequencia } = linha as ArquivoBpf & {
+    it_codigo?: string | null;
+    frequencia?: string | null;
+  };
+
+  if (!it_codigo && !frequencia) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {it_codigo && (
+        <Badge variant="secondary" className="text-[10px] font-mono">{it_codigo}</Badge>
+      )}
+      {frequencia && (
+        <Badge variant="outline" className="text-[10px]">
+          {isFrequencia(frequencia) ? FREQUENCIA_LABEL[frequencia] : frequencia}
+        </Badge>
+      )}
+    </div>
+  );
+}
 
 interface DocRow {
   id: string; codigo: string; nome: string; versao: string | null;
@@ -153,6 +190,9 @@ export default function Documentos() {
   const [arqDataRef, setArqDataRef] = useState<string>(new Date().toISOString().split("T")[0]);
   const [arqDescricao, setArqDescricao] = useState("");
   const [arqFile, setArqFile] = useState<File | null>(null);
+  const [arqItCodigo, setArqItCodigo] = useState("");
+  const [importando, setImportando] = useState(false);
+  const [arqFrequencia, setArqFrequencia] = useState("");
   const [padronizando, setPadronizando] = useState(false);
   const [arqFilterCat, setArqFilterCat] = useState("todos");
   const [arqFilterPop, setArqFilterPop] = useState("todos");
@@ -281,43 +321,88 @@ export default function Documentos() {
     setSaving(false);
   };
 
+  /**
+   * Cria os modelos preenchíveis das ITs para a empresa ativa.
+   *
+   * Exige empresa ativa: `modelos_bpf.empresa_id` é NOT NULL, então sem
+   * empresa o insert seria recusado pelo banco. O botão fica desabilitado
+   * nesse caso, e a checagem aqui é a segunda linha de defesa.
+   *
+   * Reexecutar é seguro — o importador ignora o que já existe.
+   */
+  const handleImportarModelos = async () => {
+    if (!user || !empresaAtiva) {
+      toast.error("Selecione uma empresa ativa antes de importar os modelos.");
+      return;
+    }
+    setImportando(true);
+    try {
+      const r = await importarModelosIt({ empresaId: empresaAtiva.id, userId: user.id });
+
+      if (r.falhas.length > 0) {
+        toast.error(
+          `${r.falhas.length} modelo(s) não importado(s). Primeiro erro: ${r.falhas[0].erro}`,
+        );
+      }
+      if (r.criados.length > 0) {
+        toast.success(
+          `${r.criados.length} modelo(s) de IT importado(s)` +
+            (r.ignorados.length > 0 ? `; ${r.ignorados.length} já existia(m).` : "."),
+        );
+      } else if (r.falhas.length === 0) {
+        toast.info(`Nada a importar: os ${r.ignorados.length} modelos já estão cadastrados.`);
+      }
+    } finally {
+      setImportando(false);
+    }
+  };
+
   const handleAddArquivo = async () => {
     if (!arqFile || !arqPopCodigo || !arqNumero || !arqDataRef || !user) return;
     setSaving(true);
     const scopeId = empresaAtiva?.id || user.id;
-    const path = storagePath(scopeId, arqPopCodigo, arqTipo, arqNumero, arqDataRef, arqFile.name);
     const arquivoFinal = nomeArquivoFinal(arqPopCodigo, arqTipo, arqNumero, arqDataRef, arqFile.name);
     const titulo = nomeDisplay(arqPopCodigo, arqTipo, arqNumero, arqDataRef);
 
-    let arquivo_url = "";
-    const { error: upErr } = await supabase.storage.from("documentos-bpf").upload(path, arqFile, { upsert: false });
-    if (upErr) {
-      toast.error("Erro no upload: " + upErr.message);
-      setSaving(false); return;
-    }
-    const { data: urlData } = supabase.storage.from("documentos-bpf").getPublicUrl(path);
-    arquivo_url = urlData?.publicUrl || path;
+    // Grava no path hierárquico bpf/{empresa}/{POP}/{IT}/{frequencia}/...
+    // O nome de exibição e o nome do arquivo continuam vindo da nomenclatura
+    // já existente — só o path e a classificação IT/frequência são novos.
+    const resultado = await uploadArquivoBpf({
+      file: arqFile,
+      meta: {
+        empresaId: scopeId,
+        popCodigo: arqPopCodigo,
+        itCodigo: arqItCodigo || null,
+        frequencia: arqFrequencia || null,
+        dataRef: arqDataRef,
+      },
+      registro: {
+        user_id: user.id,
+        empresa_id: empresaAtiva?.id || null,
+        titulo,
+        categoria: arqTipo.toLowerCase(),
+        descricao: arqDescricao || null,
+        arquivo_nome: arquivoFinal,
+        tipo_doc: arqTipo,
+        numero_doc: parseInt(arqNumero, 10) || 0,
+        data_ref: arqDataRef,
+        nome_padronizado: arquivoFinal.replace(/\.[^.]+$/, ""),
+      },
+    });
 
-    const { error } = await supabase.from("arquivos_bpf").insert({
-      user_id: user.id, empresa_id: empresaAtiva?.id || null,
-      titulo,
-      categoria: arqTipo.toLowerCase(),
-      descricao: arqDescricao || null,
-      arquivo_nome: arquivoFinal,
-      arquivo_url,
-      pop_codigo: arqPopCodigo,
-      tipo_doc: arqTipo,
-      numero_doc: parseInt(arqNumero, 10) || 0,
-      data_ref: arqDataRef,
-      nome_padronizado: arquivoFinal.replace(/\.[^.]+$/, ""),
-    } as any);
-    if (error) toast.error("Erro ao salvar arquivo");
-    else {
+    if (!resultado.ok) {
+      toast.error(
+        resultado.revertido
+          ? `Erro ao salvar arquivo: ${resultado.erro}. O upload foi desfeito.`
+          : `Erro no upload: ${resultado.erro}`,
+      );
+    } else {
       toast.success(`Arquivo salvo: ${titulo}`);
       setArqOpen(false);
       setArqPopCodigo(""); setArqTipo("PL"); setArqNumero("001");
       setArqDataRef(new Date().toISOString().split("T")[0]);
       setArqDescricao(""); setArqFile(null);
+      setArqItCodigo(""); setArqFrequencia("");
       fetchData();
     }
     setSaving(false);
@@ -782,6 +867,21 @@ export default function Documentos() {
                   {padronizando && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
                   Padronizar nomes
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleImportarModelos}
+                  disabled={importando || !empresaAtiva}
+                  title={
+                    empresaAtiva
+                      ? "Cria os modelos preenchíveis das ITs para esta empresa"
+                      : "Selecione uma empresa ativa para importar os modelos"
+                  }
+                >
+                  {importando && <Loader2 className="w-4 h-4 mr-1 animate-spin" />}
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  Importar modelos de IT
+                </Button>
                 <Dialog open={arqOpen} onOpenChange={setArqOpen}>
                   <DialogTrigger asChild><Button size="sm"><Upload className="w-4 h-4 mr-1" /> Enviar Arquivo</Button></DialogTrigger>
                   <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -822,6 +922,13 @@ export default function Documentos() {
                         <Label>Data de referência *</Label>
                         <Input type="date" value={arqDataRef} onChange={(e) => setArqDataRef(e.target.value)} />
                       </div>
+                      <SeletorItFrequencia
+                        popCodigo={arqPopCodigo}
+                        itCodigo={arqItCodigo}
+                        onItChange={setArqItCodigo}
+                        frequencia={arqFrequencia}
+                        onFrequenciaChange={setArqFrequencia}
+                      />
                       <div><Label>Descrição</Label><Textarea value={arqDescricao} onChange={e => setArqDescricao(e.target.value)} placeholder="Detalhes: nº do lote, operador, etc." /></div>
                       <div>
                         <Label>Arquivo * (PDF, imagem, DOC)</Label>
@@ -838,6 +945,22 @@ export default function Documentos() {
                               <div className="text-muted-foreground pt-1">Arquivo salvo como:</div>
                               <div className="font-mono text-[11px] break-all text-foreground">
                                 {nomeArquivoFinal(arqPopCodigo, arqTipo, arqNumero, arqDataRef, arqFile.name)}
+                              </div>
+                              <div className="text-muted-foreground pt-1">Pasta de destino:</div>
+                              <div className="font-mono text-[11px] break-all text-foreground">
+                                {montarPathBpf(
+                                  {
+                                    empresaId: empresaAtiva?.id || user?.id || "",
+                                    popCodigo: arqPopCodigo,
+                                    itCodigo: arqItCodigo || null,
+                                    frequencia: arqFrequencia || null,
+                                    dataRef: arqDataRef,
+                                  },
+                                  arqFile.name,
+                                )
+                                  .split("/")
+                                  .slice(0, -1)
+                                  .join("/")}
                               </div>
                             </>
                           )}
@@ -869,7 +992,10 @@ export default function Documentos() {
                             ? <Badge className="text-xs font-mono">{a.pop_codigo}</Badge>
                             : <Badge variant="outline" className="text-xs text-muted-foreground">sem POP</Badge>}
                         </TableCell>
-                        <TableCell className="font-medium text-sm">{a.titulo}</TableCell>
+                        <TableCell className="font-medium text-sm">
+                          {a.titulo}
+                          <BadgesClassificacao linha={a} />
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {CATEGORIAS_ARQ.find(c => c.value === a.categoria)?.label || a.categoria}

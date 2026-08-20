@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Shield, CheckCircle2, XCircle, AlertTriangle, FileText, ExternalLink, Download, Filter, Loader2, Printer } from "lucide-react";
+import { Search, Shield, CheckCircle2, XCircle, AlertTriangle, FileText, ExternalLink, Download, Filter, Loader2, Printer, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import GerarLinkAuditor from "@/components/auditor/GerarLinkAuditor";
+import { useEmpresa } from "@/hooks/useEmpresa";
 
 interface ModuleStatus {
   label: string;
@@ -52,17 +53,32 @@ function escapeCsv(val: unknown): string {
 
 export default function SalaAuditor() {
   const { user } = useAuth();
+  const { empresaAtiva } = useEmpresa();
   const [items, setItems] = useChecklistItems();
   const [search, setSearch] = useState("");
   const [areaFilter, setAreaFilter] = useState("todas");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [validityFilter, setValidityFilter] = useState("todos");
   const [moduleCounts, setModuleCounts] = useState<Record<string, number>>({});
   const [loadingCounts, setLoadingCounts] = useState(true);
+  const [expiredDocs, setExpiredDocs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
-    const fetchCounts = async () => {
+    const fetchData = async () => {
       setLoadingCounts(true);
+
+      // Documentos com revisao/validade vencida, para marcar itens do checklist
+      const hoje = new Date().toISOString().split("T")[0];
+      const { data: docs } = await supabase
+        .from("documentos")
+        .select("codigo, proxima_revisao, validade_revisao")
+        .or(`proxima_revisao.lte.${hoje},validade_revisao.lte.${hoje}`);
+
+      if (docs) {
+        setExpiredDocs(new Set(docs.map(d => d.codigo)));
+      }
+
       const counts: Record<string, number> = {};
       const promises = INSPECTION_MODULES.map(async (mod) => {
         const { count, error } = await supabase
@@ -74,8 +90,8 @@ export default function SalaAuditor() {
       setModuleCounts(counts);
       setLoadingCounts(false);
     };
-    fetchCounts();
-  }, [user]);
+    fetchData();
+  }, [user, empresaAtiva]);
 
   const areas = useMemo(() => [...new Set(items.map(i => i.area))], [items]);
 
@@ -90,9 +106,14 @@ export default function SalaAuditor() {
         (statusFilter === "conforme" && item.conforme === true) ||
         (statusFilter === "nao_conforme" && item.conforme === false) ||
         (statusFilter === "pendente" && item.conforme === null);
-      return matchesSearch && matchesArea && matchesStatus;
+      const isExpired = item.popVinculado ? expiredDocs.has(item.popVinculado) : false;
+      const matchesValidity = validityFilter === "todos" ||
+        (validityFilter === "vigentes" && !isExpired) ||
+        (validityFilter === "vencidos" && isExpired);
+
+      return matchesSearch && matchesArea && matchesStatus && matchesValidity;
     });
-  }, [items, search, areaFilter, statusFilter]);
+  }, [items, search, areaFilter, statusFilter, validityFilter, expiredDocs]);
 
   const total = items.length;
   const conformes = items.filter(i => i.conforme === true).length;
@@ -217,6 +238,17 @@ export default function SalaAuditor() {
                     <SelectItem value="pendente">⏳ Pendentes</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={validityFilter} onValueChange={setValidityFilter}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <ShieldCheck className="w-4 h-4 mr-1" />
+                    <SelectValue placeholder="Validade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos (Vigência)</SelectItem>
+                    <SelectItem value="vigentes">✅ Apenas Vigentes</SelectItem>
+                    <SelectItem value="vencidos">⚠️ Vencidos/Perto</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <p className="text-xs text-muted-foreground">{filteredItems.length} itens encontrados</p>
@@ -238,7 +270,12 @@ export default function SalaAuditor() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm">{item.item}</p>
                             {item.popVinculado && (
-                              <span className="text-xs text-primary">{item.popVinculado}</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-primary font-medium">{item.popVinculado}</span>
+                                {expiredDocs.has(item.popVinculado) && (
+                                  <Badge variant="destructive" className="text-[9px] h-4 py-0">VENCIDO/REVISÃO</Badge>
+                                )}
+                              </div>
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">

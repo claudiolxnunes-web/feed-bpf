@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -515,7 +515,9 @@ export type Database = {
           descricao: string | null
           documento_ref_id: string | null
           empresa_id: string | null
+          frequencia: string | null
           id: string
+          it_codigo: string | null
           nome_padronizado: string | null
           numero_doc: number | null
           pop_codigo: string | null
@@ -533,7 +535,9 @@ export type Database = {
           descricao?: string | null
           documento_ref_id?: string | null
           empresa_id?: string | null
+          frequencia?: string | null
           id?: string
+          it_codigo?: string | null
           nome_padronizado?: string | null
           numero_doc?: number | null
           pop_codigo?: string | null
@@ -551,7 +555,9 @@ export type Database = {
           descricao?: string | null
           documento_ref_id?: string | null
           empresa_id?: string | null
+          frequencia?: string | null
           id?: string
+          it_codigo?: string | null
           nome_padronizado?: string | null
           numero_doc?: number | null
           pop_codigo?: string | null
@@ -2455,12 +2461,15 @@ export type Database = {
           empresa_id: string | null
           executor: string
           id: string
+          it_codigo: string | null
+          modelo_id: string | null
           nome_pop: string
           observacoes: string | null
           setor: string | null
           status: string | null
           status_verificacao: string | null
           user_id: string
+          valores: Json
           verificado_por: string | null
         }
         Insert: {
@@ -2473,12 +2482,15 @@ export type Database = {
           empresa_id?: string | null
           executor: string
           id?: string
+          it_codigo?: string | null
+          modelo_id?: string | null
           nome_pop: string
           observacoes?: string | null
           setor?: string | null
           status?: string | null
           status_verificacao?: string | null
           user_id: string
+          valores?: Json
           verificado_por?: string | null
         }
         Update: {
@@ -2491,12 +2503,15 @@ export type Database = {
           empresa_id?: string | null
           executor?: string
           id?: string
+          it_codigo?: string | null
+          modelo_id?: string | null
           nome_pop?: string
           observacoes?: string | null
           setor?: string | null
           status?: string | null
           status_verificacao?: string | null
           user_id?: string
+          valores?: Json
           verificado_por?: string | null
         }
         Relationships: [
@@ -2512,6 +2527,13 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execucao_pops_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "modelos_bpf"
             referencedColumns: ["id"]
           },
         ]
@@ -3086,6 +3108,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      heartbeat: {
+        Row: {
+          id: number
+          last_ping: string | null
+        }
+        Insert: {
+          id?: number
+          last_ping?: string | null
+        }
+        Update: {
+          id?: number
+          last_ping?: string | null
+        }
+        Relationships: []
       }
       indicacoes: {
         Row: {
@@ -3964,6 +4001,51 @@ export type Database = {
           id?: string
           senha_hash?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      modelos_bpf: {
+        Row: {
+          base_legal: string | null
+          conteudo: Json
+          created_at: string
+          empresa_id: string
+          frequencia: string | null
+          id: string
+          it_codigo: string
+          objetivo: string | null
+          pop_codigo: string | null
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_legal?: string | null
+          conteudo?: Json
+          created_at?: string
+          empresa_id: string
+          frequencia?: string | null
+          id?: string
+          it_codigo: string
+          objetivo?: string | null
+          pop_codigo?: string | null
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_legal?: string | null
+          conteudo?: Json
+          created_at?: string
+          empresa_id?: string
+          frequencia?: string | null
+          id?: string
+          it_codigo?: string
+          objetivo?: string | null
+          pop_codigo?: string | null
+          titulo?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { toast } from "sonner";
 import { POPS_CONFIG } from "@/config/popsConfig";
+import { formatarPopDocx } from "@/utils/exportPop";
 
 interface PopGerado {
   objetivo: string;
@@ -39,6 +40,7 @@ export default function GeradorPopIA() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pop, setPop] = useState<PopGerado | null>(null);
+  const [exportingDocx, setExportingDocx] = useState(false);
 
   const handleSelectPop = (codigo: string) => {
     setCodigoPop(codigo);
@@ -95,6 +97,19 @@ export default function GeradorPopIA() {
     a.download = `${codigoPop}-${nomePop.replace(/\s+/g, "_")}-rascunho.md`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadDocx = async () => {
+    if (!pop) return;
+    setExportingDocx(true);
+    try {
+      await formatarPopDocx(pop, codigoPop, nomePop);
+    } catch (err: any) {
+      console.error("Erro ao gerar .docx:", err);
+      toast.error("Falha ao gerar o .docx: " + (err?.message || "erro desconhecido"));
+    } finally {
+      setExportingDocx(false);
+    }
   };
 
   return (
@@ -173,6 +188,10 @@ export default function GeradorPopIA() {
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={handleDownloadMarkdown}>
                 <Download className="w-4 h-4 mr-1" /> Baixar .md
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleDownloadDocx} disabled={exportingDocx}>
+                {exportingDocx ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                Baixar .docx
               </Button>
               <Button size="sm" onClick={handleSaveAsDocument} disabled={saving}>
                 {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}

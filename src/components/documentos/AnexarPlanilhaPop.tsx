@@ -16,9 +16,10 @@ import {
   type TipoDoc,
   nomeDisplay,
   nomeArquivoFinal,
-  storagePath,
   formatNumero,
 } from "@/utils/nomenclaturaDoc";
+import { SeletorItFrequencia } from "@/components/SeletorItFrequencia";
+import { uploadArquivoBpf } from "@/lib/bpfStorage";
 
 interface Props {
   popCodigo: string;         // ex: "POP-07"
@@ -49,6 +50,8 @@ export function AnexarPlanilhaPop({
   const [descricao, setDescricao] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [itCodigo, setItCodigo] = useState("");
+  const [frequencia, setFrequencia] = useState("");
 
   // Sugere próximo número disponível ao abrir ou trocar tipo
   const sugerirProximoNumero = async () => {
@@ -79,6 +82,7 @@ export function AnexarPlanilhaPop({
   const reset = () => {
     setTipo("PL"); setNumero("001"); setDataRef(new Date().toISOString().split("T")[0]);
     setDescricao(""); setFile(null);
+    setItCodigo(""); setFrequencia("");
   };
 
   const tipoLabel = TIPOS_DOC.find((t) => t.value === tipo)?.label || tipo;
@@ -94,36 +98,39 @@ export function AnexarPlanilhaPop({
     setSaving(true);
     try {
       const scopeId = empresaAtiva?.id || user.id;
-      const path = storagePath(scopeId, popCodigo, tipo, numero, dataRef, file.name, prefixo);
-
-      const { error: upErr } = await supabase.storage
-        .from("documentos-bpf")
-        .upload(path, file, { upsert: false });
-      if (upErr) {
-        toast.error("Erro no upload: " + upErr.message);
-        return;
-      }
-      const { data: urlData } = supabase.storage.from("documentos-bpf").getPublicUrl(path);
-
       const titulo = nomeDisplay(popCodigo, tipo, numero, dataRef, prefixo);
       const numeroInt = parseInt(numero, 10) || 0;
 
-      const { error } = await supabase.from("arquivos_bpf").insert({
-        user_id: user.id,
-        empresa_id: empresaAtiva?.id || null,
-        titulo,
-        categoria: tipo.toLowerCase(),
-        descricao: descricao || null,
-        arquivo_nome: arquivoFinal,
-        arquivo_url: urlData?.publicUrl || path,
-        pop_codigo: popCodigo,
-        tipo_doc: tipo,
-        numero_doc: numeroInt,
-        data_ref: dataRef,
-        nome_padronizado: arquivoFinal.replace(/\.[^.]+$/, ""),
-      } as any);
-      if (error) {
-        toast.error("Erro ao salvar registro");
+      const resultado = await uploadArquivoBpf({
+        file,
+        meta: {
+          empresaId: scopeId,
+          popCodigo,
+          itCodigo: itCodigo || null,
+          frequencia: frequencia || null,
+          dataRef,
+        },
+        registro: {
+          user_id: user.id,
+          empresa_id: empresaAtiva?.id || null,
+          titulo,
+          categoria: tipo.toLowerCase(),
+          descricao: descricao || null,
+          arquivo_nome: arquivoFinal,
+          pop_codigo: popCodigo,
+          tipo_doc: tipo,
+          numero_doc: numeroInt,
+          data_ref: dataRef,
+          nome_padronizado: arquivoFinal.replace(/\.[^.]+$/, ""),
+        },
+      });
+
+      if (!resultado.ok) {
+        toast.error(
+          resultado.revertido
+            ? `Erro ao salvar registro: ${resultado.erro}. O upload foi desfeito.`
+            : `Erro no upload: ${resultado.erro}`,
+        );
       } else {
         toast.success(`Anexado: ${titulo}`);
         setOpen(false);
@@ -178,6 +185,13 @@ export function AnexarPlanilhaPop({
             <Label>Data de referência *</Label>
             <Input type="date" value={dataRef} onChange={(e) => setDataRef(e.target.value)} />
           </div>
+          <SeletorItFrequencia
+            popCodigo={popCodigo}
+            itCodigo={itCodigo}
+            onItChange={setItCodigo}
+            frequencia={frequencia}
+            onFrequenciaChange={setFrequencia}
+          />
           <div>
             <Label>Descrição (opcional)</Label>
             <Textarea
