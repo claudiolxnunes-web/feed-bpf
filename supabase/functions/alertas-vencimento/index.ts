@@ -31,6 +31,23 @@ Deno.serve(async (req) => {
     const em30dias = new Date(hoje.getTime() + 30 * 86400000).toISOString().split("T")[0];
     const hojeStr = hoje.toISOString().split("T")[0];
 
+    // Cache de empresa por usuario (evita 1 query por documento vencido)
+    const empresaCache: Record<string, string> = {};
+    const getEmpresaId = async (userId: string) => {
+      if (empresaCache[userId]) return empresaCache[userId];
+      const { data } = await supabase
+        .from("empresas")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle();
+      if (data) {
+        empresaCache[userId] = data.id;
+        return data.id;
+      }
+      return null;
+    };
+
     // 1. Calibrações vencidas ou próximas de vencer
     const { data: calibracoes } = await supabase
       .from("calibracoes")
@@ -81,6 +98,37 @@ Deno.serve(async (req) => {
         resumo.push(`${alertas.treinamentos.length} treinamento(s) programado(s)`);
       }
 
+      // Notificacao WhatsApp do resumo de vencimentos (via evolution-connect)
+      if (resumo.length > 0) {
+        const { data: config } = await supabase
+          .from("whatsapp_config")
+          .select("id, empresa_id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (config) {
+          try {
+            const msg = `*⚠️ Alerta de Vencimento FeedBPF*\n\nOlá! Identificamos pendências que requerem sua atenção:\n\n${resumo.map(m => `• ${m}`).join("\n")}\n\nPor favor, acesse o painel para regularizar.`;
+
+            await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/evolution-connect`, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${serviceKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                empresa_id: config.empresa_id,
+                action: "send",
+                message: msg,
+              }),
+            });
+            console.log(`WhatsApp enviado para usuário ${userId}`);
+          } catch (e) {
+            console.error(`Erro ao enviar WhatsApp para ${userId}:`, e.message);
+          }
+        }
+      }
+
       // Create legislacao_alertas entries for dashboard visibility
       for (const msg of resumo) {
         await supabase.from("legislacao_alertas").insert({
@@ -91,6 +139,48 @@ Deno.serve(async (req) => {
           relevancia: "alta",
           fonte: "Sistema FeedBPF",
         });
+      }
+
+      // Auto-gerar Nao Conformidade para documentos com revisao/validade vencida.
+      // Fica FORA do loop de `resumo` (que roda ate 3x por usuario) para nao duplicar.
+      const docsVencidos = alertas.documentos.filter(d =>
+        (d.proxima_revisao && d.proxima_revisao <= hojeStr) ||
+        (d.validade_revisao && d.validade_revisao <= hojeStr)
+      );
+
+      if (docsVencidos.length > 0) {
+        const empresaId = await getEmpresaId(userId);
+        if (empresaId) {
+          for (const doc of docsVencidos) {
+            const descricao = `[AUTO] Documento ${doc.codigo} - ${doc.nome} está com a revisão/validade vencida.`;
+
+            // Idempotencia: a funcao roda diariamente por cron; sem esta guarda
+            // cada documento vencido geraria uma NC nova todo dia.
+            const { data: existente } = await supabase
+              .from("nao_conformidades")
+              .select("id")
+              .eq("user_id", userId)
+              .eq("descricao", descricao)
+              .eq("status", "aberta")
+              .limit(1)
+              .maybeSingle();
+
+            if (existente) continue;
+
+            await supabase.from("nao_conformidades").insert({
+              user_id: userId,
+              empresa_id: empresaId,
+              data: hojeStr,
+              setor: "Administrativo/Qualidade",
+              descricao,
+              causa: "Vencimento do prazo de revisão anual obrigatória.",
+              acao_corretiva: "Revisar o documento, atualizar versão e salvar no sistema.",
+              responsavel: "RT / Responsável pela Qualidade",
+              prazo: em30dias,
+              status: "aberta",
+            });
+          }
+        }
       }
     }
 

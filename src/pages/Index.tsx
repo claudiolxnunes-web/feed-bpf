@@ -143,6 +143,16 @@ export default function Index() {
       const acoesPrioritarias = [];
       if (calibracoesVencidas > 0) acoesPrioritarias.push({ titulo: "Regularizar calibrações vencidas", detalhe: `${calibracoesVencidas} equipamento(s) exigem ação imediata.`, criticidade: "critico", link: "/manutencao" });
       if (docsVencidos > 0) acoesPrioritarias.push({ titulo: "Revisar documentos obrigatórios", detalhe: `${docsVencidos} documento(s) estão vencidos ou fora da revisão.`, criticidade: "critico", link: "/documentos" });
+      // Alerta de conformidade MAPA (IN 04/2007): revisao anual de POPs e ITs
+      if (docsVencidos > 0 || alertas.some(a => a.tipo === "documento")) {
+        acoesPrioritarias.push({
+          titulo: "Conformidade MAPA (Revisão Anual)",
+          detalhe: "POPs e ITs exigem revisão anual obrigatória conforme IN 04/2007.",
+          criticidade: docsVencidos > 0 ? "critico" : "atencao",
+          link: "/planilhas-pop",
+        });
+      }
+
       if (treinamentosPendentes > 0) acoesPrioritarias.push({ titulo: "Atualizar treinamentos da equipe", detalhe: `${treinamentosPendentes} treinamento(s) vencem em até 30 dias.`, criticidade: treinamentosPendentes >= 5 ? "critico" : "atencao", link: "/treinamentos" });
       if (ncAbertas > 0) acoesPrioritarias.push({ titulo: "Fechar não conformidades em aberto", detalhe: `${ncAbertas} ocorrência(s) impactando a rotina de BPF.`, criticidade: ncAbertas >= 5 ? "critico" : "atencao", link: "/nao-conformidades" });
       

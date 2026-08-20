@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ClipboardList, Plus, Download, Check, FileSpreadsheet, ExternalLink, Info } from "lucide-react";
+import { ClipboardList, Plus, Download, Check, FileSpreadsheet, ExternalLink, Info, CalendarDays, RefreshCcw } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -231,6 +231,14 @@ export default function PlanilhasPop() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{selectedPop.codigo} - {selectedPop.nome}</CardTitle>
           <CardDescription>{selectedPop.descricao}</CardDescription>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200 text-[10px] py-0">
+              <CalendarDays className="w-3 h-3 mr-1" /> Vencimento: 1 Ano
+            </Badge>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 text-[10px] py-0">
+              <RefreshCcw className="w-3 h-3 mr-1" /> Revisão Anual Obrigatória
+            </Badge>
+          </div>
         </CardHeader>
       </Card>
 
