@@ -111,6 +111,45 @@ serve(async (req) => {
         throw new Error("Backup data is required for restore action");
       }
 
+      // Trilha de auditoria (Decreto 12.031/2024): o upsert abaixo roda com a
+      // service_role, e `process_audit_log()` deriva o autor de `auth.uid()`,
+      // que nao existe nesse contexto -- as linhas do trigger sairiam com
+      // user_id NULL. Registramos a autoria explicitamente aqui, ANTES do
+      // upsert em massa, usando o usuario extraido do JWT do chamador.
+      const resumoRestore = BACKUP_TABLES.reduce((acc, table) => {
+        const linhas = backup[table];
+        if (Array.isArray(linhas) && linhas.length > 0) acc[table] = linhas.length;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const { error: auditError } = await supabaseClient.from("audit_log").insert({
+        tabela: "backup_manager",
+        acao: "restore_backup",
+        user_id: user.id,
+        empresa_id,
+        ip_address: req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? null,
+        dados_novos: {
+          origem: "edge:backup-manager",
+          disparado_por: user.email ?? user.id,
+          empresa_id,
+          tabelas: resumoRestore,
+          total_registros: Object.values(resumoRestore).reduce((a, b) => a + b, 0),
+          solicitado_em: new Date().toISOString(),
+        },
+      });
+
+      // Sem registro de autoria nao ha restore: a ausencia desse rastro e
+      // exatamente o achado de auditoria que esta funcao precisa evitar.
+      if (auditError) {
+        console.error("Falha ao registrar auditoria do restore:", auditError);
+        return new Response(JSON.stringify({
+          error: "Não foi possível registrar a auditoria da restauração; operação abortada.",
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const results: Record<string, unknown> = {};
 
       for (const table of BACKUP_TABLES) {
