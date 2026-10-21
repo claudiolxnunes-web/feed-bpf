@@ -1,4 +1,4 @@
-import { defineTool, ToolError } from "@lovable.dev/mcp-js";
+import { defineTool, ToolError } from "../context";
 import { z } from "zod";
 import { licensedCompany } from "../access";
 

@@ -6,9 +6,9 @@ import {
 } from './send-email.ts'
 
 /**
- * Sends a registered template through the managed email API and records the
+ * Sends a registered template through Resend (see send-email.ts) and records the
  * outcome in the app's `email_send_log` table (history only — it never gates
- * a send; suppression is enforced server-side by Lovable).
+ * a send; suppression is checked in send-email.ts against suppressed_emails).
  *
  * Returns the send result. Any non-suppression failure is logged and rethrown
  * so the caller keeps its own error handling.

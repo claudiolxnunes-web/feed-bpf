@@ -1,4 +1,4 @@
-import { ToolError, type ToolContext } from "@lovable.dev/mcp-js";
+import { ToolError, type ToolContext } from "./context";
 import { supabaseForUser } from "./supabase";
 
 export async function licensedCompany(ctx: ToolContext, empresaId: string) {

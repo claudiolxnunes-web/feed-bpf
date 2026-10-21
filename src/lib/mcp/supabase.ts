@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { ToolError, type ToolContext } from "@lovable.dev/mcp-js";
+import { ToolError, type ToolContext } from "./context";
 import type { Database } from "@/integrations/supabase/types";
 
 type RuntimeGlobals = typeof globalThis & {

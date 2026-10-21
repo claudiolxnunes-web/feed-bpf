@@ -42,6 +42,7 @@ export interface EmailPayload {
   idempotency_key?: string
   unsubscribe_token?: string
   message_id?: string
+  reply_to?: string
 }
 
 export interface SendOptions {
@@ -127,6 +128,7 @@ export async function sendResendEmail(
     html: payload.html,
   }
   if (payload.text) body.text = payload.text
+  if (payload.reply_to) body.reply_to = payload.reply_to
   if (Object.keys(emailHeaders).length > 0) body.headers = emailHeaders
 
   let response: Response
