@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ToolContext } from "@lovable.dev/mcp-js";
+import type { ToolContext } from "./context";
 
 const state = vi.hoisted(() => ({ permitted: true, licenses: [] as { status: string; data_expiracao: string; liberado_admin: boolean }[] }));
 vi.mock("./supabase", () => ({ supabaseForUser: () => ({
