@@ -6,6 +6,21 @@ import { BrowserRouter } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../integrations/supabase/client";
 import { toast } from "sonner";
+import { PADDLE_CHECKOUT_DISABLED_LABEL, PADDLE_CHECKOUT_WHATSAPP_URL } from "../config/paddleCheckout";
+
+// Estado mutável do flag de checkout: cada teste escolhe ligado/desligado
+// sem alterar src/config/paddleCheckout.ts.
+const paddle = vi.hoisted(() => ({ enabled: false }));
+
+vi.mock("../config/paddleCheckout", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config/paddleCheckout")>();
+  return {
+    ...actual,
+    get PADDLE_CHECKOUT_ENABLED() {
+      return paddle.enabled;
+    },
+  };
+});
 
 // Mock das dependências
 vi.mock("../hooks/useAuth", () => ({
@@ -38,6 +53,7 @@ const renderWithRouter = (ui: React.ReactElement, { route = "/rotulos" } = {}) =
 describe("RotulosBPFPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    paddle.enabled = false;
     (useAuth as any).mockReturnValue({ session: null });
   });
 
@@ -69,45 +85,63 @@ describe("RotulosBPFPage", () => {
     expect(screen.getByRole("heading", { name: /Você cancelou o pagamento/i })).toBeInTheDocument();
   });
 
-  it("deve chamar a função de checkout ao clicar em um plano", async () => {
-    (supabase.functions.invoke as any).mockResolvedValue({
-      data: { url: "https://stripe.com/checkout" },
-      error: null,
-    });
-    
-    // Como window.location.href não pode ser espiado diretamente no JSDOM de forma fácil,
-    // apenas verificamos se a função foi chamada com os parâmetros corretos.
-    // O erro "Not implemented: navigation" no console durante o teste confirma que a linha
-    // window.location.href = data.url foi atingida.
+  it("com checkout desligado, mostra o rótulo de indisponível e abre o WhatsApp", () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
 
     renderWithRouter(<RotulosBPFPage />);
-    
-    // Agora o primeiro botão de "Assinar" é do plano Individual Mensal
-    const buttons = screen.getAllByRole("button", { name: /Assinar/i });
-    fireEvent.click(buttons[0]); 
 
-    await waitFor(() => {
-      expect(supabase.functions.invoke).toHaveBeenCalledWith("create-checkout-nutriagrolabels", {
-        body: { tipo: "individual", plano: "mensal" },
-      });
-    });
-  });
-
-  it("deve exibir erro se a função de checkout falhar", async () => {
-    (supabase.functions.invoke as any).mockResolvedValue({
-      data: null,
-      error: { message: "Erro na API" },
-    });
-
-    renderWithRouter(<RotulosBPFPage />);
-    
-    const buttons = screen.getAllByRole("button", { name: /Assinar/i });
+    expect(screen.queryAllByRole("button", { name: /Assinar/i })).toHaveLength(0);
+    const buttons = screen.getAllByRole("button", { name: PADDLE_CHECKOUT_DISABLED_LABEL });
     fireEvent.click(buttons[0]);
 
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Erro ao iniciar checkout", expect.objectContaining({
-        description: "Erro na API"
-      }));
+    expect(openSpy).toHaveBeenCalledWith(PADDLE_CHECKOUT_WHATSAPP_URL, "_blank", "noopener,noreferrer");
+    expect(supabase.functions.invoke).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
+
+  describe("com checkout ligado", () => {
+    beforeEach(() => {
+      paddle.enabled = true;
+    });
+
+    it("deve chamar a função de checkout ao clicar em um plano", async () => {
+      (supabase.functions.invoke as any).mockResolvedValue({
+        data: { url: "https://checkout.example.test/session" },
+        error: null,
+      });
+
+      // Como window.location.href não pode ser espiado diretamente no JSDOM de forma fácil,
+      // apenas verificamos se a função foi chamada com os parâmetros corretos.
+
+      renderWithRouter(<RotulosBPFPage />);
+
+      // O primeiro botão de "Assinar" é do plano Individual Mensal
+      const buttons = screen.getAllByRole("button", { name: /Assinar/i });
+      fireEvent.click(buttons[0]);
+
+      await waitFor(() => {
+        expect(supabase.functions.invoke).toHaveBeenCalledWith("create-checkout-nutriagrolabels", {
+          body: { tipo: "individual", plano: "mensal" },
+        });
+      });
+    });
+
+    it("deve exibir erro se a função de checkout falhar", async () => {
+      (supabase.functions.invoke as any).mockResolvedValue({
+        data: null,
+        error: { message: "Erro na API" },
+      });
+
+      renderWithRouter(<RotulosBPFPage />);
+
+      const buttons = screen.getAllByRole("button", { name: /Assinar/i });
+      fireEvent.click(buttons[0]);
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith("Erro ao iniciar checkout", expect.objectContaining({
+          description: "Erro na API"
+        }));
+      });
     });
   });
 
