@@ -28,7 +28,7 @@ const WELCOME: Msg = {
   id: "welcome",
   role: "assistant",
   content:
-    "Olá! 👋 Sou o **Assistente BPF_Consult**. Posso ajudar com dúvidas sobre **BPF**, **legislação MAPA** (Decreto 12.031/2024, IN 04/2007) e **uso da plataforma**.\n\nComo posso ajudar hoje?",
+    "Olá! 👋 Sou o **Assistente BPF_Consult**. Posso ajudar com dúvidas sobre **BPF**, **legislação MAPA** e **uso da plataforma**.\n\nComo posso ajudar hoje?",
 };
 
 // Rotas onde o widget NÃO deve aparecer (telas técnicas/embedadas)

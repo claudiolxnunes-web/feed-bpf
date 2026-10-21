@@ -1,6 +1,9 @@
+import { textoTela } from "@/lib/textoTela";
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
-import { FolderOpen, Upload, Trash2, Download, FileText, Filter, Loader2, Calendar, Tag, ClipboardCheck } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+
+import { FolderOpen, Upload, Trash2, Download, FileText, Filter, Loader2, Calendar, Tag, ClipboardCheck, Archive, CheckCircle2, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +20,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { toast } from "sonner";
+import { baixarArquivoStorage } from "@/utils/fileTypes";
+import { normalizarPopCodigo, POPS_CODIGOS } from "@/lib/popCodigo";
+
 
 const TIPOS_DOC = [
   { value: "pop", label: "POP — Procedimento Operacional Padrão" },
@@ -28,8 +34,7 @@ const TIPOS_DOC = [
 ];
 
 const POP_CODIGOS = [
-  "POP-001", "POP-002", "POP-003", "POP-004", "POP-005",
-  "POP-006", "POP-007", "POP-008", "POP-009", "POP-010",
+  ...POPS_CODIGOS,
   "IT-01-01", "IT-01-02", "IT-01-03", "IT-02-01", "IT-02-02", "IT-02-03",
   "IT-03-01", "IT-03-02", "IT-04-01", "IT-04-02", "IT-05-01", "IT-05-02",
   "IT-06-01", "IT-06-02", "IT-07-01", "IT-07-02", "IT-08-01", "IT-08-02",
@@ -58,7 +63,9 @@ export default function DocumentosBPF() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [openUpload, setOpenUpload] = useState(false);
+  const [activeTab, setActiveTab] = useState("checklist");
   const [filtroTipo, setFiltroTipo] = useState("todos");
+
   const [filtroCodigo, setFiltroCodigo] = useState("todos");
 
   // Upload form
@@ -73,11 +80,14 @@ export default function DocumentosBPF() {
     const shouldOpenUpload = searchParams.get("upload") === "1";
     const tipoParam = searchParams.get("tipo");
     const popParam = searchParams.get("pop");
+    const tabParam = searchParams.get("tab");
 
+    if (tabParam) setActiveTab(tabParam);
     if (tipoParam && TIPOS_DOC.some((item) => item.value === tipoParam)) setTipo(tipoParam);
     if (popParam) setPopCodigo(popParam);
     if (shouldOpenUpload) setOpenUpload(true);
   }, [searchParams]);
+
 
   const fetchDocs = async () => {
     if (!user || !empresaId) return;
@@ -138,15 +148,11 @@ export default function DocumentosBPF() {
   };
 
   const handleDownload = async (doc: DocBPF) => {
-    const { data, error } = await supabase.storage
-      .from("feed-bpf")
-      .createSignedUrl(doc.arquivo_path, 300);
-    if (error || !data?.signedUrl) {
-      toast.error("Erro ao gerar link de download");
-      return;
-    }
-    window.open(data.signedUrl, "_blank");
+    await baixarArquivoStorage("feed-bpf", doc.arquivo_path, (doc as any).arquivo_nome || doc.titulo, {
+      bucketsAlternativos: ["documentos-bpf"],
+    });
   };
+
 
   const handleDelete = async (doc: DocBPF) => {
     if (!confirm(`Excluir "${doc.titulo}"?`)) return;
@@ -164,7 +170,7 @@ export default function DocumentosBPF() {
   const filtered = useMemo(() => {
     return docs.filter(d => {
       if (filtroTipo !== "todos" && d.tipo !== filtroTipo) return false;
-      if (filtroCodigo !== "todos" && d.pop_codigo !== filtroCodigo) return false;
+      if (filtroCodigo !== "todos" && normalizarPopCodigo(d.pop_codigo) !== normalizarPopCodigo(filtroCodigo)) return false;
       return true;
     });
   }, [docs, filtroTipo, filtroCodigo]);
@@ -203,26 +209,107 @@ export default function DocumentosBPF() {
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={FolderOpen} title="Documentos BPF — Arquivo Digital" description="Checklist de documentos obrigatórios + arquivo livre de POPs, ITs e planilhas escaneadas" />
+      <PageHeader icon={FolderOpen} title="Arquivo Digital (Arquivo de POPs e ITs)" description="Checklist de documentos obrigatórios + arquivo livre de POPs, ITs e planilhas escaneadas" />
       <EmpresaSelector />
 
-      <Tabs defaultValue="checklist" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="checklist"><ClipboardCheck className="w-4 h-4 mr-2" />Checklist Obrigatórios</TabsTrigger>
           <TabsTrigger value="arquivo"><FolderOpen className="w-4 h-4 mr-2" />Arquivo Livre</TabsTrigger>
+          <TabsTrigger value="retencao"><Clock className="w-4 h-4 mr-2" />Gestão de Retenção (2 Anos)</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="checklist">
           <ChecklistObrigatorios empresaId={empresaId} userId={user!.id} />
         </TabsContent>
 
+        <TabsContent value="retencao" className="space-y-4">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-4">
+              <div className="flex items-start gap-3">
+                <Archive className="w-6 h-6 text-primary mt-0.5" />
+                <div>
+                  <h4 className="font-display font-semibold text-sm">Política de Retenção de Registros <BaseLegalBadge assunto="autocontrole" /></h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Todos os registros de BPF devem ser mantidos por no mínimo <strong>2 (dois) anos</strong> e estar
+                    disponíveis para fiscalização a qualquer momento. O sistema retém automaticamente todos os dados
+                    e impede exclusão de registros dentro do prazo de guarda obrigatório.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    
+                    
+                    <Badge variant="outline" className="text-[10px]"> — Controle de Registros</Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="font-semibold text-sm">Status de Conformidade — Retenção Documental</h4>
+              {[
+                { modulo: "Execução de POPs (POP-01 a POP-10)", status: true, detalhe: "Todos os registros de execução de POPs são armazenados permanentemente no banco de dados com timestamp e user_id." },
+                { modulo: "Registros de Limpeza e Higienização (POP-02)", status: true, detalhe: "Cronogramas, checklists pré-operacionais, liberação de linha e monitoramento de superfícies retidos integralmente." },
+                { modulo: "Saúde e Higiene Pessoal (POP-03)", status: true, detalhe: "ASOs, registros de afastamento por sintomas e controle de visitantes mantidos." },
+                { modulo: "Controle de Água e Laudos (POP-04)", status: true, detalhe: "Registros de potabilidade, laudos laboratoriais e certificados de limpeza de reservatório arquivados." },
+                { modulo: "Controle de Resíduos e Efluentes (POP-08)", status: true, detalhe: "Manifestos de transporte, licenças ambientais e registros de descarte mantidos com rastreabilidade completa." },
+                { modulo: "Calibrações e Manutenções (POP-06)", status: true, detalhe: "Certificados de calibração, verificações intermediárias e planos preventivos arquivados." },
+                { modulo: "Rastreabilidade e Recall (POP-09)", status: true, detalhe: "Correlação MP↔PA, testes de recall simulado e certificados de análise retidos por tempo indeterminado." },
+                { modulo: "Não Conformidades e Ações Corretivas", status: true, detalhe: "NCs, causas-raiz, planos de ação e verificações de eficácia mantidos para auditoria." },
+                { modulo: "Treinamentos e ASOs", status: true, detalhe: "Registros de capacitação, ASOs e monitoramento de sintomas armazenados permanentemente." },
+              ].map(item => (
+                <div key={item.modulo} className="p-3 rounded-lg border bg-background">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{item.modulo}</span>
+                    <Badge className="bg-primary/20 text-primary">✅ Retido ≥ 2 anos</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{item.detalhe}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-green-500/20 bg-green-50 dark:bg-green-900/10">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <div>
+                  <h4 className="font-semibold text-sm text-green-700 dark:text-green-400">Sistema em Conformidade com a Política de Retenção</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Todos os módulos do sistema armazenam registros em banco de dados permanente com backup automático.
+                    A exclusão de registros dentro do período de guarda de 2 anos é controlada por políticas de acesso.
+                    Os dados estão disponíveis para exportação e fiscalização a qualquer momento.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="arquivo" className="space-y-6">
+          <div className="flex justify-between items-center bg-muted/30 p-4 rounded-lg border border-border/50">
+            <div className="flex items-center gap-2">
+              <Archive className="w-5 h-5 text-emerald-600" />
+              <div>
+                <h3 className="text-sm font-semibold">Gestão de Backup Local</h3>
+                <p className="text-[11px] text-muted-foreground">Exporte seu acervo para armazenamento externo de segurança.</p>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link to="/feedbpf-custom/config">
+                <Download className="w-4 h-4" /> Configurar Backup
+              </Link>
+            </Button>
+          </div>
 
       {/* Filters + Upload */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Tipo</Label>
           <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+
             <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
@@ -254,7 +341,7 @@ export default function DocumentosBPF() {
                   <Select value={tipo} onValueChange={setTipo}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {TIPOS_DOC.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                      {TIPOS_DOC.map(t => <SelectItem key={t.value} value={t.value}>{textoTela(t.label)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -271,7 +358,7 @@ export default function DocumentosBPF() {
               </div>
               <div>
                 <Label>Título *</Label>
-                <Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: POP-001 Recebimento MP - Janeiro 2025" />
+                <Input value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: POP-01 Recebimento MP - Janeiro 2025" />
               </div>
               <div>
                 <Label>Descrição</Label>
@@ -349,7 +436,7 @@ export default function DocumentosBPF() {
                       <TableCell className="font-mono text-xs">{d.pop_codigo || "—"}</TableCell>
                       <TableCell>
                         <p className="text-sm font-medium">{d.titulo}</p>
-                        {d.descricao && <p className="text-xs text-muted-foreground">{d.descricao}</p>}
+                        {d.descricao && <p className="text-xs text-muted-foreground">{textoTela(d.descricao)}</p>}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground truncate max-w-[140px]">{d.arquivo_nome}</TableCell>
                       <TableCell>

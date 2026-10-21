@@ -518,6 +518,7 @@ export type Database = {
           frequencia: string | null
           id: string
           it_codigo: string | null
+          metadata: Json | null
           nome_padronizado: string | null
           numero_doc: number | null
           pop_codigo: string | null
@@ -525,6 +526,7 @@ export type Database = {
           titulo: string
           updated_at: string
           user_id: string
+          versao: number | null
         }
         Insert: {
           arquivo_nome?: string | null
@@ -538,6 +540,7 @@ export type Database = {
           frequencia?: string | null
           id?: string
           it_codigo?: string | null
+          metadata?: Json | null
           nome_padronizado?: string | null
           numero_doc?: number | null
           pop_codigo?: string | null
@@ -545,6 +548,7 @@ export type Database = {
           titulo: string
           updated_at?: string
           user_id: string
+          versao?: number | null
         }
         Update: {
           arquivo_nome?: string | null
@@ -558,6 +562,7 @@ export type Database = {
           frequencia?: string | null
           id?: string
           it_codigo?: string | null
+          metadata?: Json | null
           nome_padronizado?: string | null
           numero_doc?: number | null
           pop_codigo?: string | null
@@ -565,6 +570,7 @@ export type Database = {
           titulo?: string
           updated_at?: string
           user_id?: string
+          versao?: number | null
         }
         Relationships: [
           {
@@ -730,6 +736,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "auditor_tokens_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auditorias_bpf: {
+        Row: {
+          auditor: string
+          created_at: string
+          data_auditoria: string
+          empresa_id: string | null
+          escopo: string | null
+          id: string
+          observacoes: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          auditor: string
+          created_at?: string
+          data_auditoria?: string
+          empresa_id?: string | null
+          escopo?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          auditor?: string
+          created_at?: string
+          data_auditoria?: string
+          empresa_id?: string | null
+          escopo?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditorias_bpf_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
@@ -1095,6 +1145,7 @@ export type Database = {
         Row: {
           area: string
           auditoria_data: string | null
+          auditoria_id: string | null
           conforme: boolean | null
           created_at: string
           empresa_id: string | null
@@ -1106,6 +1157,7 @@ export type Database = {
         Insert: {
           area: string
           auditoria_data?: string | null
+          auditoria_id?: string | null
           conforme?: boolean | null
           created_at?: string
           empresa_id?: string | null
@@ -1117,6 +1169,7 @@ export type Database = {
         Update: {
           area?: string
           auditoria_data?: string | null
+          auditoria_id?: string | null
           conforme?: boolean | null
           created_at?: string
           empresa_id?: string | null
@@ -1126,6 +1179,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "checklist_items_auditoria_id_fkey"
+            columns: ["auditoria_id"]
+            isOneToOne: false
+            referencedRelation: "auditorias_bpf"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "checklist_items_empresa_id_fkey"
             columns: ["empresa_id"]
@@ -2280,13 +2340,16 @@ export type Database = {
       }
       empresas: {
         Row: {
+          arquivo_autorizacao_medicamentos: string | null
           atividades_sipeagro: string[] | null
           autorizacao_medicamentos: string | null
           capacidade: string | null
           cnpj: string | null
           created_at: string
           crmv: string | null
+          data_autorizacao_medicamentos: string | null
           endereco: string | null
+          fabrica_medicamentos: boolean
           id: string
           nome: string
           numero_sipeagro: string | null
@@ -2300,13 +2363,16 @@ export type Database = {
           validade_registro_sipeagro: string | null
         }
         Insert: {
+          arquivo_autorizacao_medicamentos?: string | null
           atividades_sipeagro?: string[] | null
           autorizacao_medicamentos?: string | null
           capacidade?: string | null
           cnpj?: string | null
           created_at?: string
           crmv?: string | null
+          data_autorizacao_medicamentos?: string | null
           endereco?: string | null
+          fabrica_medicamentos?: boolean
           id?: string
           nome: string
           numero_sipeagro?: string | null
@@ -2320,13 +2386,16 @@ export type Database = {
           validade_registro_sipeagro?: string | null
         }
         Update: {
+          arquivo_autorizacao_medicamentos?: string | null
           atividades_sipeagro?: string[] | null
           autorizacao_medicamentos?: string | null
           capacidade?: string | null
           cnpj?: string | null
           created_at?: string
           crmv?: string | null
+          data_autorizacao_medicamentos?: string | null
           endereco?: string | null
+          fabrica_medicamentos?: boolean
           id?: string
           nome?: string
           numero_sipeagro?: string | null
@@ -2396,6 +2465,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "equipamentos_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      execucao_its: {
+        Row: {
+          created_at: string | null
+          data_execucao: string | null
+          empresa_id: string | null
+          id: string
+          it_codigo: string
+          observacoes: string | null
+          pop_codigo: string
+          responsavel_nome: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_execucao?: string | null
+          empresa_id?: string | null
+          id?: string
+          it_codigo: string
+          observacoes?: string | null
+          pop_codigo: string
+          responsavel_nome?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_execucao?: string | null
+          empresa_id?: string | null
+          id?: string
+          it_codigo?: string
+          observacoes?: string | null
+          pop_codigo?: string
+          responsavel_nome?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execucao_its_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
@@ -2554,6 +2667,7 @@ export type Database = {
           quantidade: number
           quantidade_sacos: number | null
           rastreabilidade_id: string | null
+          status: string
           unidade: string | null
           user_id: string
           valor_total: number | null
@@ -2574,6 +2688,7 @@ export type Database = {
           quantidade?: number
           quantidade_sacos?: number | null
           rastreabilidade_id?: string | null
+          status?: string
           unidade?: string | null
           user_id: string
           valor_total?: number | null
@@ -2594,6 +2709,7 @@ export type Database = {
           quantidade?: number
           quantidade_sacos?: number | null
           rastreabilidade_id?: string | null
+          status?: string
           unidade?: string | null
           user_id?: string
           valor_total?: number | null
@@ -2859,6 +2975,7 @@ export type Database = {
           data_versao: string
           empresa_id: string | null
           id: string
+          medicada: boolean
           observacoes: string | null
           produto_id: string | null
           produto_nome: string
@@ -2873,6 +2990,7 @@ export type Database = {
           data_versao?: string
           empresa_id?: string | null
           id?: string
+          medicada?: boolean
           observacoes?: string | null
           produto_id?: string | null
           produto_nome: string
@@ -2887,6 +3005,7 @@ export type Database = {
           data_versao?: string
           empresa_id?: string | null
           id?: string
+          medicada?: boolean
           observacoes?: string | null
           produto_id?: string | null
           produto_nome?: string
@@ -4240,6 +4359,7 @@ export type Database = {
       }
       normas_legislacao: {
         Row: {
+          arquivada_em: string | null
           arquivo_nome: string | null
           arquivo_url: string | null
           codigo: string | null
@@ -4247,8 +4367,11 @@ export type Database = {
           data_publicacao: string | null
           empresa_id: string | null
           id: string
+          motivo_arquivamento: string | null
           orgao: string | null
           resumo: string | null
+          situacao: string
+          slug: string | null
           tags: string[] | null
           tipo: string | null
           titulo: string
@@ -4256,6 +4379,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          arquivada_em?: string | null
           arquivo_nome?: string | null
           arquivo_url?: string | null
           codigo?: string | null
@@ -4263,8 +4387,11 @@ export type Database = {
           data_publicacao?: string | null
           empresa_id?: string | null
           id?: string
+          motivo_arquivamento?: string | null
           orgao?: string | null
           resumo?: string | null
+          situacao?: string
+          slug?: string | null
           tags?: string[] | null
           tipo?: string | null
           titulo: string
@@ -4272,6 +4399,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          arquivada_em?: string | null
           arquivo_nome?: string | null
           arquivo_url?: string | null
           codigo?: string | null
@@ -4279,8 +4407,11 @@ export type Database = {
           data_publicacao?: string | null
           empresa_id?: string | null
           id?: string
+          motivo_arquivamento?: string | null
           orgao?: string | null
           resumo?: string | null
+          situacao?: string
+          slug?: string | null
           tags?: string[] | null
           tipo?: string | null
           titulo?: string
@@ -4464,6 +4595,7 @@ export type Database = {
           local_armazenamento: string | null
           lote_produto: string | null
           material_flushing: string | null
+          medicada: boolean
           motivo_retrabalho: string | null
           necessita_flushing: boolean | null
           numero_batidas: number | null
@@ -4473,10 +4605,12 @@ export type Database = {
           peso_por_batida: string | null
           prioridade: string | null
           produto: string
+          programa_sanitario_id: string | null
           proximo_produto: string | null
           quantidade_programada: string | null
           quantidade_sacos: number | null
           quantidade_sobra: string | null
+          receita_medicado_id: string | null
           sequencia_producao: number | null
           status: string | null
           tempo_mistura_padrao_minutos: number | null
@@ -4500,6 +4634,7 @@ export type Database = {
           local_armazenamento?: string | null
           lote_produto?: string | null
           material_flushing?: string | null
+          medicada?: boolean
           motivo_retrabalho?: string | null
           necessita_flushing?: boolean | null
           numero_batidas?: number | null
@@ -4509,10 +4644,12 @@ export type Database = {
           peso_por_batida?: string | null
           prioridade?: string | null
           produto: string
+          programa_sanitario_id?: string | null
           proximo_produto?: string | null
           quantidade_programada?: string | null
           quantidade_sacos?: number | null
           quantidade_sobra?: string | null
+          receita_medicado_id?: string | null
           sequencia_producao?: number | null
           status?: string | null
           tempo_mistura_padrao_minutos?: number | null
@@ -4536,6 +4673,7 @@ export type Database = {
           local_armazenamento?: string | null
           lote_produto?: string | null
           material_flushing?: string | null
+          medicada?: boolean
           motivo_retrabalho?: string | null
           necessita_flushing?: boolean | null
           numero_batidas?: number | null
@@ -4545,10 +4683,12 @@ export type Database = {
           peso_por_batida?: string | null
           prioridade?: string | null
           produto?: string
+          programa_sanitario_id?: string | null
           proximo_produto?: string | null
           quantidade_programada?: string | null
           quantidade_sacos?: number | null
           quantidade_sobra?: string | null
+          receita_medicado_id?: string | null
           sequencia_producao?: number | null
           status?: string | null
           tempo_mistura_padrao_minutos?: number | null
@@ -4581,6 +4721,20 @@ export type Database = {
             columns: ["ordem_origem_id"]
             isOneToOne: false
             referencedRelation: "ordens_producao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_producao_programa_sanitario_id_fkey"
+            columns: ["programa_sanitario_id"]
+            isOneToOne: false
+            referencedRelation: "programas_sanitarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordens_producao_receita_medicado_id_fkey"
+            columns: ["receita_medicado_id"]
+            isOneToOne: false
+            referencedRelation: "receitas_medicados"
             referencedColumns: ["id"]
           },
         ]
@@ -5128,6 +5282,71 @@ export type Database = {
         }
         Relationships: []
       }
+      programas_sanitarios: {
+        Row: {
+          arquivo: string | null
+          cliente: string
+          created_at: string
+          crmv: string
+          data_inicio: string
+          data_ultima_revisao: string
+          dose: string | null
+          empresa_id: string | null
+          especie: string
+          id: string
+          medico_veterinario: string
+          nome: string
+          principio_ativo: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arquivo?: string | null
+          cliente: string
+          created_at?: string
+          crmv: string
+          data_inicio: string
+          data_ultima_revisao: string
+          dose?: string | null
+          empresa_id?: string | null
+          especie: string
+          id?: string
+          medico_veterinario: string
+          nome: string
+          principio_ativo: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arquivo?: string | null
+          cliente?: string
+          created_at?: string
+          crmv?: string
+          data_inicio?: string
+          data_ultima_revisao?: string
+          dose?: string | null
+          empresa_id?: string | null
+          especie?: string
+          id?: string
+          medico_veterinario?: string
+          nome?: string
+          principio_ativo?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programas_sanitarios_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rastreabilidade: {
         Row: {
           cliente_destino: string | null
@@ -5338,6 +5557,74 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "recebimento_mp_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receitas_medicados: {
+        Row: {
+          arquivo: string | null
+          cliente: string
+          created_at: string
+          crmv: string
+          data_emissao: string
+          dose: string
+          empresa_id: string | null
+          especie: string
+          finalidade: string
+          id: string
+          medico_veterinario: string
+          numero: string
+          principio_ativo: string
+          status: string
+          updated_at: string
+          user_id: string
+          validade: string
+        }
+        Insert: {
+          arquivo?: string | null
+          cliente: string
+          created_at?: string
+          crmv: string
+          data_emissao: string
+          dose: string
+          empresa_id?: string | null
+          especie: string
+          finalidade: string
+          id?: string
+          medico_veterinario: string
+          numero: string
+          principio_ativo: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          validade: string
+        }
+        Update: {
+          arquivo?: string | null
+          cliente?: string
+          created_at?: string
+          crmv?: string
+          data_emissao?: string
+          dose?: string
+          empresa_id?: string | null
+          especie?: string
+          finalidade?: string
+          id?: string
+          medico_veterinario?: string
+          numero?: string
+          principio_ativo?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          validade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receitas_medicados_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
@@ -5932,6 +6219,65 @@ export type Database = {
           },
         ]
       }
+      simulacoes_recall: {
+        Row: {
+          created_at: string
+          data: string
+          empresa_id: string | null
+          etapas: Json
+          id: string
+          lote: string
+          observacoes: string | null
+          produto: string
+          responsavel: string | null
+          rt: string | null
+          status: string
+          tempo_total_min: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          empresa_id?: string | null
+          etapas?: Json
+          id?: string
+          lote: string
+          observacoes?: string | null
+          produto: string
+          responsavel?: string | null
+          rt?: string | null
+          status?: string
+          tempo_total_min?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          empresa_id?: string | null
+          etapas?: Json
+          id?: string
+          lote?: string
+          observacoes?: string | null
+          produto?: string
+          responsavel?: string | null
+          rt?: string | null
+          status?: string
+          tempo_total_min?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulacoes_recall_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -6229,6 +6575,7 @@ export type Database = {
           ordem_producao_id: string | null
           produto_anterior: string
           produto_seguinte: string
+          repeticao: number | null
           residuo_detectado: string | null
           responsavel: string | null
           resultado: string | null
@@ -6250,6 +6597,7 @@ export type Database = {
           ordem_producao_id?: string | null
           produto_anterior: string
           produto_seguinte: string
+          repeticao?: number | null
           residuo_detectado?: string | null
           responsavel?: string | null
           resultado?: string | null
@@ -6271,6 +6619,7 @@ export type Database = {
           ordem_producao_id?: string | null
           produto_anterior?: string
           produto_seguinte?: string
+          repeticao?: number | null
           residuo_detectado?: string | null
           responsavel?: string | null
           resultado?: string | null
@@ -6395,6 +6744,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aceitar_convite_empresa: { Args: { _token: string }; Returns: Json }
+      alterar_papel_membro: {
+        Args: {
+          _membro_id: string
+          _papel: Database["public"]["Enums"]["papel_empresa"]
+        }
+        Returns: Json
+      }
       aprovar_documento_pop: {
         Args: {
           _aprovador_nome: string
@@ -6436,18 +6793,9 @@ export type Database = {
         }
         Returns: Json
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
       desvincular_empresa_licenca_consultor: {
         Args: { _vinculo_id: string }
         Returns: Json
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
       }
       get_licenca_consultor_ativa:
         | {
@@ -6527,26 +6875,25 @@ export type Database = {
         Args: { _empresa_id: string; _user_id: string }
         Returns: boolean
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
+      listar_membros_empresa: {
+        Args: { _empresa_id: string }
+        Returns: {
+          ativo: boolean
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          papel: Database["public"]["Enums"]["papel_empresa"]
+          user_id: string
+        }[]
+      }
+      pode_editar_empresa: {
+        Args: { _empresa_id: string; _user_id: string }
+        Returns: boolean
       }
       pode_usar_empresa: {
         Args: { _empresa_id: string; _user_id: string }
         Returns: boolean
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
       }
       tem_papel_empresa: {
         Args: {
@@ -6580,7 +6927,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "comercial"
-      papel_empresa: "admin" | "rt" | "operador"
+      papel_empresa: "admin" | "rt" | "operador" | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6596,12 +6943,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -6625,11 +6972,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -6650,11 +6997,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -6675,11 +7022,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -6692,11 +7039,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -6709,7 +7056,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "comercial"],
-      papel_empresa: ["admin", "rt", "operador"],
+      papel_empresa: ["admin", "rt", "operador", "visualizador"],
     },
   },
 } as const

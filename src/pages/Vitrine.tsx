@@ -68,8 +68,8 @@ const produtos: ProdutoCard[] = [
     nome: "Audits_BPF",
     icon: ShieldCheck,
     logo: logoAuditsBpf,
-    desc: "Auditoria interna baseada no Decreto 12.031/2024. Sala do auditor MAPA, cálculo automático de conformidade e planos de ação automatizados.",
-    destaques: ["Checklist Decreto 12.031", "Sala do Auditor MAPA", "Planos de Ação (NC)", "Cálculo de Conformidade", "Histórico de Auditorias", "Relatórios Oficiais"],
+    desc: "Auditoria interna. Sala do auditor MAPA, cálculo automático de conformidade e planos de ação automatizados.",
+    destaques: ["Checklist", "Sala do Auditor MAPA", "Planos de Ação (NC)", "Cálculo de Conformidade", "Histórico de Auditorias", "Relatórios Oficiais"],
     link: "/auditsbpf",
     appLink: "/auditsbpf/dashboard",
     gradient: "from-emerald-700 to-emerald-900",
@@ -154,11 +154,13 @@ const produtos: ProdutoCard[] = [
   },
 ];
 
+const WHATSAPP_CONTATO = "https://wa.me/5562996075522";
+
 const estatisticas = [
   { valor: "~2.900", label: "Fábricas no Brasil", icon: Building2 },
-  { valor: "100%", label: "Adequação IN 17/2023", icon: CheckCircle2 },
+  { valor: "100%", label: "Adequação", icon: CheckCircle2 },
   { valor: "24/7", label: "Gestão Cloud", icon: GraduationCap },
-  { valor: "12031", label: "Conforme Decreto", icon: ShieldCheck },
+  { valor: "MAPA", label: "Conformidade", icon: ShieldCheck },
 ];
 
 export default function Vitrine() {
@@ -174,8 +176,8 @@ export default function Vitrine() {
       />
       {/* Top Banner - Urgency */}
       <div className="bg-[#173404] text-[#97C459] py-2 px-4 text-center text-xs font-bold tracking-widest uppercase">
-        Prepare sua fábrica para as novas exigências do MAPA · IN 17/2023
-      </div>
+ Prepare sua fábrica para as novas exigências do MAPA · 
+ </div>
 
       {/* Hero Section */}
       <header className="relative overflow-hidden bg-[#173404] pt-12 pb-24 sm:pt-20 sm:pb-32">
@@ -202,7 +204,7 @@ export default function Vitrine() {
             
             <p className="text-lg sm:text-xl text-green-100/80 max-w-3xl mx-auto mb-10 leading-relaxed font-sans">
               A única plataforma que integra <strong className="text-white">BPF, Auditoria Digital e CRM</strong> especializado para o agronegócio. 
-              Sua fábrica 100% auditável, eficiente e em conformidade total com a <strong className="text-white">IN 17/2023</strong>.
+              Sua fábrica auditável, eficiente e com registros organizados.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -297,9 +299,17 @@ export default function Vitrine() {
                     </div>
                     
                     <Button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (p.adminOnly) {
+                          navigate(p.appLink || p.link);
+                          return;
+                        }
+                        window.open(WHATSAPP_CONTATO, "_blank", "noopener,noreferrer");
+                      }}
                       className={`w-full font-bold group-hover:bg-[#173404] group-hover:text-white transition-colors ${p.adminOnly ? 'bg-slate-200 text-slate-700' : 'bg-[#F7F5F0] text-[#173404] border border-[#173404]/10'}`}
                     >
-                      {p.adminOnly ? 'Acessar Portal' : 'Ver Detalhes'}
+                      {p.adminOnly ? 'Acessar Portal' : 'Em breve'}
                       <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </div>
@@ -318,7 +328,7 @@ export default function Vitrine() {
             O fim da correria antes da fiscalização
           </h2>
           <p className="text-xl text-[#5F5E5A] leading-relaxed font-sans italic">
-            "Sua fábrica sempre pronta, 100% auditável e digital. BPF_Consult é a única solução que une <strong className="text-[#173404]">Consultoria Técnica</strong> e <strong className="text-[#173404]">Software especializado</strong> para o sucesso da sua operação."
+            "Sua fábrica sempre pronta, 100% auditável e digital. BPF_Consult é a única solução que une <strong className="text-[#173404]">Consultoria Técnica</strong> <strong className="text-[#173404]">Software especializado</strong> para o sucesso da sua operação."
           </p>
         </div>
       </section>

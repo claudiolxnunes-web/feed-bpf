@@ -1,0 +1,2 @@
+ALTER TABLE public.expedicao_itens ADD COLUMN status TEXT NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo','cancelado'));
+CREATE INDEX IF NOT EXISTS idx_expedicao_itens_status ON public.expedicao_itens(status);

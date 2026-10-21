@@ -30,6 +30,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import ClearCacheButton from "@/components/ClearCacheButton";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { canAccessLicenseAdmin } from "@/config/adminAccess";
+import { usePapelEmpresa } from "@/hooks/usePapelEmpresa";
+import EmpresaReadOnlyGuard from "@/components/EmpresaReadOnlyGuard";
 
 
 const PRODUCT_CONFIGS: Record<string, { logo: string; title: string; subtitle: string }> = {
@@ -79,6 +81,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, roles, signOut } = useAuth();
+  const { podeGerenciarEquipe } = usePapelEmpresa();
+  const navEntries = useMemo(() => NAV_ENTRIES.filter((entry) => "items" in entry || entry.path !== "/equipe" || podeGerenciarEquipe), [podeGerenciarEquipe]);
 
   const activePageLabel = useMemo(() => {
     const findLabel = (entries: typeof NAV_ENTRIES): string | null => {
@@ -178,7 +182,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
           <SidebarNav 
             currentPath={location.pathname} 
-            entries={NAV_ENTRIES} 
+            entries={navEntries}
             userRoles={roles || []} 
             userEmail={user?.email || ""}
           />
@@ -250,7 +254,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <SidebarNav 
                     currentPath={location.pathname} 
-                    entries={NAV_ENTRIES} 
+                    entries={navEntries}
                     onNavigate={closeMobile} 
                     userRoles={roles || []}
                     userEmail={user?.email || ""}
@@ -296,7 +300,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <TierGate>
               <Breadcrumbs />
               <Suspense fallback={<PageLoader />}>
-                {children}
+                <EmpresaReadOnlyGuard>{children}</EmpresaReadOnlyGuard>
               </Suspense>
             </TierGate>
           </LicenseGate>

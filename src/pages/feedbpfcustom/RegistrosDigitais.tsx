@@ -160,6 +160,15 @@ function NovoRegistro({ modeloId }: { modeloId: string | null }) {
     if (found) {
       setModelo(found);
       if (!titulo) setTitulo(found.nome + " — " + new Date().toLocaleDateString("pt-BR"));
+      
+      // Pre-popular valores padrão dos campos
+      const initialValues: Record<string, any> = {};
+      found.campos.forEach(campo => {
+        if ((campo as any).valorPadrao !== undefined) {
+          initialValues[campo.id] = (campo as any).valorPadrao;
+        }
+      });
+      setDados(initialValues);
     }
   }, [selectedId, modelos]);
 
@@ -251,7 +260,7 @@ function NovoRegistro({ modeloId }: { modeloId: string | null }) {
                 {modelo.campos.map(c => (
                   <div key={c.id}>
                     <Label>{c.nome} {c.obrigatorio && <span className="text-destructive">*</span>}</Label>
-                    <CampoInput campo={c} value={dados[c.id]} onChange={(v) => setDados({ ...dados, [c.id]: v })} />
+                    <CampoInput campo={c} value={dados[c.id] !== undefined ? dados[c.id] : c.valorPadrao} onChange={(v) => setDados({ ...dados, [c.id]: v })} />
                   </div>
                 ))}
               </div>

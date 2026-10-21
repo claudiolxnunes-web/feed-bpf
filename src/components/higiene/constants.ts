@@ -24,7 +24,7 @@ export const CHECKLIST_PRE_OP = [
   { area: "Paredes e Tetos", itens: ["Sem manchas ou mofos", "Pinturas íntegras", "Sem teias de aranha"] },
   { area: "Equipamentos de Produção", itens: ["Misturador limpo internamente", "Moinho sem resíduo de MP anterior", "Elevadores/transportadores limpos", "Peletizadora/Extrusora sem obstrução"] },
   { area: "Silos", itens: ["Silo limpo conforme cronograma", "Sem formação de crostas internas", "Bocal de carga/descarga limpo"] },
-  { area: "Balanças e Dosadores", itens: ["Superfície de pesagem limpa", "Sem resíduo de produto anterior", "Calibração verificada"] },
+  { area: "Balanças e Dosadores", itens: ["Superfície de pesagem limpa", "Sem resíduo de produto anterior", "Balança com calibração vigente (ver POP 06)"] },
   { area: "Utensílios e EPI", itens: ["Pás e vassouras limpas", "EPIs disponíveis e limpos", "Coletores de amostra higienizados"] },
   { area: "Instalações de Apoio", itens: ["Banheiros limpos e abastecidos", "Lavatórios com sabonete e papel", "Lixeiras com tampa e identificadas"] },
 ];
@@ -63,9 +63,10 @@ export const CHECKLIST_LIBERACAO_LINHA = [
   ]},
   { area: "Medicamentos / Carry-over", itens: [
     "Produto anterior continha medicamento? (verificar)",
-    "Flushing realizado conforme IN 15/2009",
+    "Flushing ou limpeza validada realizada conforme plano de sequenciamento",
     "Destino do material de flushing registrado",
-    "Carry-over dentro do limite aceitável (< 1% ionóforos / < 3% medicados)",
+    "Carry-over até 2,5% da concentração do princípio ativo no produto seguinte",
+    "Amostra coletada no último ponto compartilhado da linha",
   ]},
 ];
 
@@ -92,13 +93,14 @@ export const CHECKLIST_SILOS_TRANSPORT = [
     "Pontos de conexão entre equipamentos verificados",
     "Registro de flushing do transportador (se aplicável)",
   ]},
-  { area: "Prevenção de Arraste — IN 15/2009", itens: [
+  { area: "Prevenção de Arraste", itens: [
     "Verificação de resíduo de medicamento no silo/transportador",
     "Flushing com inerte realizado após produto medicado",
     "Volume de flushing ≥ 50% da capacidade do equipamento",
     "Destino do material de flushing registrado (resíduo/reprocesso)",
     "Tempo de espera respeitado antes do próximo produto (se aplicável)",
-    "Carry-over dentro do limite aceitável (< 1% ionóforos, < 3% medicados)",
+    "Carry-over até 2,5% da concentração do princípio ativo (3 repetições da sequência-piloto)",
+    "Produto não-alvo verificado no mínimo a cada 12 meses",
   ]},
   { area: "Documentação e Rastreabilidade", itens: [
     "Cronograma de limpeza de silos atualizado",
@@ -146,7 +148,7 @@ export const CHECKLIST_HIGIENE_PESSOAL = [
     "Uso de touca/gorro cobrindo todo o cabelo",
     "Uso de máscara descartável (quando aplicável)",
     "Luvas descartáveis (manipulação de premix/micro-ingredientes)",
-    "Protetor auricular disponível e em uso (areas de ruído)",
+    "Protetor auricular disponível e em uso (áreas de ruído)",
     "Óculos de proteção em áreas de risco (moagem, dosagem)",
   ]},
   { area: "Higiene Pessoal", itens: [
@@ -231,4 +233,15 @@ export const SINTOMAS_DIARIOS = [
   "Febre ou calafrios", "Tosse persistente", "Diarreia ou vômito", "Dor de garganta",
   "Lesões cutâneas (feridas, abscessos)", "Secreção ocular ou nasal", "Icterícia (pele/olhos amarelados)",
   "Dor abdominal intensa", "Infecção de ouvido", "Outros sintomas infectocontagiosos"
+];
+
+export const TIPOS_VALIDACAO = [
+  { value: "visual", label: "Inspeção Visual" },
+  { value: "swab", label: "Swab / Teste de Superfície" },
+  { value: "laboratorial", label: "Análise Laboratorial" },
+  { value: "rinse", label: "Água de Enxágue" },
+  { value: "homogeneidade", label: "Teste de Homogeneidade (CV até 10%)" },
+  { value: "carryover", label: "Teste de Carry-Over / Arraste" },
+  { value: "tempo_mistura", label: "Validação Tempo de Mistura" },
+  { value: "flushing", label: "Flushing / Limpeza de Linha" },
 ];

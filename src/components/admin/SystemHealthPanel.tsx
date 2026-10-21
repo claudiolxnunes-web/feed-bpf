@@ -79,11 +79,11 @@ export default function SystemHealthPanel() {
     // 3. WhatsApp / Evolution
     {
       const { data } = await (supabase.from as any)("whatsapp_config")
-        .select("connection_status, ultima_verificacao, instance_name")
+        .select("is_connected, last_known_status, last_status_check, instance_name")
         .limit(1).maybeSingle();
-      const st = data?.connection_status;
-      const conectado = st === "open" || st === "connected";
-      const ultima = data?.ultima_verificacao ? new Date(data.ultima_verificacao) : null;
+      const st = data?.last_known_status;
+      const conectado = !!data?.is_connected || st === "open" || st === "connected";
+      const ultima = data?.last_status_check ? new Date(data.last_status_check) : null;
       const staleMin = ultima ? (Date.now() - ultima.getTime()) / 60000 : Infinity;
       results.push({
         id: "wa",
@@ -123,7 +123,7 @@ export default function SystemHealthPanel() {
       const past1h = new Date(Date.now() - 3600000).toISOString();
       const { count } = await (supabase.from as any)("app_error_logs")
         .select("id", { count: "exact", head: true })
-        .in("severity", ["error", "critical"])
+        .in("error_type", ["boundary", "unhandled_error", "boot_failsafe"])
         .gte("created_at", past1h);
       const n = count || 0;
       results.push({

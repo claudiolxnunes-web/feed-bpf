@@ -22,7 +22,9 @@ interface Props {
 
 async function sha256(text: string): Promise<string> {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 const labelStatus: Record<Props["novoStatus"], string> = {
@@ -31,15 +33,29 @@ const labelStatus: Record<Props["novoStatus"], string> = {
   obsoleto: "Marcar como Obsoleto",
 };
 
-export function AprovarPopDialog({ open, onOpenChange, documentoId, documentoNome, versao, novoStatus, onSuccess }: Props) {
+export function AprovarPopDialog({
+  open,
+  onOpenChange,
+  documentoId,
+  documentoNome,
+  versao,
+  novoStatus,
+  onSuccess,
+}: Props) {
   const [pin, setPin] = useState("");
   const [nomeRT, setNomeRT] = useState("");
   const [motivo, setMotivo] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleAprovar = async () => {
-    if (!nomeRT.trim()) { toast.error("Informe o nome do Responsável Técnico"); return; }
-    if (pin.length < 4) { toast.error("PIN inválido"); return; }
+    if (!nomeRT.trim()) {
+      toast.error("Informe o nome do Responsável Técnico");
+      return;
+    }
+    if (pin.length < 4) {
+      toast.error("PIN inválido");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -56,12 +72,17 @@ export function AprovarPopDialog({ open, onOpenChange, documentoId, documentoNom
 
       if (error) throw error;
       const result = data as { ok: boolean; error?: string; hash?: string };
-      if (!result.ok) { toast.error(result.error || "Falha na aprovação"); return; }
+      if (!result.ok) {
+        toast.error(result.error || "Falha na aprovação");
+        return;
+      }
 
       toast.success(`Documento ${novoStatus === "vigente" ? "aprovado" : "atualizado"}!`, {
         description: `Hash: ${result.hash?.slice(0, 16)}...`,
       });
-      setPin(""); setNomeRT(""); setMotivo("");
+      setPin("");
+      setNomeRT("");
+      setMotivo("");
       onOpenChange(false);
       onSuccess();
     } catch (e: any) {
@@ -73,7 +94,7 @@ export function AprovarPopDialog({ open, onOpenChange, documentoId, documentoNom
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" />
@@ -94,22 +115,37 @@ export function AprovarPopDialog({ open, onOpenChange, documentoId, documentoNom
         <div className="space-y-3">
           <div>
             <Label>Nome do Responsável Técnico *</Label>
-            <Input value={nomeRT} onChange={e => setNomeRT(e.target.value)} placeholder="Ex: Dr. João Silva — CRMV-SP 12345" />
+            <Input
+              value={nomeRT}
+              onChange={(e) => setNomeRT(e.target.value)}
+              placeholder="Ex: Dr. João Silva — CRMV-SP 12345"
+            />
           </div>
 
           <div>
-            <Label className="flex items-center gap-1"><KeyRound className="w-3.5 h-3.5" /> PIN da Empresa *</Label>
+            <Label className="flex items-center gap-1">
+              <KeyRound className="w-3.5 h-3.5" /> PIN da Empresa *
+            </Label>
             <Input
-              type="password" inputMode="numeric" maxLength={8}
-              value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, ""))}
-              placeholder="••••" autoComplete="off"
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="••••"
+              autoComplete="off"
             />
             <p className="text-xs text-muted-foreground mt-1">Configure em /configurar-pin se ainda não tiver.</p>
           </div>
 
           <div>
             <Label>{novoStatus === "obsoleto" ? "Motivo da obsolescência" : "Motivo / Justificativa"}</Label>
-            <Textarea value={motivo} onChange={e => setMotivo(e.target.value)} rows={2} placeholder="Ex: Atualização para conformidade com IN 04/2007" />
+            <Textarea
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              rows={2}
+              placeholder="Ex: Atualização para conformidade com"
+            />
           </div>
 
           <Button onClick={handleAprovar} disabled={saving || !pin || !nomeRT} className="w-full">

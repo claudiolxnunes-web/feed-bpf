@@ -37,12 +37,12 @@ const SECOES: Secao[] = [
     passos: [
       { acao: "Junte todos os documentos que a fábrica já usa hoje.", detalhe: "POPs, planilhas de higiene, laudos de água, registros de pragas, ASOs, contratos com fornecedores, notas fiscais de matéria-prima, checklists impressos, fotos de auditorias etc." },
       { acao: "Digitalize (scanner ou foto do celular) o que ainda está em papel.", detalhe: "Prefira PDF para documentos com várias páginas e JPG/PNG para folhas soltas. Google Sheets e Excel podem ser importados no formato original." },
-      { acao: "Renomeie os arquivos com palavras-chave.", detalhe: "Exemplos: 'higiene_diaria_jan2026.pdf', 'controle_pragas_dez.xlsx', 'aso_joao_silva_2026.pdf'. Isso ativa a sugestão automática de POP na importação." },
+      { acao: "Renomeie os arquivos com palavras-chave.", detalhe: "Exemplos: 'limpeza_equipamentos_jan2026.pdf' (POP-02), 'controle_pragas_dez.xlsx' (POP-07), 'saude_joao_silva_2026.pdf' (POP-03). Isso ativa a sugestão automática de POP na importação." },
       { acao: "Organize em uma pasta única no computador.", detalhe: "Pode manter subpastas por POP se quiser, mas não é obrigatório — o sistema reagrupa depois." },
     ],
     resultado: "Uma pasta local com todos os arquivos nomeados e prontos para upload em lote.",
     dicas: [
-      "Nomeie SEMPRE em minúsculas, sem acentos e com underline no lugar de espaço. Ex: 'higiene_semanal_area_producao.pdf'.",
+      "Nomeie SEMPRE em minúsculas, sem acentos e com underline no lugar de espaço. Ex: 'limpeza_semanal_area_producao.pdf'.",
       "Se um documento cobre vários POPs (ex: manual BPF completo), duplique o arquivo com nomes diferentes ou faça upload uma vez e vincule ao POP principal.",
     ],
     erros: [
@@ -100,8 +100,8 @@ const SECOES: Secao[] = [
   },
   {
     n: "4",
-    titulo: "Rodar a análise por IA para saber o que falta",
-    objetivo: "Descobrir quais documentos obrigatórios (IN MAPA 04/2007 + Decreto 12.031/2024) estão faltando no seu acervo antes de criar modelos digitais.",
+    titulo: "Analisar conformidade com os 10 POPs",
+    objetivo: "Descobrir quais documentos obrigatórios faltam no acervo.",
     prereq: [
       "Passos 1 a 3 concluídos.",
       "Acervo com pelo menos 10 documentos importados (para a IA ter contexto suficiente).",
@@ -137,7 +137,7 @@ const SECOES: Secao[] = [
     ],
     campos: [
       { nome: "Nome do modelo", descricao: "Como aparecerá na lista. Ex: 'Higiene diária — área de produção'.", obrigatorio: true },
-      { nome: "POP vinculado", descricao: "Escolha entre POP-01 a POP-10. Define onde os registros aparecem no acervo.", obrigatorio: true },
+      { nome: "POP vinculado", descricao: "Escolha entre POP-01 a POP-10. Define a numeração oficial e onde os registros aparecem.", obrigatorio: true },
       { nome: "Descrição", descricao: "Quando esse modelo deve ser preenchido, por quem, e com que frequência.", obrigatorio: false },
       { nome: "Frequência sugerida", descricao: "Diária, semanal, mensal, por lote, por turno etc. Ajuda o operador a saber quando preencher.", obrigatorio: false },
     ],
@@ -189,7 +189,7 @@ const SECOES: Secao[] = [
       { acao: "Clique em 'Novo registro' e escolha o modelo que acabou de criar.", detalhe: "O formulário aparece com todos os campos configurados." },
       { acao: "Preencha título, data, responsável e todos os campos do formulário.", detalhe: "Simule o preenchimento como se fosse o operador de fábrica. Anote se algum campo é confuso ou está fora de ordem." },
       { acao: "Clique em 'Salvar rascunho'.", detalhe: "O registro fica editável — útil enquanto você ainda está testando." },
-      { acao: "Se estiver satisfeito, clique em 'Salvar como vigente'.", detalhe: "O sistema gera um hash SHA-256 dos dados. O registro é TRAVADO — não pode mais ser editado. Serve como prova de integridade em auditoria (Decreto 12.031/2024)." },
+      { acao: "Se estiver satisfeito, clique em 'Salvar como vigente'.", detalhe: "O sistema gera um hash SHA-256 dos dados. O registro é TRAVADO — não pode mais ser editado. Serve como prova de integridade em auditoria." },
     ],
     resultado: "Registro na lista com selo verde 'Vigente', data, responsável e hash truncado clicável.",
     dicas: [
@@ -274,8 +274,8 @@ export default function GuiaCustomizacao() {
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Badge className="bg-emerald-600 hover:bg-emerald-700">9 seções</Badge>
-            <Badge variant="outline">Base: IN MAPA 04/2007</Badge>
-            <Badge variant="outline">Decreto 12.031/2024</Badge>
+            <Badge variant="outline">Base: </Badge>
+            
             <Badge variant="outline">Imprimível como PDF</Badge>
           </div>
         </CardContent>
@@ -410,7 +410,7 @@ export default function GuiaCustomizacao() {
       <Card className="bg-gradient-to-br from-emerald-600 to-teal-600 text-white border-none print:bg-white print:text-black print:border print:border-black">
         <CardContent className="p-6 text-center space-y-2">
           <p className="text-sm font-bold">Guia de Customização Feed_BPF · versão 1.0</p>
-          <p className="text-xs opacity-90">BPF_Consult · Baseado na IN MAPA 04/2007 e Decreto 12.031/2024</p>
+          <p className="text-xs opacity-90">BPF_Consult ·</p>
           <p className="text-xs opacity-75">Última atualização automática ao publicar a plataforma</p>
         </CardContent>
       </Card>

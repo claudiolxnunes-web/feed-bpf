@@ -30,7 +30,7 @@ export default function ChecklistPreAuditoria() {
 
     setLoading(true);
 
-    const [docsRes, popsRes, calibRes, treinRes, checklistRes, ncRes, rastrRes, higieneRes] = await Promise.all([
+    const [docsRes, popsRes, calibRes, treinRes, checklistRes, ncRes, rastrRes, higieneRes, simulRes] = await Promise.all([
       supabase.from("documentos").select("codigo, nome, status, proxima_revisao, validade_revisao, empresa_id").eq("user_id", user.id),
       supabase.from("pop_planilhas").select("pop_codigo, pop_nome, status, mes, ano, empresa_id").eq("user_id", user.id),
       supabase.from("calibracoes").select("equipamento, proxima_calibracao, status, empresa_id").eq("user_id", user.id),
@@ -39,6 +39,7 @@ export default function ChecklistPreAuditoria() {
       supabase.from("nao_conformidades").select("status").eq("user_id", user.id),
       supabase.from("rastreabilidade").select("id, empresa_id").eq("user_id", user.id).limit(20),
       supabase.from("cronogramas_higiene").select("id, status, empresa_id").eq("user_id", user.id),
+      supabase.from("simulacoes_recall" as any).select("data, empresa_id").eq("user_id", user.id),
     ]);
 
     const hoje = new Date();
@@ -49,6 +50,7 @@ export default function ChecklistPreAuditoria() {
     const checklistData = filterByEmpresa(checklistRes.data || [], empresaAtiva?.id);
     const rastreabilidade = filterByEmpresa(rastrRes.data || [], empresaAtiva?.id);
     const higiene = filterByEmpresa(higieneRes.data || [], empresaAtiva?.id);
+    const simulacoes = filterByEmpresa((simulRes.data || []) as any[], empresaAtiva?.id);
     const ncs = ncRes.data || [];
 
     setItems(
@@ -64,6 +66,7 @@ export default function ChecklistPreAuditoria() {
         ncs,
         rastreabilidade,
         higiene,
+        simulacoes,
       }),
     );
     setLoading(false);

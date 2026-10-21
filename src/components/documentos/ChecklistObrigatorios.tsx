@@ -1,3 +1,5 @@
+import { textoTela } from "@/lib/textoTela";
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
 import { useState, useEffect, useMemo } from "react";
 import { CheckCircle2, AlertTriangle, XCircle, Upload, Download, Trash2, Loader2, FileText, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -215,15 +217,15 @@ export default function ChecklistObrigatorios({ empresaId, userId }: Props) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono text-xs text-muted-foreground">{item.codigo}</span>
-                            <span className="font-medium text-sm">{item.titulo}</span>
+                            <span className="font-medium text-sm">{textoTela(item.titulo)}</span>
                             {item.obrigatorio && <Badge variant="outline" className="text-[10px]">Obrigatório</Badge>}
                             {statusBadge(status)}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">{item.descricao}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{textoTela(item.descricao)}</p>
                           <p className="text-[11px] text-muted-foreground mt-1">
                             <FileText className="w-3 h-3 inline mr-1" />
                             <span className="font-mono">/obrigatorios/{item.pasta}</span>
-                            {" · "}{item.fonteLegal}
+                            <BaseLegalBadge assunto={item.categoria === "registro_empresa" ? "registro_estabelecimento" : item.categoria === "controles_oficiais" ? "autocontrole" : "bpf_geral"} />
                             {item.validadeMeses && ` · Validade: ${item.validadeMeses}m`}
                           </p>
                         </div>

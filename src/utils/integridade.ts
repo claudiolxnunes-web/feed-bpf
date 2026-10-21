@@ -1,6 +1,7 @@
+import { getBaseLegal } from "@/config/baseLegal";
 /**
- * Integridade Digital de Relatórios — Decreto 12.031/2024 & MP 2.200-2/2001
- * Gera hash SHA-256 para garantir rastreabilidade e autenticidade dos documentos exportados.
+ * Selo de integridade de relatórios — baseLegal: autocontrole, §3º do artigo de registros.
+ * Gera hash SHA-256 para verificação de integridade dos documentos exportados.
  */
 
 export async function gerarHashIntegridade(conteudo: string): Promise<string> {
@@ -19,7 +20,7 @@ export function gerarBlocoIntegridade(hash: string, nomeArquivo: string, usuario
     gerado_por: usuario,
     data_geracao: agora.toISOString(),
     timestamp_unix: Math.floor(agora.getTime() / 1000),
-    referencia_legal: "Decreto 12.031/2024 | MP 2.200-2/2001",
+    referencia_legal: `${getBaseLegal("autocontrole").norma} (${getBaseLegal("autocontrole").artigo}, §3º)`,
     selo: `INTEGRIDADE: ${hash.substring(0, 16).toUpperCase()}`,
   };
 }
@@ -37,7 +38,7 @@ export function adicionarRodapeIntegridade(
   const rodape = [
     "",
     "═══════════════════════════════════════════════════════",
-    "SELO DE INTEGRIDADE DIGITAL — Decreto 12.031/2024",
+    `SELO DE INTEGRIDADE — ${getBaseLegal("autocontrole").norma} (${getBaseLegal("autocontrole").artigo}, §3º)`,
     `Hash SHA-256: ${bloco.hash_sha256}`,
     `Arquivo: ${bloco.arquivo}`,
     `Gerado por: ${bloco.gerado_por}`,

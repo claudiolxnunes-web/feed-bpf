@@ -121,7 +121,7 @@ export default function GeradorHeadlines() {
               <Label htmlFor="diferencial">Diferencial único</Label>
               <Input 
                 id="diferencial" 
-                placeholder="Ex: Sistema 100% focado no Decreto 12.031" 
+                placeholder="Ex: Sistema 100% focado no" 
                 value={formData.diferencial}
                 onChange={(e) => setFormData({...formData, diferencial: e.target.value})}
               />

@@ -1,4 +1,4 @@
-import { Settings, Info, ShieldCheck, Database, Loader2, Upload } from "lucide-react";
+import { Settings, Info, ShieldCheck, Download, Database, FileArchive, Loader2, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
 import EmpresaSelector from "@/components/EmpresaSelector";
@@ -24,7 +24,10 @@ export default function ConfigCustom() {
     setLoadingBackup(true);
     try {
       const { data, error } = await supabase.functions.invoke("backup-manager", {
-        body: { action: "export", empresa_id: empresaAtiva.id },
+        body: { 
+          action: "export",
+          empresa_id: empresaAtiva.id 
+        },
       });
 
       if (error) throw error;
@@ -48,6 +51,17 @@ export default function ConfigCustom() {
     }
   };
 
+  const handleExportFiles = async () => {
+    if (!empresaAtiva?.id) {
+      toast.error("Selecione uma empresa primeiro");
+      return;
+    }
+    
+    toast.info("Redirecionando para a central de exportação de arquivos...");
+    window.open("https://github.com/lovable-dev/lovable-assets/blob/main/download-storage.mjs", "_blank");
+    toast.success("Para exportação integral de arquivos (S3), utilize o script de download em massa.");
+  };
+
   const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !empresaAtiva?.id) return;
@@ -66,7 +80,11 @@ export default function ConfigCustom() {
         const backupData = JSON.parse(content);
 
         const { data, error } = await supabase.functions.invoke("backup-manager", {
-          body: { action: "restore", empresa_id: empresaAtiva.id, backup: backupData },
+          body: { 
+            action: "restore",
+            empresa_id: empresaAtiva.id,
+            backup: backupData
+          },
         });
 
         if (error) throw error;
@@ -89,64 +107,81 @@ export default function ConfigCustom() {
       <PageHeader icon={Settings} title="Configurações" description="Ajustes da conta e da empresa" />
       <EmpresaSelector />
 
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Info className="w-4 h-4 text-emerald-600" />
+              Informações da Empresa
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2 text-sm">
               <p><strong>Empresa ativa:</strong> {empresaAtiva?.nome || "nenhuma"}</p>
               <p className="text-muted-foreground">Feed_BPF Custom usa o mesmo cadastro de empresas do restante da plataforma. Convide membros, configure PIN de aprovação e gerencie licenças no painel principal.</p>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button asChild variant="outline" size="sm"><Link to="/cadastro">Gerenciar empresa</Link></Button>
-            <Button asChild variant="outline" size="sm"><Link to="/configurar-pin">Configurar PIN</Link></Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Button asChild variant="outline" size="sm"><Link to="/cadastro">Gerenciar empresa</Link></Button>
+              <Button asChild variant="outline" size="sm"><Link to="/configurar-pin">Configurar PIN</Link></Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card className="border-emerald-500/20 bg-emerald-50/30">
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            Backup e Proteção de Dados
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-xs text-muted-foreground">
-            Garanta a segurança da sua documentação realizando backups periódicos. Conforme o Decreto 12.031/2024, os registros devem ser mantidos por 2 anos.
-          </p>
-          <div className="grid grid-cols-1 gap-2">
-            <Button
-              onClick={handleExportData}
-              disabled={loadingBackup}
-              variant="default"
-              className="bg-emerald-600 hover:bg-emerald-700 w-full justify-start gap-2"
-            >
-              {loadingBackup ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
-              Exportar Dados (JSON)
-            </Button>
+        <Card className="border-emerald-500/20 bg-emerald-50/30">
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              Backup e Proteção de Dados
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+ Garanta a segurança da sua documentação realizando backups periódicos., os registros devem ser mantidos por 2 anos.
+ </p>
+            <div className="grid grid-cols-1 gap-2">
+              <Button 
+                onClick={handleExportData} 
+                disabled={loadingBackup}
+                variant="default" 
+                className="bg-emerald-600 hover:bg-emerald-700 w-full justify-start gap-2"
+              >
+                {loadingBackup ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+                Exportar Dados (JSON)
+              </Button>
+              
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handleImportData}
+                accept=".json"
+                className="hidden"
+              />
+              
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={loadingRestore}
+                variant="outline" 
+                className="w-full justify-start gap-2 border-amber-200 text-amber-700 hover:bg-amber-50"
+              >
+                {loadingRestore ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                Importar Dados (JSON)
+              </Button>
 
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImportData}
-              accept=".json"
-              className="hidden"
-            />
-
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loadingRestore}
-              variant="outline"
-              className="w-full justify-start gap-2 border-amber-200 text-amber-700 hover:bg-amber-50"
-            >
-              {loadingRestore ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              Importar Dados (JSON)
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <Button 
+                onClick={handleExportFiles}
+                variant="outline" 
+                className="w-full justify-start gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+              >
+                <FileArchive className="w-4 h-4" />
+                Backup Integral de Arquivos
+              </Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              * O backup de arquivos gera um índice de URLs temporárias para download.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

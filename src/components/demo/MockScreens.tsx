@@ -1,3 +1,5 @@
+import { textoTela } from "@/lib/textoTela";
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
 /**
  * Mockups visuais (HTML/Tailwind) para a página de Demo.
  * Dados 100% fictícios — empresa "Fábrica Demo Ltda".
@@ -62,7 +64,7 @@ export const FeedDashboard = () => (
     <div className="flex items-center justify-between mb-4">
       <div>
         <h3 className="text-base font-bold">Dashboard de Conformidade BPF</h3>
-        <p className="text-xs text-slate-500">Decreto 12.031/2024 · IN 04/2007 (MAPA)</p>
+        <p className="text-xs text-slate-500"> · Fiscalização MAPA</p>
       </div>
       <Pill tone="emerald">Conformidade 92%</Pill>
     </div>
@@ -109,7 +111,7 @@ export const FeedDocumentos = () => {
     { n: "POP-10", nome: "Recall e Rastreabilidade", status: "Ativo", rev: "Rev 03 · 01/04/2026" },
   ];
   return (
-    <Frame title="feedbpf.com.br/documentos — POPs Obrigatórios IN 04/2007">
+    <Frame title="feedbpf.com.br/documentos — POPs Obrigatórios">
       <h3 className="text-base font-bold mb-3">Documentos & POPs Obrigatórios</h3>
       <div className="bg-white rounded border border-slate-200 overflow-hidden">
         <table className="w-full text-xs">
@@ -175,15 +177,15 @@ export const FeedRastreabilidade = () => (
       </div>
     </div>
     <div className="mt-3 p-2 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-800 flex items-center gap-2">
-      <CheckCircle2 className="h-4 w-4"/> Cadeia completa rastreável — segregação por espécie OK (IN 34/2008)
-    </div>
+      <CheckCircle2 className="h-4 w-4"/> Cadeia completa rastreável — segregação por espécie OK 
+ </div>
   </Frame>
 );
 
 export const FeedRecall = () => (
   <Frame title="feedbpf.com.br/recall — Simulação">
     <div className="flex items-center justify-between mb-3">
-      <h3 className="text-base font-bold">Simulação de Recall · Decreto 12.031/2024</h3>
+      <h3 className="text-base font-bold">Simulação de Recall · <BaseLegalBadge assunto="recolhimento_recall" /></h3>
       <div className="font-mono text-base text-rose-600 font-bold">⏱ 00:42:18</div>
     </div>
     <div className="grid grid-cols-2 gap-3 text-xs">
@@ -215,7 +217,7 @@ export const FeedAuditoria = () => (
   <Frame title="feedbpf.com.br/auditoria — Checklist 80 itens">
     <div className="flex items-center justify-between mb-3">
       <div>
-        <h3 className="text-base font-bold">Auditoria BPF · Decreto 12.031/2024</h3>
+        <h3 className="text-base font-bold">Auditoria BPF · <BaseLegalBadge assunto="autocontrole" /></h3>
         <p className="text-xs text-slate-500">Auditoria trimestral · Aud. interno: Eng. Roberto Lima</p>
       </div>
       <div className="text-right">
@@ -239,7 +241,7 @@ export const FeedAuditoria = () => (
         ["Art. 58", "Programa documentado de controle de pragas", "warn"],
       ].map(([art, txt, st]) => (
         <div key={art as string} className="flex items-center justify-between px-3 py-2">
-          <span><span className="font-mono text-slate-500 mr-2">{art}</span>{txt}</span>
+          <span><span className="font-mono text-slate-500 mr-2">{textoTela(art)}</span>{txt}</span>
           {st === "ok" && <Pill tone="emerald">Conforme</Pill>}
           {st === "warn" && <Pill tone="amber">NC Menor</Pill>}
           {st === "nc" && <Pill tone="rose">NC Maior</Pill>}
@@ -288,7 +290,7 @@ export const FeedRecebimento = () => (
         </tbody>
       </table>
     </div>
-    <div className="mt-3 text-xs text-slate-500">Inspeção sensorial · Certificado de análise · Conforme IN 15/2009</div>
+    <div className="mt-3 text-xs text-slate-500">Inspeção sensorial · Certificado de análise</div>
   </Frame>
 );
 
@@ -312,7 +314,7 @@ export const FeedProducao = () => (
         <div className="flex items-center justify-between"><span>Tempo de mistura ≥ 3 min</span><Pill tone="emerald">4 min 12 s</Pill></div>
         <div className="flex items-center justify-between"><span>Flush de limpeza anterior</span><Pill tone="emerald">OK</Pill></div>
         <div className="flex items-center justify-between"><span>Segregação por espécie</span><Pill tone="emerald">OK</Pill></div>
-        <div className="flex items-center justify-between"><span>Sobras / vassouras (IN 15/2009)</span><Pill tone="emerald">Registrado</Pill></div>
+        <div className="flex items-center justify-between"><span>Sobras / vassouras </span><Pill tone="emerald">Registrado</Pill></div>
         <div className="flex items-center justify-between"><span>Carry-over (ionóforos)</span><Pill tone="amber">Verificar</Pill></div>
       </div>
     </div>
@@ -424,7 +426,7 @@ export const FeedManual = () => (
         <div key={n} className="bg-white p-3 rounded border border-slate-200 hover:border-emerald-400 cursor-pointer">
           <div className="flex items-center justify-between mb-1">
             <span className="font-mono text-[10px] font-bold text-emerald-700">{n}</span>
-            <span className="text-[9px] text-slate-400">{lei}</span>
+            <span className="text-[9px] text-slate-400">{textoTela(lei)}</span>
           </div>
           <div className="font-medium">{t}</div>
         </div>
@@ -450,7 +452,7 @@ export const AuditsDashboard = () => (
       <Kpi icon={CheckCircle2} label="NCs tratadas" value="42" sub="últimos 12 meses" />
     </div>
     <div className="bg-white p-3 rounded border border-slate-200">
-      <div className="text-xs font-semibold mb-2">Conformidade por área (Decreto 12.031/2024)</div>
+      <div className="text-xs font-semibold mb-2">Conformidade por área </div>
       <div className="grid grid-cols-2 gap-3">
         <Bar label="Estrutura física" pct={92} />
         <Bar label="Pessoal e treinamento" pct={88} />
@@ -464,7 +466,7 @@ export const AuditsDashboard = () => (
 );
 
 export const AuditsChecklist = () => (
-  <Frame title="auditsbpf.com.br/checklist — 80 itens Decreto 12.031/2024">
+  <Frame title="auditsbpf.com.br/checklist — 80 itens">
     <div className="flex items-center justify-between mb-3">
       <h3 className="text-base font-bold">Checklist BPF · Auditoria 2026/T2</h3>
       <div className="text-xs text-slate-500">Item 32 de 80</div>
@@ -480,12 +482,12 @@ export const AuditsChecklist = () => (
       ].map(([art, txt, st]) => (
         <div key={art as string} className="flex items-center justify-between px-3 py-2.5">
           <div>
-            <div><span className="font-mono text-slate-500 mr-2">{art}</span>{txt}</div>
+            <div><span className="font-mono text-slate-500 mr-2">{textoTela(art)}</span>{txt}</div>
             {st === "NC Maior" && <div className="text-[10px] text-rose-600 mt-0.5">Foto anexada · Última higienização: 11/2025</div>}
           </div>
           {st === "Conforme" && <Pill tone="emerald">Conforme</Pill>}
-          {st === "NC Menor" && <Pill tone="amber">NC Menor</Pill>}
-          {st === "NC Maior" && <Pill tone="rose">NC Maior</Pill>}
+          {st === "NC Menor" && <Pill tone="amber">NC </Pill>}
+          {st === "NC Maior" && <Pill tone="rose">NC </Pill>}
         </div>
       ))}
     </div>
@@ -543,9 +545,9 @@ export const AuditsPlano = () => (
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">
-          <tr><td className="px-2 py-2">Higienizar reservatório R1</td><td className="px-2 py-2 text-slate-500">NC Art. 23</td><td className="px-2 py-2">Manutenção</td><td className="px-2 py-2">10/05</td><td className="px-2 py-2">R$ 1.200</td><td className="px-2 py-2"><Pill tone="amber">Em curso</Pill></td></tr>
-          <tr><td className="px-2 py-2">Substituir forro área 3</td><td className="px-2 py-2 text-slate-500">NC Art. 20</td><td className="px-2 py-2">Engenharia</td><td className="px-2 py-2">22/05</td><td className="px-2 py-2">R$ 8.500</td><td className="px-2 py-2"><Pill tone="amber">Planejado</Pill></td></tr>
-          <tr><td className="px-2 py-2">Instalar exaustor área mistura</td><td className="px-2 py-2 text-slate-500">NC Art. 22</td><td className="px-2 py-2">Manutenção</td><td className="px-2 py-2">30/05</td><td className="px-2 py-2">R$ 3.400</td><td className="px-2 py-2"><Pill tone="amber">Cotação</Pill></td></tr>
+          <tr><td className="px-2 py-2">Higienizar reservatório R1</td><td className="px-2 py-2 text-slate-500">NC </td><td className="px-2 py-2">Manutenção</td><td className="px-2 py-2">10/05</td><td className="px-2 py-2">R$ 1.200</td><td className="px-2 py-2"><Pill tone="amber">Em curso</Pill></td></tr>
+          <tr><td className="px-2 py-2">Substituir forro área 3</td><td className="px-2 py-2 text-slate-500">NC </td><td className="px-2 py-2">Engenharia</td><td className="px-2 py-2">22/05</td><td className="px-2 py-2">R$ 8.500</td><td className="px-2 py-2"><Pill tone="amber">Planejado</Pill></td></tr>
+          <tr><td className="px-2 py-2">Instalar exaustor área mistura</td><td className="px-2 py-2 text-slate-500">NC </td><td className="px-2 py-2">Manutenção</td><td className="px-2 py-2">30/05</td><td className="px-2 py-2">R$ 3.400</td><td className="px-2 py-2"><Pill tone="amber">Cotação</Pill></td></tr>
           <tr><td className="px-2 py-2">Treinar equipe — POP-02</td><td className="px-2 py-2 text-slate-500">NC menor</td><td className="px-2 py-2">Qualidade</td><td className="px-2 py-2">05/05</td><td className="px-2 py-2">R$ 0</td><td className="px-2 py-2"><Pill tone="emerald">Concluído</Pill></td></tr>
         </tbody>
       </table>
@@ -579,7 +581,7 @@ export const AuditsRelatorio = () => (
         <div className="bg-emerald-50 p-3 rounded">
           <div className="text-[10px] text-emerald-700 uppercase font-semibold">Risco</div>
           <div className="font-bold text-emerald-700">Baixo</div>
-          <div className="text-[10px] text-slate-600 mt-1">Art. 79-86</div>
+          <div className="text-[10px] text-slate-600 mt-1"> </div>
         </div>
         <div className="bg-slate-50 p-3 rounded">
           <div className="text-[10px] text-slate-500 uppercase font-semibold">NCs</div>
@@ -1271,8 +1273,8 @@ const NALShell = ({ active, title, children, preview }: { active: string; title:
             <div className="w-6 h-6 rounded bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-[10px] font-bold">GR</div>
             <span className="font-bold">Gerador de Rótulo</span>
             <span className="px-2 py-0.5 rounded border border-emerald-500/40 text-emerald-400 text-[10px]">Alimentos para Animais</span>
-            <span className="px-2 py-0.5 rounded border border-cyan-500/40 text-cyan-400 text-[10px]">Decreto 7.045/2009</span>
-            <span className="px-2 py-0.5 rounded border border-cyan-500/40 text-cyan-400 text-[10px]">IN 12/2004</span>
+            <span className="px-2 py-0.5 rounded border border-cyan-500/40 text-cyan-400 text-[10px]"> </span>
+            <span className="px-2 py-0.5 rounded border border-cyan-500/40 text-cyan-400 text-[10px]"> </span>
           </div>
           <span className="text-[10px] text-slate-500">Desenvolvido por <span className="text-emerald-400">BPF_Consult</span></span>
         </div>
@@ -1341,7 +1343,7 @@ const PreviewRotulo = ({ produto = "Produto não informado", forma = "Farelado",
 export const RotulosDashboard = () => (
   <NALShell active="empresa" title="🏢 Cadastro da Empresa" preview={<PreviewRotulo />}>
     <div className="bg-cyan-500/5 border border-cyan-500/30 rounded p-2 text-[10px] text-cyan-200 mb-3">
-      <strong>Art. 3º do Dec. 7.045/2009:</strong> Nome e endereço do fabricante/importador devem constar obrigatoriamente no rótulo. CNPJ e Inscrição Estadual exigidos para registro junto ao MAPA.
+      <strong> de fiscalização:</strong> Nome e endereço do fabricante/importador devem constar obrigatoriamente no rótulo. CNPJ e Inscrição Estadual exigidos para registro junto ao MAPA.
     </div>
     <div className="border border-slate-800 rounded p-2 mb-2">
       <div className="text-[10px] font-mono text-emerald-400 mb-2">| DADOS DA EMPRESA FABRICANTE</div>
@@ -1500,7 +1502,7 @@ export const RotulosVersionamento = () => (
       ))}
     </div>
     <div className="mt-2 text-[10px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 p-2 rounded">
-      🔒 Cada versão selada com hash SHA-256 (Decreto 12.031/2024) — histórico imutável para auditoria.
-    </div>
+ 🔒 Cada versão selada com hash SHA-256 — histórico imutável para auditoria.
+ </div>
   </NALShell>
 );

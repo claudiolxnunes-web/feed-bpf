@@ -38,7 +38,15 @@ const labels: Record<PapelAssinatura, { titulo: string; nomeLabel: string; extra
 };
 
 export function AssinarManualDialog({
-  open, onOpenChange, manualId, manualTitulo, versao, papel, empresaId, conteudo, onSuccess,
+  open,
+  onOpenChange,
+  manualId,
+  manualTitulo,
+  versao,
+  papel,
+  empresaId,
+  conteudo,
+  onSuccess,
 }: Props) {
   const { user } = useAuth();
   const cfg = labels[papel];
@@ -48,14 +56,34 @@ export function AssinarManualDialog({
   const [senha, setSenha] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const reset = () => { setNome(""); setCrmv(""); setPin(""); setSenha(""); };
+  const reset = () => {
+    setNome("");
+    setCrmv("");
+    setPin("");
+    setSenha("");
+  };
 
   const handleAssinar = async () => {
-    if (!user?.email) { toast.error("Sessão inválida"); return; }
-    if (!nome.trim()) { toast.error("Informe o nome completo"); return; }
-    if (papel === "rt" && !crmv.trim()) { toast.error("Informe o CRMV"); return; }
-    if (pin.length < 4) { toast.error("PIN inválido"); return; }
-    if (senha.length < 6) { toast.error("Senha de login inválida"); return; }
+    if (!user?.email) {
+      toast.error("Sessão inválida");
+      return;
+    }
+    if (!nome.trim()) {
+      toast.error("Informe o nome completo");
+      return;
+    }
+    if (papel === "rt" && !crmv.trim()) {
+      toast.error("Informe o CRMV");
+      return;
+    }
+    if (pin.length < 4) {
+      toast.error("PIN inválido");
+      return;
+    }
+    if (senha.length < 6) {
+      toast.error("Senha de login inválida");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -64,7 +92,11 @@ export function AssinarManualDialog({
         email: user.email,
         password: senha,
       });
-      if (authErr) { toast.error("Senha de login incorreta"); setSaving(false); return; }
+      if (authErr) {
+        toast.error("Senha de login incorreta");
+        setSaving(false);
+        return;
+      }
 
       // 2) Valida PIN da empresa
       if (empresaId) {
@@ -76,19 +108,19 @@ export function AssinarManualDialog({
           .maybeSingle();
         if (!pinRow) {
           toast.error("PIN da empresa não configurado. Acesse /configurar-pin.");
-          setSaving(false); return;
+          setSaving(false);
+          return;
         }
         if (pinRow.pin_hash !== pinHash) {
           toast.error("PIN da empresa incorreto");
-          setSaving(false); return;
+          setSaving(false);
+          return;
         }
       }
 
       // 3) Gera hash da assinatura (pin + conteúdo + papel + timestamp)
       const ts = new Date().toISOString();
-      const hashAssinatura = await sha256Hex(
-        `${papel}|${nome}|${crmv}|${user.id}|${conteudo}|${ts}`
-      );
+      const hashAssinatura = await sha256Hex(`${papel}|${nome}|${crmv}|${user.id}|${conteudo}|${ts}`);
 
       // 4) Lê estado atual do manual para definir status final
       const { data: atual, error: getErr } = await supabase
@@ -118,16 +150,13 @@ export function AssinarManualDialog({
       else if (temRT) update.status = "aguardando_legal";
       else update.status = "aguardando_rt";
 
-      const { error: upErr } = await supabase
-        .from("manuais_bpf")
-        .update(update)
-        .eq("id", manualId);
+      const { error: upErr } = await supabase.from("manuais_bpf").update(update).eq("id", manualId);
       if (upErr) throw upErr;
 
       toast.success(
         update.status === "vigente"
           ? "Manual assinado por ambos os responsáveis e marcado como VIGENTE!"
-          : "Assinatura registrada. Aguardando segunda assinatura."
+          : "Assinatura registrada. Aguardando segunda assinatura.",
       );
       reset();
       onOpenChange(false);
@@ -140,8 +169,14 @@ export function AssinarManualDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) reset();
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" />
@@ -173,19 +208,30 @@ export function AssinarManualDialog({
           )}
 
           <div>
-            <Label className="flex items-center gap-1"><KeyRound className="w-3.5 h-3.5" /> PIN da empresa *</Label>
+            <Label className="flex items-center gap-1">
+              <KeyRound className="w-3.5 h-3.5" /> PIN da empresa *
+            </Label>
             <Input
-              type="password" inputMode="numeric" maxLength={8}
-              value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-              placeholder="••••" autoComplete="off"
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="••••"
+              autoComplete="off"
             />
           </div>
 
           <div>
-            <Label className="flex items-center gap-1"><Lock className="w-3.5 h-3.5" /> Senha da sua conta *</Label>
+            <Label className="flex items-center gap-1">
+              <Lock className="w-3.5 h-3.5" /> Senha da sua conta *
+            </Label>
             <Input
-              type="password" value={senha} onChange={(e) => setSenha(e.target.value)}
-              placeholder="Senha de login" autoComplete="current-password"
+              type="password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              placeholder="Senha de login"
+              autoComplete="current-password"
             />
             <p className="text-xs text-muted-foreground mt-1">
               Reautenticação obrigatória para confirmar a identidade do signatário.

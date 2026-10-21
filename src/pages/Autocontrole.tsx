@@ -15,6 +15,7 @@ import { useEmpresa } from "@/hooks/useEmpresa";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { ORIENTACOES_PAC } from "@/config/baseLegal";
 
 const ELEMENTOS = [
   "Água de Abastecimento",
@@ -42,18 +43,22 @@ export default function Autocontrole() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [empresaAtiva]);
+  useEffect(() => {
+    fetchData();
+  }, [empresaAtiva]);
 
   const handleVerificar = async (id: string) => {
     if (!user) return;
-    const { data: profile } = await supabase.from('profiles').select('nome').eq('user_id', user.id).single();
+    const { data: profile } = await supabase.from("profiles").select("nome").eq("user_id", user.id).single();
     const verificador = profile?.nome || user.email;
-    
-    const { error } = await (supabase.from("pac_monitoramento" as any) as any).update({
-      verificado_por: verificador,
-      data_verificacao: new Date().toISOString(),
-      status_verificacao: 'aprovado'
-    }).eq('id', id);
+
+    const { error } = await (supabase.from("pac_monitoramento" as any) as any)
+      .update({
+        verificado_por: verificador,
+        data_verificacao: new Date().toISOString(),
+        status_verificacao: "aprovado",
+      })
+      .eq("id", id);
 
     if (error) toast.error("Erro ao verificar");
     else {
@@ -73,7 +78,9 @@ export default function Autocontrole() {
       return;
     }
 
-    const { data: record, error } = await supabase.from("pac_monitoramento").insert({
+    const { data: record, error } = await supabase
+      .from("pac_monitoramento")
+      .insert({
         user_id: user?.id as any,
         empresa_id: empresaAtiva?.id as any,
         data: formData.get("data") as string,
@@ -83,12 +90,14 @@ export default function Autocontrole() {
         conformidade: conformidade,
         acao_corretiva: acaoCorretiva,
         monitor: formData.get("monitor") as string,
-    } as any).select().single();
+      } as any)
+      .select()
+      .single();
 
     if (error) toast.error("Erro ao salvar");
-    else { 
-      toast.success("Monitoramento PAC registrado!"); 
-      
+    else {
+      toast.success("Monitoramento PAC registrado!");
+
       // Automatic NC Flow
       if (!conformidade) {
         await supabase.from("nao_conformidades").insert({
@@ -97,87 +106,119 @@ export default function Autocontrole() {
           data: formData.get("data"),
           setor: `PAC / ${formData.get("elemento_controle")}`,
           descricao: `NC no PAC (${formData.get("item_avaliado")}): ${acaoCorretiva}`,
-          status: "pendente"
+          status: "pendente",
         } as any);
       }
-      
-      setOpen(false); 
-      fetchData(); 
+
+      setOpen(false);
+      fetchData();
     }
   };
 
   return (
     <>
-      <PageHeader icon={ClipboardCheck} title="POP 10 - PAC - Programa de Autocontrole" description="Verificação geral dos POPs, auditoria interna e melhoria contínua do sistema — IN 04/2007" />
+      <PageHeader
+        icon={ClipboardCheck}
+        title="POP 10 - PAC - Programa de Autocontrole"
+        description="Verificação geral dos POPs, auditoria interna e melhoria contínua do sistema"
+        assuntoBaseLegal="autocontrole"
+      />
+      <div className="mb-6 space-y-2 text-sm text-muted-foreground">
+        <p>{ORIENTACOES_PAC.origem}</p>
+        <p>{ORIENTACOES_PAC.requisitos}</p>
+        <p>{ORIENTACOES_PAC.perigos}</p>
+      </div>
       <Card>
         <CardHeader className="flex flex-row justify-between">
-            <CardTitle>Registros de PAC</CardTitle>
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" />Novo Registro</Button></DialogTrigger>
-                <DialogContent>
-                    <DialogHeader><DialogTitle>Novo Registro de Autocontrole</DialogTitle></DialogHeader>
-                    <form onSubmit={handleAdd} className="space-y-4">
-                        <Input type="date" name="data" defaultValue={new Date().toISOString().split("T")[0]} />
-                        <Select name="elemento_controle" required>
-                            <SelectTrigger><SelectValue placeholder="Elemento de Controle" /></SelectTrigger>
-                            <SelectContent>{ELEMENTOS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
-                        </Select>
-                        <Input name="item_avaliado" placeholder="Item Avaliado (ex: Caixa d'água)" required />
-                        <Input name="resultado" placeholder="Resultado Encontrado" />
-                        <div className="flex items-center space-x-2">
-                            <Label>Conformidade</Label>
-                            <Switch name="conformidade" defaultChecked />
-                        </div>
-                        <Textarea name="acao_corretiva" placeholder="Ação Corretiva" />
-                        <Input name="monitor" placeholder="Monitor / Responsável" required />
-                        <Button type="submit">Salvar</Button>
-                    </form>
-                </DialogContent>
-            </Dialog>
+          <CardTitle>Registros de PAC</CardTitle>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Registro
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Novo Registro de Autocontrole</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleAdd} className="space-y-4">
+                <Input type="date" name="data" defaultValue={new Date().toISOString().split("T")[0]} />
+                <Select name="elemento_controle" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Elemento de Controle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ELEMENTOS.map((e) => (
+                      <SelectItem key={e} value={e}>
+                        {e}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input name="item_avaliado" placeholder="Item Avaliado (ex: Caixa d'água)" required />
+                <Input name="resultado" placeholder="Resultado Encontrado" />
+                <div className="flex items-center space-x-2">
+                  <Label>Conformidade</Label>
+                  <Switch name="conformidade" defaultChecked />
+                </div>
+                <Textarea name="acao_corretiva" placeholder="Ação Corretiva" />
+                <Input name="monitor" placeholder="Monitor / Responsável" required />
+                <Button type="submit">Salvar</Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
-            {loading ? <p>Carregando...</p> : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Elemento</TableHead>
-                            <TableHead>Item</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Monitor</TableHead>
-                            <TableHead>Verificação</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.map(item => (
-                            <TableRow key={item.id}>
-                                <TableCell>{item.data}</TableCell>
-                                <TableCell className="text-xs font-semibold">{item.elemento_controle}</TableCell>
-                                <TableCell className="text-xs">{item.item_avaliado}</TableCell>
-                                <TableCell>
-                                  {item.conformidade ? 
-                                    <Badge className="bg-green-100 text-green-700 border-green-200">Conforme</Badge> : 
-                                    <Badge variant="destructive">NC</Badge>
-                                  }
-                                </TableCell>
-                                <TableCell className="text-xs">{item.monitor}</TableCell>
-                                <TableCell>
-                                  {item.status_verificacao === 'aprovado' ? (
-                                    <Badge variant="outline" className="text-green-600 border-green-600 gap-1 text-[10px]">
-                                      <CheckCircle2 className="w-3 h-3" /> {item.verificado_por}
-                                    </Badge>
-                                  ) : (
-                                    <Button size="sm" variant="ghost" className="h-7 text-[10px] gap-1 px-2" onClick={() => handleVerificar(item.id)}>
-                                      <ShieldCheck className="w-3 h-3 text-primary" /> Verificar
-                                    </Button>
-                                  )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-
-                    </TableBody>
-                </Table>
-            )}
+          {loading ? (
+            <p>Carregando...</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Elemento</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Monitor</TableHead>
+                  <TableHead>Verificação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.data}</TableCell>
+                    <TableCell className="text-xs font-semibold">{item.elemento_controle}</TableCell>
+                    <TableCell className="text-xs">{item.item_avaliado}</TableCell>
+                    <TableCell>
+                      {item.conformidade ? (
+                        <Badge className="bg-green-100 text-green-700 border-green-200">Conforme</Badge>
+                      ) : (
+                        <Badge variant="destructive">NC</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs">{item.monitor}</TableCell>
+                    <TableCell>
+                      {item.status_verificacao === "aprovado" ? (
+                        <Badge variant="outline" className="text-green-600 border-green-600 gap-1 text-[10px]">
+                          <CheckCircle2 className="w-3 h-3" /> {item.verificado_por}
+                        </Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-[10px] gap-1 px-2"
+                          onClick={() => handleVerificar(item.id)}
+                        >
+                          <ShieldCheck className="w-3 h-3 text-primary" /> Verificar
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </>

@@ -25,6 +25,8 @@ import { canAccessLicenseAdmin } from "@/config/adminAccess";
 const Vitrine = lazy(() => import("./pages/Vitrine"));
 const Index = lazy(() => import("./pages/Index"));
 const Cadastro = lazy(() => import("./pages/Cadastro"));
+const Equipe = lazy(() => import("./pages/Equipe"));
+const AceitarConvite = lazy(() => import("./pages/AceitarConvite"));
 const Documentos = lazy(() => import("./pages/Documentos"));
 const Auditoria = lazy(() => import("./pages/Auditoria"));
 const NaoConformidades = lazy(() => import("./pages/NaoConformidades"));
@@ -65,6 +67,7 @@ const DocumentosBPF = lazy(() => import("./pages/DocumentosBPF"));
 const MonitoramentoPCC = lazy(() => import("./pages/MonitoramentoPCC"));
 const Autocontrole = lazy(() => import("./pages/Autocontrole"));
 const Auth = lazy(() => import("./pages/Auth"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const Modelos = lazy(() => import("./pages/Modelos"));
@@ -201,6 +204,7 @@ const InternalRoutes = () => (
     <Route path="/Dashboard" element={<Navigate to="/dashboard" replace />} />
     
     <Route path="/cadastro" element={<Cadastro />} />
+    <Route path="/equipe" element={<Equipe />} />
     <Route path="/documentos" element={<Documentos />} />
     <Route path="/documentos-bpf" element={<DocumentosBPF />} />
     <Route path="/auditoria" element={<Auditoria />} />
@@ -270,6 +274,8 @@ const AppRoutes = () => {
         <Route path="/" element={<Vitrine />} />
         <Route path="/vitrine" element={<Vitrine />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/aceitar-convite" element={<AceitarConvite />} />
+        <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auditor/:token" element={<AuditorPortal />} />
         <Route path="/demo/:produto" element={<DemoPage />} />

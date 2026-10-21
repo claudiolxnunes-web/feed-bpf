@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.bloquear_registro_assinado() FROM PUBLIC, anon, authenticated;

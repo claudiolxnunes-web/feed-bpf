@@ -15,6 +15,8 @@ import { useLicense } from "@/hooks/useLicense";
 import { TIER_MAX_EMPRESAS, TIER_LABEL } from "@/config/tiers";
 import { toast } from "sonner";
 import { captureError } from "@/lib/monitoring";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 const TIPOS = ["Ração farelada", "Ração peletizada", "Núcleo", "Premix", "Suplemento mineral", "Sal mineral"];
 
@@ -34,12 +36,24 @@ const emptyForm: EmpresaForm = { nome: "", cnpj: "", endereco: "", responsavel_t
 
 export default function Cadastro() {
   const { user, userType } = useAuth();
-  const { empresas, recarregar, setEmpresaAtiva } = useEmpresa();
+  const { empresas, empresaAtiva, loading: empresasLoading, error: empresasError, recarregar, setEmpresaAtiva } = useEmpresa();
   const { tier } = useLicense();
   const [form, setForm] = useState<EmpresaForm>(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useWebMCP({
+    name: "ler_empresas_na_tela",
+    description: "Lê os nomes e identificadores das empresas exibidas nesta tela e identifica a empresa ativa, sem alterar dados.",
+    enabled: Boolean(user),
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: () => runWebMCPTool("ler_empresas_na_tela", () => {
+      if (empresasLoading) return "As empresas ainda estão carregando.";
+      if (empresasError) throw new Error("Não foi possível carregar as empresas.");
+      return empresas.length ? empresas.slice(0, 100).map((e) => `${e.id}: ${e.nome}${e.id === empresaAtiva?.id ? " (ativa)" : ""}`).join("\n") : "Nenhuma empresa exibida.";
+    }),
+  });
 
   const toggleTipo = (t: string) => {
     setForm(prev => ({

@@ -1,3 +1,4 @@
+import { REGRAS_VISITA, DECLARACOES_BIOSSEGURIDADE } from "@/components/visitantes/constants";
 import { useState, useRef } from "react";
 import { Printer, FileCheck, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,31 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { useAuth } from "@/hooks/useAuth";
-import { gerarCarimboSync, carimboHTML } from "@/utils/carimboDocumento";
+import { inserirCarimbo, CARIMBO_PLACEHOLDER } from "@/utils/carimboDocumento";
 import { toast } from "sonner";
 
-const REGRAS_VISITA = [
-  "Utilizar obrigatoriamente os Equipamentos de Proteção Individual (EPIs) fornecidos pela empresa (touca, jaleco, máscara, propés, óculos de proteção quando aplicável).",
-  "Não portar alimentos, bebidas, cigarros ou objetos pessoais nas áreas produtivas.",
-  "Não utilizar adornos (anéis, brincos, pulseiras, relógios, piercings) nas áreas de produção.",
-  "Seguir rigorosamente as orientações do acompanhante designado pela empresa.",
-  "Não tocar em equipamentos, matérias-primas ou produtos acabados sem autorização expressa.",
-  "Lavar e higienizar as mãos antes de entrar nas áreas produtivas, seguindo o procedimento exposto.",
-  "Não fotografar ou filmar sem autorização prévia da gerência.",
-  "Informar imediatamente ao acompanhante caso esteja com sintomas de doenças infectocontagiosas (diarreia, vômito, febre, lesões de pele, infecções respiratórias).",
-  "Transitar exclusivamente pelas áreas autorizadas e sinalizadas pelo acompanhante.",
-  "Respeitar a sinalização de segurança e as áreas de acesso restrito.",
-];
 
-const DECLARACOES_BIOSSEGURIDADE = [
-  { id: "granjas", texto: "Declaro que NÃO visitei granjas, aviários, pocilgas, currais ou instalações de criação animal nas últimas 72 horas." },
-  { id: "abatedouros", texto: "Declaro que NÃO visitei abatedouros, frigoríficos ou indústrias de processamento de produtos de origem animal nas últimas 48 horas." },
-  { id: "areas_contaminadas", texto: "Declaro que NÃO estive em áreas com surtos ou focos de doenças animais notificáveis nas últimas 72 horas." },
-  { id: "lixoes", texto: "Declaro que NÃO visitei lixões, aterros sanitários ou locais de descarte de resíduos biológicos nas últimas 48 horas." },
-  { id: "doencas", texto: "Declaro que NÃO apresento sintomas de doenças infectocontagiosas (diarreia, vômito, febre, lesões cutâneas, infecções respiratórias)." },
-  { id: "contato_animal", texto: "Declaro que NÃO tive contato direto com animais doentes ou em quarentena nas últimas 72 horas." },
-  { id: "veracidade", texto: "Declaro que todas as informações acima prestadas são verdadeiras e que estou ciente de que a omissão ou falsidade poderá acarretar responsabilização civil e criminal, conforme legislação vigente." },
-];
+
+
 
 export default function DeclaracaoVisitante() {
   const { empresaAtiva } = useEmpresa();
@@ -47,7 +29,7 @@ export default function DeclaracaoVisitante() {
   const allDeclaracoes = DECLARACOES_BIOSSEGURIDADE.every(d => checks[d.id]);
   const formValido = form.nome && form.documento && regrasAceitas && allDeclaracoes;
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!formValido) {
       toast.error("Preencha todos os campos e marque todas as declarações antes de imprimir.");
       return;
@@ -142,18 +124,19 @@ ${DECLARACOES_BIOSSEGURIDADE.map(d => `
 <div class="footer">
   ${nomeEmpresa}${cnpj ? " — CNPJ: " + cnpj : ""} | Documento gerado em ${dataHora} | Válido somente com assinatura do visitante e acompanhante
 </div>
-${carimboHTML(gerarCarimboSync({
-  documentoTipo: "Declaração de Visitante (Biosseguridade)",
-  documentoId: form.nome,
-  empresa: nomeEmpresa,
-  usuario: user?.email,
-}))}
+${CARIMBO_PLACEHOLDER}
 
 </body></html>`;
 
     const w = window.open("", "_blank");
+    const { html: htmlFinal } = await inserirCarimbo(html, {
+      documentoTipo: "Declaração de Visitante (Biosseguridade)",
+      documentoId: form.nome,
+      empresa: nomeEmpresa,
+      usuario: user?.email,
+    });
     if (w) {
-      w.document.write(html);
+      w.document.write(htmlFinal);
       w.document.close();
       w.onload = () => setTimeout(() => w.print(), 300);
     }
@@ -168,9 +151,9 @@ ${carimboHTML(gerarCarimboSync({
             Declaração e Termo de Responsabilidade do Visitante
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Formulário completo de biosseguridade conforme IN 15/2009 e Decreto 12.031/2024.
-            Preencha, marque todas as declarações e imprima para assinatura física.
-          </p>
+ Formulário completo de biosseguridade.
+ Preencha, marque todas as declarações e imprima para assinatura física.
+ </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Dados do visitante */}

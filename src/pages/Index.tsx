@@ -143,13 +143,14 @@ export default function Index() {
       const acoesPrioritarias = [];
       if (calibracoesVencidas > 0) acoesPrioritarias.push({ titulo: "Regularizar calibrações vencidas", detalhe: `${calibracoesVencidas} equipamento(s) exigem ação imediata.`, criticidade: "critico", link: "/manutencao" });
       if (docsVencidos > 0) acoesPrioritarias.push({ titulo: "Revisar documentos obrigatórios", detalhe: `${docsVencidos} documento(s) estão vencidos ou fora da revisão.`, criticidade: "critico", link: "/documentos" });
-      // Alerta de conformidade MAPA (IN 04/2007): revisao anual de POPs e ITs
+      
+      // Alertas de Conformidade MAPA (IN 04/2007)
       if (docsVencidos > 0 || alertas.some(a => a.tipo === "documento")) {
-        acoesPrioritarias.push({
-          titulo: "Conformidade MAPA (Revisão Anual)",
-          detalhe: "POPs e ITs exigem revisão anual obrigatória conforme IN 04/2007.",
-          criticidade: docsVencidos > 0 ? "critico" : "atencao",
-          link: "/planilhas-pop",
+        acoesPrioritarias.push({ 
+          titulo: "Conformidade MAPA (Revisão Anual)", 
+          detalhe: "POPs e ITs exigem revisão anual obrigatória.", 
+          criticidade: docsVencidos > 0 ? "critico" : "atencao", 
+          link: "/planilhas-pop" 
         });
       }
 
@@ -165,7 +166,8 @@ export default function Index() {
           { label: "Treinamento da equipe", valor: progressFromOverdue(treinamentosPendentes, Math.max(treinamentos.length, 1)), descricao: `${treinamentosPendentes} pendência(s).`, link: "/treinamentos" },
           { label: "Resposta a desvios", valor: progressFromOverdue(ncAbertas, Math.max(ncs.length, 1)), descricao: `${ncAbertas} NC(s) em aberto.`, link: "/nao-conformidades" },
         ],
-        execucoes: execPopsRes.data || []
+        execucoes: execPopsRes.data || [],
+        documentosResData: documentosRes.data || []
       };
     },
     enabled: !!user,
@@ -224,7 +226,7 @@ export default function Index() {
         <div className="space-y-6">
           <DashboardPriorities acoes={data.acoesPrioritarias} />
           <DashboardOperationalHealth items={data.saudeOperacional} />
-          <DashboardPopStatus execucoes={data.execucoes} />
+          <DashboardPopStatus execucoes={data.execucoes} documentos={data.documentosResData || []} />
           <DashboardAlerts alertas={data.alertasVencimento} />
         </div>
       </div>

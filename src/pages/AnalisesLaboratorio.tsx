@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { FlaskConical, Plus, Loader2, CheckCircle2, XCircle, Clock, Search, Trash2, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { corrigirViaNC } from "@/utils/correcaoNC";
+import { FlaskConical, Plus, Loader2, CheckCircle2, XCircle, Clock, Search, FileWarning, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -136,11 +138,7 @@ export default function AnalisesLaboratorio() {
     setSaving(false);
   };
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("analises_laboratorio").delete().eq("id", id);
-    if (error) toast.error("Erro: " + error.message);
-    else { toast.success("Análise excluída."); fetchData(); }
-  };
+  const navigate = useNavigate();
 
   const filtered = analises.filter(a => {
     if (!busca) return true;
@@ -287,8 +285,8 @@ export default function AnalisesLaboratorio() {
                                     <Button variant="ghost" size="sm" onClick={() => { setSelectedAnalise(a); setDetailOpen(true); }}>
                                       <Eye className="w-4 h-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(a.id)}>
-                                      <Trash2 className="w-4 h-4" />
+                                     <Button variant="ghost" size="sm" className="gap-1 text-xs" title="Registros não são excluídos — correção via Não Conformidade" onClick={() => corrigirViaNC(navigate, { tabela: "analises_laboratorio", registroId: a.id, descricao: `Análise: ${a.tipo_analise} — ${a.produto}${a.lote ? ` — lote ${a.lote}` : ""}` })}>
+                                      <FileWarning className="w-4 h-4 text-primary" /> Corrigir via NC
                                     </Button>
                                   </div>
                                 </TableCell>

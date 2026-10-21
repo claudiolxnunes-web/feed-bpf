@@ -90,8 +90,8 @@ export default function ConfigurarPin() {
               <p className="font-semibold">Como funciona</p>
               <p className="text-muted-foreground mt-1">
                 Defina um PIN de 4 a 10 dígitos. Os operadores digitam <strong>nome + este PIN</strong> ao registrar
-                cada execução de POP/IT. O sistema gera selo SHA-256 imutável (Decreto 12.031/2024).
-              </p>
+ cada execução de POP/IT. O sistema gera selo SHA-256 imutável.
+ </p>
             </div>
           </div>
 

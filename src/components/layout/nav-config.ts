@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   MessageSquare,
   Tablet,
-
   Layers,
   Tag,
   BarChart3,
@@ -73,22 +72,49 @@ export const NAV_ENTRIES: NavEntry[] = [
   // --- NAVEGAÇÃO PRINCIPAL (FLAT) ---
   { path: "/dashboard", label: "Dashboard Principal", icon: LayoutDashboard },
   { path: "/cadastro", label: "Dados da Empresa", icon: Building2 },
+  { path: "/equipe", label: "Equipe", icon: Users },
 
-  // --- POPs (SEQUÊNCIA OFICIAL IN 04/2007 — 09 POPs + PAC) ---
+  // --- POPs (SEQUÊNCIA OFICIAL baseLegal: bpf_geral — 09 POPs + PAC) ---
   {
     label: "POP 01 - Qualificação de Fornecedores",
     icon: Users,
     items: [
-      { path: "/fornecedores", label: "Qualificação de Fornecedores", icon: Users, keywords: ["parceiros", "compras", "homologação"] },
-      { path: "/recebimento", label: "Recebimento de Matéria Prima e Embalagens", icon: ClipboardList, keywords: ["matéria-prima", "conferência", "entrada", "embalagens"] },
+      {
+        path: "/fornecedores",
+        label: "Qualificação de Fornecedores",
+        icon: Users,
+        keywords: ["parceiros", "compras", "homologação"],
+      },
+      {
+        path: "/recebimento",
+        label: "Recebimento de Matéria Prima e Embalagens",
+        icon: ClipboardList,
+        keywords: ["matéria-prima", "conferência", "entrada", "embalagens"],
+      },
+      {
+        path: "/armazenamento-transporte",
+        label: "Armazenamento e Higiene do Transporte (POP 01/02)",
+        icon: Truck,
+        keywords: ["estocagem", "veículo", "carga", "eeb"],
+      },
     ],
   },
   {
     label: "POP 02 - Limpeza de Instalações, Equipamentos e Utensílios",
     icon: Sparkles,
     items: [
-      { path: "/higiene", label: "Higiene / Sanitização", icon: Droplets, keywords: ["limpeza", "faxina", "sanitização"] },
-      { path: "/validacao-limpeza", label: "Validação de Limpeza de Linha", icon: CheckCircle2, keywords: ["suabe", "microbiologia", "atp"] },
+      {
+        path: "/higiene",
+        label: "Higiene / Sanitização",
+        icon: Droplets,
+        keywords: ["limpeza", "faxina", "sanitização"],
+      },
+      {
+        path: "/validacao-limpeza",
+        label: "Validação de Limpeza de Linha",
+        icon: CheckCircle2,
+        keywords: ["suabe", "microbiologia", "atp"],
+      },
     ],
   },
   {
@@ -96,59 +122,166 @@ export const NAV_ENTRIES: NavEntry[] = [
     icon: Activity,
     items: [
       { path: "/saude-pessoal", label: "Saúde Pessoal", icon: Activity, keywords: ["aso", "exames", "colaboradores"] },
-      { path: "/treinamentos", label: "Treinamentos BPF", icon: GraduationCap, keywords: ["capacitação", "cursos", "conscientização"] },
-      { path: "/visitantes", label: "Controle de Visitantes", icon: Users, keywords: ["visitas", "biosseguridade", "epi"] },
+      {
+        path: "/treinamentos",
+        label: "Treinamentos BPF",
+        icon: GraduationCap,
+        keywords: ["capacitação", "cursos", "conscientização"],
+      },
+      {
+        path: "/visitantes",
+        label: "Controle de Visitantes",
+        icon: Users,
+        keywords: ["visitas", "biosseguridade", "epi"],
+      },
     ],
   },
-  { path: "/potabilidade-agua", label: "POP 04 - Potabilidade da Água", icon: Droplets, keywords: ["cloro", "ph", "análise"] },
+  {
+    path: "/potabilidade-agua",
+    label: "POP 04 - Potabilidade da Água",
+    icon: Droplets,
+    keywords: ["cloro", "ph", "análise"],
+  },
   {
     label: "POP 05 - Controle da Produção e Prevenção da Contaminação Cruzada",
     icon: Zap,
     items: [
-      { path: "/monitoramento-pcc", label: "Monitoramento PCC / Contaminação Cruzada", icon: Zap, keywords: ["perigo", "crítico", "limite", "carry-over"] },
-      { path: "/pcp", label: "PCP / Sequenciamento", icon: CalendarDays, keywords: ["planejamento", "programação", "sequenciamento", "ordem"] },
-      { path: "/producao", label: "Controle de Produção", icon: Layers, keywords: ["fabricação", "lote", "rendimento"] },
+      {
+        path: "/monitoramento-pcc",
+        label: "Monitoramento PCC / Contaminação Cruzada",
+        icon: Zap,
+        keywords: ["perigo", "crítico", "limite", "carry-over"],
+      },
+      {
+        path: "/pcp",
+        label: "PCP / Sequenciamento",
+        icon: CalendarDays,
+        keywords: ["planejamento", "programação", "sequenciamento", "ordem"],
+      },
+      {
+        path: "/producao",
+        label: "Controle de Produção",
+        icon: Layers,
+        keywords: ["fabricação", "lote", "rendimento"],
+      },
       { path: "/expedicao", label: "Expedição", icon: Truck, keywords: ["carregamento", "transporte", "entrega"] },
       { path: "/produtos", label: "Cadastro de Produtos", icon: Package, keywords: ["itens", "mercadoria", "sku"] },
-      { path: "/formulas", label: "Fórmulas de Produção", icon: FlaskConical, keywords: ["receita", "composição", "mistura"] },
-      { path: "/status-lotes", label: "Status & Fila de Lotes", icon: Tag, keywords: ["estoque", "fifo", "bloqueio", "mp"] },
-      { path: "/analises", label: "Análises Laboratoriais", icon: FlaskConical, keywords: ["laudo", "laboratório", "amostra", "resultado"] },
-      { path: "/substancias", label: "Substâncias Restritas (IN 17/2017)", icon: ShieldAlert, keywords: ["ractopamina", "medicamento", "aditivo", "proibido"] },
-      { path: "/armazenamento-transporte", label: "Armazenamento e Transporte", icon: Truck, keywords: ["estocagem", "veículo", "carga", "eeb"] },
+      {
+        path: "/formulas",
+        label: "Fórmulas de Produção",
+        icon: FlaskConical,
+        keywords: ["receita", "composição", "mistura"],
+      },
+      {
+        path: "/status-lotes",
+        label: "Status & Fila de Lotes",
+        icon: Tag,
+        keywords: ["estoque", "fifo", "bloqueio", "mp"],
+      },
+      {
+        path: "/analises",
+        label: "Análises Laboratoriais",
+        icon: FlaskConical,
+        keywords: ["laudo", "laboratório", "amostra", "resultado"],
+      },
+      {
+        path: "/substancias",
+        label: "Substâncias Restritas e Proibidas",
+        icon: ShieldAlert,
+        keywords: ["ractopamina", "medicamento", "aditivo", "proibido"],
+      },
     ],
   },
-  { path: "/manutencao", label: "POP 06 - Manutenção e Calibração de Equipamentos e Instrumentos", icon: Wrench, keywords: ["máquinas", "equipamentos", "reparo", "calibração", "inventário"] },
-  { path: "/pragas", label: "POP 07 - Controle Integrado de Pragas", icon: Bug, keywords: ["insetos", "roedores", "controle"] },
-  { path: "/residuos", label: "POP 08 - Controle de Resíduos e Efluentes", icon: Trash2, keywords: ["lixo", "efluentes", "descarte"] },
+  {
+    path: "/manutencao",
+    label: "POP 06 - Manutenção e Calibração de Equipamentos e Instrumentos",
+    icon: Wrench,
+    keywords: ["máquinas", "equipamentos", "reparo", "calibração", "inventário"],
+  },
+  {
+    path: "/pragas",
+    label: "POP 07 - Controle Integrado de Pragas",
+    icon: Bug,
+    keywords: ["insetos", "roedores", "controle"],
+  },
+  {
+    path: "/residuos",
+    label: "POP 08 - Controle de Resíduos e Efluentes",
+    icon: Trash2,
+    keywords: ["lixo", "efluentes", "descarte"],
+  },
   {
     label: "POP 09 - Programa de Rastreabilidade e Recolhimento (Recall)",
     icon: History,
     items: [
       { path: "/rastreabilidade", label: "Rastreabilidade", icon: History, keywords: ["lote", "origem", "destino"] },
-      { path: "/simulacao-recall", label: "Simulação de Recall", icon: AlertTriangle, keywords: ["recall", "recolhimento", "simulação"] },
+      {
+        path: "/simulacao-recall",
+        label: "Simulação de Recall",
+        icon: AlertTriangle,
+        keywords: ["recall", "recolhimento", "simulação"],
+      },
     ],
   },
   {
     label: "POP 10 - PAC - Programa de Autocontrole",
     icon: ClipboardCheck,
     items: [
-      { path: "/autocontrole", label: "Programa de Autocontrole", icon: ClipboardCheck, keywords: ["checklists", "diário", "fiscalização", "pac"] },
-      { path: "/matriz-risco", label: "Matriz de Risco / APPCC", icon: ShieldAlert, keywords: ["análise", "perigos", "severidade", "haccp"] },
+      {
+        path: "/autocontrole",
+        label: "Programa de Autocontrole",
+        icon: ClipboardCheck,
+        keywords: ["checklists", "diário", "fiscalização", "pac"],
+      },
+      {
+        path: "/matriz-risco",
+        label: "Matriz de Risco / APPCC",
+        icon: ShieldAlert,
+        keywords: ["análise", "perigos", "severidade", "haccp"],
+      },
     ],
   },
 
-
-  // --- DOCUMENTAÇÃO & REGISTROS (FLAT) ---
+  // --- DOCUMENTAÇÃO & REGISTROS (CENTRALIZADOS) ---
+  {
+    label: "Central de Documentos",
+    icon: FolderOpen,
+    items: [
+      {
+        path: "/documentos",
+        label: "Documentos e Registros",
+        icon: FileText,
+        keywords: ["pop", "it", "manual", "procedimento"],
+      },
+      {
+        path: "/documentos-bpf",
+        label: "Arquivo Digital BPF",
+        icon: FolderOpen,
+        keywords: ["anexos", "scaneados", "upload", "acervo"],
+      },
+      {
+        path: "/modelos",
+        label: "Biblioteca de Modelos",
+        icon: FolderOpen,
+        keywords: ["template", "excel", "word", "original"],
+      },
+      {
+        path: "/planilhas-pop",
+        label: "Planilhas de POPs",
+        icon: Clipboard,
+        keywords: ["digital", "assinatura", "registro"],
+      },
+      {
+        path: "/execucao-pops",
+        label: "Execução ITs / POPs",
+        icon: Clipboard,
+        keywords: ["instrução", "trabalho", "operacional"],
+      },
+      { path: "/legislacao", label: "Legislação e Normas", icon: BookOpen },
+    ],
+  },
   { path: "/manual", label: "Manual Feed_BPF", icon: BookOpen },
-  { path: "/documentos", label: "Documentos e Registros", icon: FileText },
-  { path: "/documentos-bpf", label: "Arquivo Digital BPF", icon: FolderOpen, keywords: ["anexos", "scaneados", "upload", "acervo"] },
-  { path: "/execucao-pops", label: "Execução ITs/POPs", icon: Clipboard },
-  { path: "/planilhas-pop", label: "Planilhas de POPs", icon: Clipboard },
-  { path: "/guia-geral-pops", label: "Guia Geral POPs", icon: ClipboardList },
-  { path: "/guia-pops", label: "ITs Detalhadas", icon: FileText },
-  { path: "/modelos", label: "Biblioteca de Modelos", icon: FolderOpen },
   { path: "/orientacoes", label: "Central de Orientações", icon: GraduationCap },
-  { path: "/legislacao", label: "Legislação e Normas", icon: BookOpen, keywords: ["mapa", "in", "decreto", "norma"] },
 
   // --- AUDITORIA & MELHORIA (FLAT) ---
   { path: "/auditoria", label: "Auditoria BPF", icon: ClipboardCheck },
@@ -157,8 +290,18 @@ export const NAV_ENTRIES: NavEntry[] = [
   { path: "/audit-log", label: "Log de Atividades", icon: History },
   { path: "/checklist-pre-auditoria", label: "Checklist Pré-Auditoria", icon: ClipboardList },
   { path: "/simulador-tf-autocontroles", label: "Simulador TF-Autocontroles (MAPA)", icon: ShieldCheck },
-  { path: "/simulacao-carimbo", label: "Simulação de Carimbo/Selo", icon: ShieldCheck, keywords: ["selo", "carimbo", "certificado"] },
-  { path: "/planejamento-anual", label: "Planejamento Anual", icon: CalendarDays, keywords: ["cronograma", "calendário", "programação anual"] },
+  {
+    path: "/simulacao-carimbo",
+    label: "Simulação de Carimbo/Selo",
+    icon: ShieldCheck,
+    keywords: ["selo", "carimbo", "certificado"],
+  },
+  {
+    path: "/planejamento-anual",
+    label: "Planejamento Anual",
+    icon: CalendarDays,
+    keywords: ["cronograma", "calendário", "programação anual"],
+  },
   { path: "/qualidade-total", label: "Qualidade Total (SAC)", icon: MessageSquare },
   { path: "/indicadores", label: "Indicadores de Qualidade", icon: BarChart3 },
 
@@ -167,9 +310,24 @@ export const NAV_ENTRIES: NavEntry[] = [
     label: "Relatórios",
     icon: BarChart3,
     items: [
-      { path: "/relatorios", label: "Central de Relatórios", icon: FileText, keywords: ["pdf", "exportar", "documento"] },
-      { path: "/relatorio-producao", label: "Relatório de Produção", icon: Layers, keywords: ["produção", "lote", "rendimento"] },
-      { path: "/analise-tendencias", label: "Análise de Tendências (IA)", icon: Sparkles, keywords: ["ia", "tendência", "estatística"] },
+      {
+        path: "/relatorios",
+        label: "Central de Relatórios",
+        icon: FileText,
+        keywords: ["pdf", "exportar", "documento"],
+      },
+      {
+        path: "/relatorio-producao",
+        label: "Relatório de Produção",
+        icon: Layers,
+        keywords: ["produção", "lote", "rendimento"],
+      },
+      {
+        path: "/analise-tendencias",
+        label: "Análise de Tendências (IA)",
+        icon: Sparkles,
+        keywords: ["ia", "tendência", "estatística"],
+      },
     ],
   },
 
@@ -179,10 +337,25 @@ export const NAV_ENTRIES: NavEntry[] = [
     icon: Sparkles,
     items: [
       { path: "/gerador-pop-ia", label: "Gerador de POPs (IA)", icon: Sparkles, keywords: ["ia", "pop", "gerar"] },
-      { path: "/geracao-manual-bpf", label: "Geração do Manual BPF", icon: BookOpen, keywords: ["manual", "gerar", "pdf"] },
-      { path: "/consulta-sipeagro", label: "Consulta SIPEAGRO", icon: ShieldCheck, keywords: ["mapa", "registro", "estabelecimento"] },
+      {
+        path: "/geracao-manual-bpf",
+        label: "Geração do Manual BPF",
+        icon: BookOpen,
+        keywords: ["manual", "gerar", "pdf"],
+      },
+      {
+        path: "/consulta-sipeagro",
+        label: "Consulta SIPEAGRO",
+        icon: ShieldCheck,
+        keywords: ["mapa", "registro", "estabelecimento"],
+      },
       { path: "/busca-global", label: "Busca Global", icon: FolderOpen, keywords: ["pesquisar", "localizar"] },
-      { path: "/configurar-pin", label: "Configurar PIN de Assinatura", icon: ShieldCheck, keywords: ["senha", "assinatura", "aprovação"] },
+      {
+        path: "/configurar-pin",
+        label: "Configurar PIN de Assinatura",
+        icon: ShieldCheck,
+        keywords: ["senha", "assinatura", "aprovação"],
+      },
     ],
   },
 

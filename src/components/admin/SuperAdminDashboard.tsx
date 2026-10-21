@@ -53,9 +53,10 @@ export default function SuperAdminDashboard({ onNavigate }: Props) {
       const campanhasRes: any = await (supabase.from as any)("campanhas").select("id, status").in("status", ["executando", "agendada", "pausada"]);
       const msgsRes: any = await (supabase.from as any)("campanha_mensagens").select("id", { count: "exact", head: true })
         .eq("status", "enviada").gte("enviado_em", past24h);
-      const waRes: any = await (supabase.from as any)("whatsapp_config").select("connection_status, ultima_verificacao").limit(1).maybeSingle();
+      const waRes: any = await (supabase.from as any)("whatsapp_config")
+        .select("is_connected, last_known_status, last_status_check").limit(1).maybeSingle();
       const errosRes: any = await (supabase.from as any)("app_error_logs").select("id", { count: "exact", head: true })
-        .in("severity", ["error", "critical"]).gte("created_at", past24h);
+        .in("error_type", ["boundary", "unhandled_error", "boot_failsafe"]).gte("created_at", past24h);
 
       const leads = leadsRes.data || [];
       const crm = crmRes.data || [];
@@ -76,9 +77,9 @@ export default function SuperAdminDashboard({ onNavigate }: Props) {
 
       const wa = waRes.data as any;
       const waStatus: DashboardData["whatsappStatus"] =
-        wa?.connection_status === "open" || wa?.connection_status === "connected"
+        wa?.is_connected || wa?.last_known_status === "open" || wa?.last_known_status === "connected"
           ? "conectado"
-          : wa?.connection_status
+          : wa?.last_known_status || wa
             ? "desconectado"
             : "desconhecido";
 

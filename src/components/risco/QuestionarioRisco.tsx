@@ -1,3 +1,5 @@
+import { CATEGORIAS, PERGUNTAS_PADRAO } from "@/components/risco/constants";
+import type { Pergunta } from "@/components/risco/constants";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,67 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Save, RotateCcw, ClipboardCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
-interface Pergunta {
-  id: string;
-  categoria: string;
-  texto: string;
-  peso: number; // 1-5
-  resposta: "sim" | "nao" | "parcial" | "na" | "";
-  observacao: string;
-}
 
-const CATEGORIAS = [
-  "Infraestrutura e Instalações",
-  "Higiene e Sanitização",
-  "Controle de Matérias-Primas",
-  "Processo Produtivo",
-  "Controle de Pragas",
-  "Treinamento de Pessoal",
-  "Rastreabilidade",
-  "Equipamentos e Manutenção",
-  "Documentação e Registros",
-  "Programa de Autocontrole (PAC)",
-];
 
-const PERGUNTAS_PADRAO: Omit<Pergunta, "id">[] = [
-  // Infraestrutura
-  { categoria: "Infraestrutura e Instalações", texto: "As instalações possuem piso lavável, sem rachaduras ou buracos?", peso: 4, resposta: "", observacao: "" },
-  { categoria: "Infraestrutura e Instalações", texto: "O layout permite fluxo unidirecional (sem cruzamento de fluxos)?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Infraestrutura e Instalações", texto: "Há barreiras adequadas contra entrada de pragas (telas, cortinas)?", peso: 4, resposta: "", observacao: "" },
-  { categoria: "Infraestrutura e Instalações", texto: "A iluminação é adequada e as luminárias possuem proteção?", peso: 3, resposta: "", observacao: "" },
-  // Higiene
-  { categoria: "Higiene e Sanitização", texto: "Existe cronograma de limpeza implementado e registrado?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Higiene e Sanitização", texto: "Os produtos de limpeza são aprovados para uso na indústria alimentícia?", peso: 4, resposta: "", observacao: "" },
-  { categoria: "Higiene e Sanitização", texto: "Há validação de limpeza de linha entre produtos sensíveis?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Higiene e Sanitização", texto: "Os colaboradores seguem as BPF de higiene pessoal?", peso: 4, resposta: "", observacao: "" },
-  // Matérias-primas
-  { categoria: "Controle de Matérias-Primas", texto: "Todos os fornecedores são qualificados e possuem registro no MAPA?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Controle de Matérias-Primas", texto: "As matérias-primas são inspecionadas no recebimento (odor, umidade, insetos)?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Controle de Matérias-Primas", texto: "Existe controle de substâncias proibidas/indesejáveis conforme IN 15?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Controle de Matérias-Primas", texto: "As matérias-primas são armazenadas de forma segregada e identificada?", peso: 4, resposta: "", observacao: "" },
-  // Processo
-  { categoria: "Processo Produtivo", texto: "O sequenciamento de produção segue a matriz de sensibilidade?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Processo Produtivo", texto: "Os tempos de mistura são controlados e registrados?", peso: 4, resposta: "", observacao: "" },
-  { categoria: "Processo Produtivo", texto: "Existe controle de contaminação cruzada entre produtos com e sem medicamentos?", peso: 5, resposta: "", observacao: "" },
-  // Pragas
-  { categoria: "Controle de Pragas", texto: "Existe contrato com empresa especializada de controle de pragas?", peso: 4, resposta: "", observacao: "" },
-  { categoria: "Controle de Pragas", texto: "Os mapas de iscas e armadilhas estão atualizados?", peso: 3, resposta: "", observacao: "" },
-  // Treinamento
-  { categoria: "Treinamento de Pessoal", texto: "Todos os colaboradores possuem treinamento em BPF válido?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Treinamento de Pessoal", texto: "Há programa de capacitação contínua com cronograma definido?", peso: 4, resposta: "", observacao: "" },
-  // Rastreabilidade
-  { categoria: "Rastreabilidade", texto: "É possível rastrear o produto desde a matéria-prima até o cliente final?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Rastreabilidade", texto: "Existe procedimento de recall testado e documentado?", peso: 5, resposta: "", observacao: "" },
-  // Equipamentos
-  { categoria: "Equipamentos e Manutenção", texto: "As balanças estão calibradas e com certificados válidos?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Equipamentos e Manutenção", texto: "Existe programa de manutenção preventiva implementado?", peso: 4, resposta: "", observacao: "" },
-  // Documentação
-  { categoria: "Documentação e Registros", texto: "Todos os POPs estão atualizados, assinados e disponíveis nos setores?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Documentação e Registros", texto: "Os registros de produção e controle de qualidade estão completos?", peso: 4, resposta: "", observacao: "" },
-  // PAC
-  { categoria: "Programa de Autocontrole (PAC)", texto: "A empresa possui programa de autocontrole documentado e implementado?", peso: 5, resposta: "", observacao: "" },
-  { categoria: "Programa de Autocontrole (PAC)", texto: "As auditorias internas são realizadas conforme cronograma?", peso: 4, resposta: "", observacao: "" },
-];
+
+
+
 
 let idCounter = 0;
 function genId() {

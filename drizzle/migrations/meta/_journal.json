@@ -1,0 +1,90 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792278440691,
+      "tag": "0000_create_auditorias_bpf",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792278898841,
+      "tag": "0001_bloquear_delete_registros",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792279243842,
+      "tag": "0002_status_expedicao_itens",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792279649193,
+      "tag": "0003_create_simulacoes_recall",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792280557562,
+      "tag": "0004_piloto_papeis_simulacoes_recall",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792281863792,
+      "tag": "0005_replicar_policies_papeis_46_tabelas",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792291983066,
+      "tag": "0006_add_slug_normas_legislacao",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792339860505,
+      "tag": "0007_normas_situacao_arquivamento",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792349593311,
+      "tag": "0008_add_repeticao_validacao_limpeza_linha",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792349890581,
+      "tag": "0009_medicados_receitas_programas",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792367367192,
+      "tag": "0010_blindagem_visualizador_49_tabelas",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792369174628,
+      "tag": "0011_gestao_equipe_convites_papeis",
+      "breakpoints": true
+    }
+  ]
+}

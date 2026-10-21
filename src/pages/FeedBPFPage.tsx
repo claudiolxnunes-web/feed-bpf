@@ -11,7 +11,7 @@ import { PublicFooter } from "@/components/layout/PublicFooter";
 import { Seo } from "@/components/Seo";
 
 const funcionalidades = [
-  { icon: BookOpen, title: "Manual BPF Completo", desc: "Manual de Boas Práticas de Fabricação com todos os capítulos exigidos pela IN 04/2007." },
+  { icon: BookOpen, title: "Manual BPF Completo", desc: "Manual de Boas Práticas de Fabricação com todos os capítulos exigidos." },
   { icon: ClipboardCheck, title: "POPs Digitais", desc: "Procedimentos Operacionais Padrão digitais com planilhas de monitoramento integradas." },
   { icon: Factory, title: "Produção & PCP", desc: "Ordens de produção, fórmulas, batidas, controle de lotes e planejamento da produção." },
   { icon: GitBranch, title: "Rastreabilidade Total", desc: "Rastreabilidade completa MP → Produto → Cliente com controle de recall." },
@@ -26,7 +26,7 @@ const funcionalidades = [
 ];
 
 const diferenciais = [
-  { icon: FileCheck, title: "100% Conforme IN 04/2007", desc: "Todos os documentos, procedimentos e registros exigidos pela legislação, prontos para uso." },
+  { icon: FileCheck, title: "100%", desc: "Todos os documentos, procedimentos e registros exigidos pela legislação, prontos para uso." },
   { icon: Lock, title: "Dados Seguros & Isolados", desc: "Cada empresa acessa apenas seus próprios dados, com criptografia e backup automático na nuvem." },
 ];
 
@@ -45,11 +45,13 @@ export default function FeedBPFPage() {
     navigate(`${destino}?nivel=${encodeURIComponent(nivel)}&periodo=${encodeURIComponent(periodo)}`);
   };
 
+  const WHATSAPP_CONTATO = "https://wa.me/5562996075522";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Seo
         title="Feed_BPF — Gestão de Boas Práticas de Fabricação de Ração"
-        description="Digitalize os 10 POPs obrigatórios da IN 04/2007, rastreabilidade e recall conforme o Decreto 12.031/2024."
+        description="Digitalize os 10 POPs e os registros de rastreabilidade e recall."
         jsonLd={{"@context": "https://schema.org", "@type": "Product", "name": "Feed_BPF", "description": "Sistema de gestão de Boas Práticas de Fabricação para fábricas de ração.", "brand": {"@type": "Brand", "name": "BPF_Consult"}}}
       />
       <header className="relative overflow-hidden">
@@ -71,7 +73,7 @@ export default function FeedBPFPage() {
               </h1>
               <p className="text-lg text-muted-foreground max-w-xl leading-relaxed mb-3">
                 Plataforma completa de Boas Práticas de Fabricação para nutrição animal. 
-                Em conformidade com <strong className="text-foreground">IN 04/2007</strong> e <strong className="text-foreground">Decreto 12.031/2024</strong>.
+                Registros organizados para acompanhamento e fiscalização.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
@@ -168,11 +170,13 @@ export default function FeedBPFPage() {
                       <p>Anual: <span className="font-semibold text-foreground">{p.anual}</span></p>
                     </div>
                   </div>
-                  <Button asChild variant={p.destaque ? "default" : "outline"} className="w-full gap-2">
-                    <Link to={signupLink}>
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Testar grátis 7 dias
-                    </Link>
+                  <Button
+                    variant={p.destaque ? "default" : "outline"}
+                    className="w-full gap-2"
+                    onClick={() => window.open(WHATSAPP_CONTATO, "_blank", "noopener,noreferrer")}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Em breve
                   </Button>
                 </CardContent>
               </Card>

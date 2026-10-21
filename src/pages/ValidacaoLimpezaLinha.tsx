@@ -1,4 +1,8 @@
+import { TIPOS_VALIDACAO } from "@/components/higiene/constants";
+import { citar798, REGRAS_CARRY_OVER, avaliarValidacaoCarryOver, REPETICOES_EXIGIDAS } from "@/config/carryOver798";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { corrigirViaNC } from "@/utils/correcaoNC";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,19 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Plus, FileWarning, ShieldCheck, AlertTriangle } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 
-const TIPOS_VALIDACAO = [
-  { value: "visual", label: "Inspeção Visual" },
-  { value: "swab", label: "Swab / Teste de Superfície" },
-  { value: "laboratorial", label: "Análise Laboratorial" },
-  { value: "rinse", label: "Água de Enxágue" },
-  { value: "homogeneidade", label: "Teste de Homogeneidade (CV%)" },
-  { value: "carryover", label: "Teste de Carry-Over / Arraste" },
-  { value: "tempo_mistura", label: "Validação Tempo de Mistura" },
-  { value: "flushing", label: "Flushing / Limpeza de Linha" },
-];
+
 
 export default function ValidacaoLimpezaLinha() {
   const { user } = useAuth();
@@ -38,7 +33,7 @@ export default function ValidacaoLimpezaLinha() {
     contem_medicamento: false, tipo_validacao: "visual", resultado: "aprovado",
     residuo_detectado: "", limite_aceitavel: "", metodo_analise: "",
     responsavel: "", data_validacao: new Date().toISOString().split("T")[0],
-    hora_validacao: "", observacoes: ""
+    hora_validacao: "", observacoes: "", repeticao: "1"
   });
 
   const { data: validacoes = [] } = useQuery({
@@ -52,7 +47,13 @@ export default function ValidacaoLimpezaLinha() {
 
   const add = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("validacao_limpeza_linha").insert({ ...form, user_id: user!.id, empresa_id: empresaAtiva?.id || null });
+      const { repeticao, ...resto } = form;
+      const { error } = await supabase.from("validacao_limpeza_linha").insert({
+        ...resto,
+        repeticao: resto.tipo_validacao === "carryover" ? Number(repeticao) : null,
+        user_id: user!.id,
+        empresa_id: empresaAtiva?.id || null,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -63,18 +64,26 @@ export default function ValidacaoLimpezaLinha() {
     onError: () => toast.error("Erro ao salvar"),
   });
 
-  const del = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from("validacao_limpeza_linha").delete().eq("id", id); if (error) throw error; },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["validacao_limpeza_linha"] }); toast.success("Removido"); },
+  const navigate = useNavigate();
+
+  /** Situação da validação por sequência (linha + produto anterior → seguinte), só testes de carry-over. */
+  const chaveSeq = (v: any) => `${v.linha_producao}|${v.produto_anterior}|${v.produto_seguinte}`;
+  const statusPorSequencia = new Map<string, ReturnType<typeof avaliarValidacaoCarryOver>>();
+  const grupos = new Map<string, { repeticao: number; conforme: boolean }[]>();
+  validacoes.forEach((v: any) => {
+    if (v.tipo_validacao !== "carryover" || !v.repeticao) return;
+    const k = chaveSeq(v);
+    grupos.set(k, [...(grupos.get(k) ?? []), { repeticao: v.repeticao, conforme: v.resultado === "aprovado" }]);
   });
+  grupos.forEach((reps, k) => statusPorSequencia.set(k, avaliarValidacaoCarryOver(reps)));
 
   const reprovados = validacoes.filter((v: any) => v.resultado === "reprovado").length;
   const comMed = validacoes.filter((v: any) => v.contem_medicamento).length;
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Validação de Limpeza de Linha" description="Controle de contaminação cruzada — IN 04/2007 e IN 15/2009"
-        orientacaoModuloId="validacao-limpeza" />
+      <PageHeader title="Validação de Limpeza de Linha" description="Controle de contaminação cruzada"
+        orientacaoModuloId="validacao-limpeza"  assuntoBaseLegal="bpf_geral" />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-primary">{validacoes.length}</p><p className="text-sm text-muted-foreground">Total</p></CardContent></Card>
@@ -101,7 +110,7 @@ export default function ValidacaoLimpezaLinha() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Tipo Validação</Label>
-                  <Select value={form.tipo_validacao} onValueChange={v => setForm(p => ({ ...p, tipo_validacao: v }))}>
+                  <Select value={form.tipo_validacao} onValueChange={v => setForm(p => ({ ...p, tipo_validacao: v, limite_aceitavel: v === "carryover" && !p.limite_aceitavel ? "≤ 2,5% do princípio ativo" : p.limite_aceitavel }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{TIPOS_VALIDACAO.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                   </Select>
@@ -124,30 +133,24 @@ export default function ValidacaoLimpezaLinha() {
               <div><Label>Método de Análise</Label><Input value={form.metodo_analise} onChange={e => setForm(p => ({ ...p, metodo_analise: e.target.value }))} placeholder="Ex: HPLC, ELISA, CV% < 10%" /></div>
               {(form.tipo_validacao === "tempo_mistura" || form.tipo_validacao === "homogeneidade") && (
                 <div className="p-3 rounded-lg border border-blue-400 bg-blue-50 dark:bg-blue-900/20">
-                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-2">📐 Validação de Mistura — IN 04/2007</p>
-                  <p className="text-xs text-muted-foreground">Registre o CV% (Coeficiente de Variação) do teste de homogeneidade. O limite aceitável é CV ≤ 10% para misturadores. Informe o tempo de mistura validado no campo "Observações".</p>
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-2">📐 Validação de Mistura</p>
+                  <p className="text-xs text-muted-foreground">Registre o CV% (Coeficiente de Variação) do teste de homogeneidade. O limite aceitável é CV até 10% no método de concentração ({citar798("art. 26")}). Informe o tempo de mistura validado no campo "Observações".</p>
                 </div>
               )}
               {form.tipo_validacao === "carryover" && (
                 <div className="p-3 rounded-lg border border-orange-400 bg-orange-50 dark:bg-orange-900/20 space-y-2">
-                  <p className="text-xs font-semibold text-orange-700 dark:text-orange-400 mb-1">🔬 Teste de Carry-Over (Arraste) — POP-05 / IN 15/2009</p>
-                  <p className="text-xs text-muted-foreground">
-                    Meça o % de arraste do princípio ativo (ex: monensina, salinomicina) do lote anterior para o seguinte.
-                    O limite aceitável varia conforme a substância ativa e espécie destino.
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div className="text-[10px] p-2 rounded bg-background border space-y-1">
-                      <p className="font-semibold">Limites de referência (IN 15/2009):</p>
-                      <p>• Ionóforos para bovinos: &lt; 1% arraste</p>
-                      <p>• Medicamentos veterinários: &lt; 3% arraste</p>
-                      <p>• Proibidos p/ espécie seguinte: 0% (flushing obrigatório)</p>
-                    </div>
-                    <div className="text-[10px] p-2 rounded bg-background border space-y-1">
-                      <p className="font-semibold">Metodologia recomendada:</p>
-                      <p>• Coleta após 1ª batida do lote seguinte</p>
-                      <p>• Análise por HPLC, ELISA ou teste rápido</p>
-                      <p>• Resultado no campo "Resíduo Detectado"</p>
-                    </div>
+                  <p className="text-xs font-semibold text-orange-700 dark:text-orange-400 mb-1">🔬 Teste de Carry-Over (Arraste) — {citar798("art. 29")}</p>
+                  <ul className="text-[10px] text-muted-foreground space-y-0.5">
+                    {REGRAS_CARRY_OVER.slice(0, 3).map(r => <li key={r.titulo}>• {r.texto} ({r.citacao})</li>)}
+                  </ul>
+                  <div>
+                    <Label>Repetição da sequência-piloto *</Label>
+                    <Select value={form.repeticao} onValueChange={v => setForm(p => ({ ...p, repeticao: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3].map(n => <SelectItem key={n} value={String(n)}>{n} de {REPETICOES_EXIGIDAS}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               )}
@@ -176,7 +179,9 @@ export default function ValidacaoLimpezaLinha() {
                 <TableHead>Prod. Seguinte</TableHead>
                 <TableHead>Med.</TableHead>
                 <TableHead>Tipo</TableHead>
+                <TableHead>Rep.</TableHead>
                 <TableHead>Resultado</TableHead>
+                <TableHead>Validação</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -189,8 +194,16 @@ export default function ValidacaoLimpezaLinha() {
                   <TableCell>{v.produto_seguinte}</TableCell>
                   <TableCell>{v.contem_medicamento ? <AlertTriangle className="w-4 h-4 text-yellow-600" /> : "—"}</TableCell>
                   <TableCell>{TIPOS_VALIDACAO.find(t => t.value === v.tipo_validacao)?.label}</TableCell>
+                  <TableCell>{v.repeticao ?? "—"}</TableCell>
                   <TableCell>{v.resultado === "aprovado" ? <Badge className="bg-green-600">Aprovado</Badge> : <Badge variant="destructive">Reprovado</Badge>}</TableCell>
-                  <TableCell><Button variant="ghost" size="icon" onClick={() => del.mutate(v.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
+                  <TableCell>{(() => {
+                    const st = v.tipo_validacao === "carryover" && v.repeticao ? statusPorSequencia.get(chaveSeq(v)) : undefined;
+                    if (!st) return "—";
+                    if (st === "aprovada") return <Badge className="bg-primary/20 text-primary" title={citar798("art. 29, §1º")}>Aprovada (3/3)</Badge>;
+                    if (st === "reprovada") return <Badge variant="destructive">Reprovada</Badge>;
+                    return <Badge variant="outline" title="Exige 3 repetições conformes">Em andamento</Badge>;
+                  })()}</TableCell>
+                  <TableCell><Button variant="ghost" size="sm" className="gap-1 text-xs" title="Registros não são excluídos — correção via Não Conformidade" onClick={() => corrigirViaNC(navigate, { tabela: "validacao_limpeza_linha", registroId: v.id, descricao: `Linha: ${v.linha_producao} — ${v.produto_anterior} → ${v.produto_seguinte} — resultado: ${v.resultado}` })}><FileWarning className="w-4 h-4 text-primary" /> Corrigir via NC</Button></TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FolderOpen, AlertTriangle, Link2Off, Upload, ChevronRight, Search, Download, Trash2, Loader2, CheckSquare, Square } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { FolderOpen, AlertTriangle, Link2Off, Upload, ChevronRight, Search, Download, Trash2, Loader2, CheckSquare, Square, FileSpreadsheet, Palette } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,13 +18,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { POPS_CUSTOM } from "@/config/feedBpfCustomConfig";
 import { resolverUrlArquivo } from "@/lib/bpfStorage";
+import { MODELOS_ASSETS } from "@/config/modelosAssetsMapping";
 import { toast } from "sonner";
+import { baixarArquivoStorage, isArquivoArte, extensaoDe, programaRecomendado } from "@/utils/fileTypes";
+
 
 interface Doc {
   id: string;
   titulo: string;
   tipo: string;
   pop_codigo: string | null;
+  it_codigo: string | null;
+  frequencia: string | null;
+  versao: number | null;
   arquivo_nome: string;
   arquivo_path: string;
   data_documento: string | null;
@@ -50,10 +56,10 @@ export default function MeuAcervo() {
       setLoading(true);
       const { data } = await supabase
         .from("documentos_bpf")
-        .select("id,titulo,tipo,pop_codigo,arquivo_nome,arquivo_path,data_documento,created_at")
+        .select("id,titulo,tipo,pop_codigo,it_codigo,frequencia,versao,arquivo_nome,arquivo_path,data_documento,created_at")
         .eq("empresa_id", empresaId)
         .order("created_at", { ascending: false });
-      setDocs((data as Doc[]) || []);
+      setDocs((data as any as Doc[]) || []);
       setSelecionados(new Set());
       setLoading(false);
     })();
@@ -105,6 +111,7 @@ export default function MeuAcervo() {
     if (!url) return toast.error("Erro ao gerar link");
     window.open(url, "_blank");
   };
+
 
   const executarExclusao = async () => {
     if (!confirmarExclusao) return;
@@ -218,6 +225,66 @@ export default function MeuAcervo() {
         </button>
       </div>
 
+      {/* Atalhos para Modelos Originais (Zip) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-emerald-200 bg-emerald-50/50">
+          <CardHeader className="pb-3 pt-4">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              Modelos Rápidos (Arquivos do Material Enviado)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-4">
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(MODELOS_ASSETS).slice(0, 5).map(popKey => (
+                <Button 
+                  key={popKey} 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-[10px] h-7 border-emerald-200 hover:bg-emerald-100"
+                  onClick={() => setPopFiltro(popKey)}
+                >
+                  Modelos {popKey}
+                </Button>
+              ))}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-[10px] h-7"
+                asChild
+              >
+                <Link to="/modelos">Ver todos na Biblioteca →</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {popFiltro && MODELOS_ASSETS[popFiltro] && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-primary">
+                Downloads disponíveis para {popFiltro}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pb-3">
+              <div className="flex flex-wrap gap-2">
+                {MODELOS_ASSETS[popFiltro].map((m, idx) => (
+                  <Button 
+                    key={idx} 
+                    variant="link" 
+                    size="sm" 
+                    className="h-auto p-0 text-xs text-primary underline decoration-primary/30"
+                    onClick={() => window.open(m.url, "_blank")}
+                  >
+                    <Download className="w-3 h-3 mr-1" /> {m.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
       {/* Barra de ações em lote */}
       {docs.length > 0 && (
         <Card className="border-emerald-200 bg-emerald-500/5">
@@ -269,8 +336,26 @@ export default function MeuAcervo() {
                   <div key={d.id} className={`p-3 flex flex-col sm:flex-row sm:items-center gap-2 hover:bg-muted/30 ${marcado ? "bg-emerald-500/5" : ""}`}>
                     <Checkbox checked={marcado} onCheckedChange={() => toggleSel(d.id)} className="shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{d.titulo}</p>
-                      <p className="text-xs text-muted-foreground truncate">{d.arquivo_nome} · {d.data_documento ? new Date(d.data_documento + "T12:00").toLocaleDateString("pt-BR") : "sem data"}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate">{d.titulo}</p>
+                        {d.it_codigo && <Badge variant="secondary" className="text-[9px] font-mono h-4">{d.it_codigo}</Badge>}
+                        {d.versao && <Badge variant="outline" className="text-[9px] font-mono h-4 border-emerald-200 text-emerald-700">v{d.versao}</Badge>}
+                        {isArquivoArte(d.arquivo_nome) && (
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] h-4 border-violet-300 text-violet-700 bg-violet-500/10"
+                            title={`Arquivo de arte — abra no ${programaRecomendado(d.arquivo_nome)}. Não abre no Word.`}
+                          >
+                            <Palette className="w-2.5 h-2.5 mr-1" />
+                            arte .{extensaoDe(d.arquivo_nome)}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {d.arquivo_nome} · {d.data_documento ? new Date(d.data_documento + "T12:00").toLocaleDateString("pt-BR") : "sem data"}
+                        {d.frequencia && ` · ${d.frequencia}`}
+                      </p>
+
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Select value={d.pop_codigo || ""} onValueChange={(v) => atualizarPop(d, v)}>

@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { OrientacaoModulo } from "@/components/OrientacaoModulo";
 import { ORIENTACOES } from "@/config/orientacoesConfig";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
+import type { AssuntoBaseLegal } from "@/config/baseLegal";
 
 interface PageHeaderProps {
   icon?: LucideIcon;
@@ -12,9 +14,10 @@ interface PageHeaderProps {
   description: string;
   /** ID do módulo em ORIENTACOES — quando informado, exibe botão "Orientação" que abre tutorial + sandbox. */
   orientacaoModuloId?: string;
+  assuntoBaseLegal?: AssuntoBaseLegal;
 }
 
-export default function PageHeader({ icon: Icon, title, description, orientacaoModuloId }: PageHeaderProps) {
+export default function PageHeader({ icon: Icon, title, description, orientacaoModuloId, assuntoBaseLegal }: PageHeaderProps) {
   const [open, setOpen] = useState(false);
   const modulo = orientacaoModuloId ? ORIENTACOES.find((m) => m.id === orientacaoModuloId) : null;
 
@@ -31,6 +34,7 @@ export default function PageHeader({ icon: Icon, title, description, orientacaoM
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-xl md:text-3xl font-bold text-foreground tracking-tight leading-tight md:leading-none mb-1 break-words">
                 {title}
+                {assuntoBaseLegal && <BaseLegalBadge assunto={assuntoBaseLegal} className="ml-2 align-middle" />}
               </h1>
               <div className="flex items-center gap-2">
                 <p className="text-muted-foreground text-xs md:text-sm leading-relaxed max-w-2xl line-clamp-2 md:line-clamp-none">

@@ -192,8 +192,7 @@ export function RegistroPopGenerico({ onVoltar }: Props) {
               <ClipboardCheck className="w-6 h-6 text-primary" /> Registrar Execução POP / IT
             </h2>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" /> Selo antifraude SHA-256 conforme Decreto 12.031/2024
-            </p>
+              <ShieldCheck className="w-3 h-3" />  Selo antifraude SHA-256 </p>
           </div>
 
           {pinConfigurado === false && (

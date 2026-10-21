@@ -1,3 +1,4 @@
+import { textoTela } from "@/lib/textoTela";
 import { Link } from "react-router-dom";
 import {
   GraduationCap,
@@ -14,6 +15,7 @@ import {
   ClipboardList,
   AlertCircle,
   BookOpenCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +43,7 @@ const PASSOS: Passo[] = [
     resumo: "Suba tudo que sua fábrica já tem — PDFs, planilhas, laudos, fotos.",
     detalhes: [
       "Vá em Importação em Massa e arraste a pasta inteira (ou selecione vários arquivos).",
-      "O sistema lê o nome de cada arquivo e sugere automaticamente o POP (ex: 'higiene_jan.pdf' → POP-02).",
+      "O sistema lê o nome de cada arquivo e sugere automaticamente o POP (ex: 'saude_pessoal_jan.pdf' → POP-03).",
       "Você pode ajustar o POP, dar um título melhor a cada arquivo e clicar Enviar tudo.",
       "Formatos aceitos: PDF, JPG, PNG, XLSX, DOC, DOCX.",
     ],
@@ -111,7 +113,7 @@ const FAQ = [
   },
   {
     q: "O hash SHA-256 vale para auditoria?",
-    a: "Sim. É uma impressão digital matemática do conteúdo — qualquer alteração muda o hash, o que serve como prova de integridade em auditorias MAPA (Decreto 12.031/2024).",
+    a: "Sim. É uma impressão digital matemática do conteúdo — qualquer alteração muda o hash, o que serve como prova de integridade em auditorias MAPA.",
   },
   {
     q: "Posso voltar para o Feed_BPF tradicional depois?",
@@ -124,9 +126,9 @@ export default function TutorialCustom() {
     <div className="space-y-8 max-w-4xl">
       <PageHeader
         icon={GraduationCap}
-        title="Como usar o Feed_BPF Custom"
-        description="Do primeiro upload à operação 100% digital — em 4 passos"
-      />
+        title="Guia do Feed_BPF Custom"
+        description="Como organizar seu acervo e digitalizar planilhas"
+       assuntoBaseLegal="bpf_geral" />
 
       {/* Vídeo/gif placeholder + resumo */}
       <Card className="border-2 border-emerald-500/30 bg-emerald-500/5">
@@ -138,8 +140,8 @@ export default function TutorialCustom() {
             <div className="space-y-2">
               <h2 className="text-xl font-bold">Em 5 minutos você entende tudo</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                O Feed_BPF Custom é um <strong>gestor da sua documentação</strong>. Ele não te obriga a usar planilhas nossas — ele organiza o que você já tem e, quando quiser, transforma suas planilhas de papel em formulários digitais respeitando SEUS modelos.
-              </p>
+                O Feed_BPF Custom é um <strong>gestor da sua documentação</strong>. Ele organiza o que você já tem e permite criar planilhas digitais respeitando a numeração oficial dos 10 POPs.
+ </p>
               <div className="flex flex-wrap gap-2 pt-2">
                 <Badge className="bg-emerald-600 hover:bg-emerald-700"><Sparkles className="w-3 h-3 mr-1" /> Sem migração forçada</Badge>
                 <Badge variant="outline">Sem perda de dados</Badge>
@@ -167,6 +169,27 @@ export default function TutorialCustom() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* CTA para o Tutorial Google Forms/Sheets */}
+      <Card className="border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 to-teal-500/5">
+        <CardContent className="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0">
+            <FileSpreadsheet className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <h3 className="font-bold text-base">Tutorial: Google Forms &amp; Google Sheets</h3>
+            <p className="text-sm text-muted-foreground">
+              Já usa formulários ou planilhas do Google? Aprenda a conectá-los ao Feed_BPF Custom —
+              cada resposta vira um Registro Digital assinado com hash SHA-256.
+            </p>
+          </div>
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 shrink-0">
+            <Link to="/feedbpf-custom/tutorial-google">Abrir tutorial <ArrowRight className="w-4 h-4 ml-1" /></Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+
 
 
       {/* Passos */}
@@ -240,7 +263,7 @@ export default function TutorialCustom() {
             <h2 className="text-xl font-bold flex items-center gap-2">
               <ClipboardList className="w-5 h-5 text-emerald-600" /> Documentos obrigatórios por POP
             </h2>
-            <p className="text-sm text-muted-foreground">Baseado na IN MAPA 04/2007 + Decreto 12.031/2024 — <strong>{contarObrigatoriosEssenciais()} documentos essenciais</strong> no total</p>
+            <p className="text-sm text-muted-foreground"><strong>{contarObrigatoriosEssenciais()} documentos essenciais</strong> no total</p>
           </div>
           <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700">
             <Link to="/feedbpf-custom/analise-ia">
@@ -281,7 +304,7 @@ export default function TutorialCustom() {
                           {icon}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium">{doc.nome}</p>
-                            <p className="text-xs text-muted-foreground">{doc.descricao}</p>
+                            <p className="text-xs text-muted-foreground">{textoTela(doc.descricao)}</p>
                           </div>
                           <Badge variant="outline" className={`text-[10px] uppercase shrink-0 ${cor}`}>{doc.criticidade}</Badge>
                         </li>

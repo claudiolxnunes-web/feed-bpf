@@ -127,7 +127,7 @@ export default function GeradorPopIA() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>POP Padrão (IN 04/2007) *</Label>
+              <Label>POP Padrão *</Label>
               <Select value={codigoPop} onValueChange={handleSelectPop}>
                 <SelectTrigger><SelectValue placeholder="Selecione um POP..." /></SelectTrigger>
                 <SelectContent>

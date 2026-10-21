@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendTemplateEmailLogged } from '../_shared/transactional-email-templates/send-and-log.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -133,24 +134,19 @@ Deno.serve(async (req) => {
   
   for (const recipient of NOTIFY_RECIPIENTS) {
     try {
-      const res = await admin.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'new-lead-notification',
-          recipientEmail: recipient,
-          idempotencyKey: `lead-${lead.id}-${recipient}`,
-          templateData: {
-            nome,
-            email,
-            telefone,
-            produto,
-            origem,
-            data: dataFormatada,
-            whatsapp_link: waLink, // Added for quick response
-          },
+      const res = await sendTemplateEmailLogged(admin, 'new-lead-notification', recipient, {
+        idempotencyKey: `lead-${lead.id}-${recipient}`,
+        templateData: {
+          nome,
+          email,
+          telefone,
+          produto,
+          origem,
+          data: dataFormatada,
+          whatsapp_link: waLink, // Added for quick response
         },
       })
-      if (res.error) throw res.error
-      results.push({ to: recipient, ok: true })
+      results.push({ to: recipient, ok: res.sent, error: res.sent ? undefined : 'recipient_suppressed' })
     } catch (err) {
       console.error('Notification email failed', { recipient, err })
       results.push({ to: recipient, ok: false, error: String(err) })

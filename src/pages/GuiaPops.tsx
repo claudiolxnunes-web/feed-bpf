@@ -241,8 +241,8 @@ export default function GuiaPops() {
       <PageHeader 
         icon={BookOpen} 
         title="ITs e Procedimentos Detalhados" 
-        description="Textos procedimentais completos dos 10 POPs obrigatórios (IN 04/2007)" 
-      />
+        description="Textos procedimentais completos dos 10 POPs obrigatórios" 
+       assuntoBaseLegal="bpf_geral" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {POPS_CONFIG.map((pop) => {

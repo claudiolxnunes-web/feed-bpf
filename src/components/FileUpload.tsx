@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { usePapelEmpresa } from "@/hooks/usePapelEmpresa";
+import { useLocation } from "react-router-dom";
+import { rotaOperacional } from "@/lib/empresa-permissions";
 
 interface FileUploadProps {
   bucket?: string;
@@ -27,6 +30,9 @@ export default function FileUpload({
   empresaId,
 }: FileUploadProps) {
   const { user } = useAuth();
+  const { isVisualizador, loading } = usePapelEmpresa();
+  const { pathname } = useLocation();
+  const readOnly = rotaOperacional(pathname) && (isVisualizador || loading);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -34,7 +40,7 @@ export default function FileUpload({
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || readOnly) return;
 
     if (file.size > maxSizeMB * 1024 * 1024) {
       toast.error(`Arquivo excede ${maxSizeMB}MB`);
@@ -86,7 +92,7 @@ export default function FileUpload({
           type="button"
           variant="outline"
           size="sm"
-          disabled={uploading}
+          disabled={uploading || readOnly}
           onClick={() => inputRef.current?.click()}
           className="gap-2"
         >
@@ -94,7 +100,7 @@ export default function FileUpload({
           {label}
         </Button>
         {preview && (
-          <Button type="button" variant="ghost" size="sm" onClick={clear} aria-label="Remover arquivo selecionado">
+          <Button type="button" variant="ghost" size="sm" disabled={readOnly} onClick={clear} aria-label="Remover arquivo selecionado">
             <X aria-hidden="true" className="w-4 h-4" />
           </Button>
         )}
@@ -102,6 +108,7 @@ export default function FileUpload({
       <input
         ref={inputRef}
         type="file"
+        disabled={readOnly}
         accept={accept}
         onChange={handleUpload}
         className="hidden"
