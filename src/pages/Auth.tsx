@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 const authConfigs = {
   default: {
@@ -30,7 +31,7 @@ const authConfigs = {
   "auditsbpf": {
     logo: logoAuditsBpf,
     title: "Audits_BPF",
-    subtitle: "Auditoria interna (Decreto 12.031/2024)",
+    subtitle: "Auditoria interna",
   },
   nutricrm: {
     logo: logoNutricrm,
@@ -66,9 +67,10 @@ export default function Auth() {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawProduct = searchParams.get("product");
   const rawRedirect = searchParams.get("redirect");
+  const oauthNext = searchParams.get("next");
   const product = rawProduct === "audits-bpf" ? "auditsbpf" : rawProduct ?? "default";
   const mode = searchParams.get("mode");
-  const redirectTo = normalizeAuditsPath(rawRedirect || "/");
+  const redirectTo = normalizeAuditsPath(oauthReturnPath(oauthNext ?? rawRedirect));
   const authContent = authConfigs[product as keyof typeof authConfigs] ?? authConfigs.default;
 
   const [isLogin, setIsLogin] = useState(mode !== "signup");
@@ -94,6 +96,9 @@ export default function Auth() {
     if (product === "default") return "/";
     return "/dashboard";
   }, [redirectTo, product]);
+
+  const authReturnUrl = new URL(`/auth?product=${encodeURIComponent(product)}&next=${encodeURIComponent(preferredRedirect)}`, window.location.origin).href;
+  const emailReturnUrl = new URL(preferredRedirect, window.location.origin).href;
 
   const passwordChecks = useMemo(
     () => [
@@ -143,10 +148,11 @@ export default function Auth() {
     setIsForgot(nextIsForgot);
     setIsLogin(nextIsLogin);
 
-    const nextParams = new URLSearchParams();
+    const nextParams = new URLSearchParams(searchParams);
     nextParams.set("mode", nextIsForgot ? "forgot" : nextIsLogin ? "login" : "signup");
     nextParams.set("product", product);
     if (redirectTo) nextParams.set("redirect", redirectTo);
+    if (oauthNext !== null) nextParams.set("next", redirectTo);
     setSearchParams(nextParams, { replace: true });
   };
 
@@ -183,7 +189,7 @@ export default function Auth() {
         type: "signup",
         email: emailResult.data,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: emailReturnUrl,
         },
       });
 
@@ -265,7 +271,7 @@ export default function Auth() {
           password,
           options: {
             data: { nome: nome.trim(), telefone: telefone.trim(), tipo_usuario: tipoUsuario, produto: product, ...(codigoReferral ? { codigo_referral: codigoReferral } : {}) },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: emailReturnUrl,
           },
         });
         if (error) throw error;

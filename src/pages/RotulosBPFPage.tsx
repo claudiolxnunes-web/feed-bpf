@@ -36,7 +36,7 @@ const funcionalidades = [
 ];
 
 const diferenciais = [
-  { icon: ShieldCheck, title: "100% Conforme MAPA", desc: "Atende IN 04/2007, Decreto 12.031/2024 e regras de rotulagem para nutrição animal." },
+  { icon: ShieldCheck, title: "100% Conforme MAPA", desc: "Atende às regras de rotulagem para nutrição animal." },
   { icon: Lock, title: "Multi-tenant Seguro", desc: "Cada empresa acessa apenas seus rótulos, com isolamento total de dados." },
 ];
 
@@ -235,7 +235,7 @@ export default function RotulosBPFPage() {
         <section className="mb-20">
           <div className="text-center mb-12">
             <Badge variant="outline" className="mb-3 text-xs tracking-widest uppercase px-4 py-1">Funcionalidades</Badge>
-            <h2 className="text-3xl font-bold font-display text-foreground mb-2">Tudo que você precisa para rotular conforme</h2>
+            <h2 className="text-3xl font-bold font-display text-foreground mb-2">Tudo que você precisa para rotular </h2>
             <p className="text-muted-foreground">Editor profissional com regras regulatórias embutidas</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -35,6 +35,7 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
+import { usePapelEmpresa } from "@/hooks/usePapelEmpresa";
 import { Link } from "react-router-dom";
 import { useSessionDraft } from "@/hooks/useSessionDraft";
 import { registrarAuditLog } from "@/utils/auditLog";
@@ -446,6 +447,8 @@ const INITIAL_PRAGA: PragaDraft = {
 export default function ModoTablet() {
   const { user } = useAuth();
   const { empresaAtiva } = useEmpresa();
+  const { isVisualizador, loading: papelLoading } = usePapelEmpresa();
+  const escritaBloqueada = isVisualizador || papelLoading;
   const [tela, setTela] = useState<Tela>("menu");
   const [saving, setSaving] = useState(false);
   const [isOnline, setIsOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
@@ -745,6 +748,10 @@ export default function ModoTablet() {
   const cronogramasInativos = useMemo(() => cronogramasResumo.filter((item) => item.status && item.status !== "ativo").length, [cronogramasResumo]);
 
   const requireContext = () => {
+    if (escritaBloqueada) {
+      toast({ title: "Acesso somente leitura", variant: "destructive" });
+      return false;
+    }
     if (!user) {
       toast({ title: "Faça login para registrar", variant: "destructive" });
       return false;
@@ -757,6 +764,7 @@ export default function ModoTablet() {
   };
 
   const enqueueOfflineItem = useCallback((item: Omit<OfflineQueueItem, "id" | "createdAt">) => {
+    if (escritaBloqueada) return;
     const queuedItem: OfflineQueueItem = {
       ...item,
       id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -765,7 +773,7 @@ export default function ModoTablet() {
 
     setPendingQueue((current) => [...current, queuedItem]);
     return queuedItem;
-  }, []);
+  }, [escritaBloqueada]);
 
   const uploadExpedicaoAttachment = useCallback(async (attachment: ExpedicaoQueuePayload["attachment"], userId: string, empresaId: string) => {
     if (!attachment) return { comprovanteArquivoNome: "", comprovanteArquivoPath: "" };
@@ -936,7 +944,7 @@ export default function ModoTablet() {
   }, []);
 
   const flushQueue = useCallback(async () => {
-    if (!isOnline || syncingQueue || pendingQueue.length === 0) return;
+    if (escritaBloqueada || !isOnline || syncingQueue || pendingQueue.length === 0) return;
 
     setSyncingQueue(true);
     let syncedCount = 0;
@@ -980,7 +988,7 @@ export default function ModoTablet() {
         description: remaining.length > 0 ? "Alguns itens seguirão na fila até a próxima tentativa." : "Todos os registros pendentes foram enviados.",
       });
     }
-  }, [fetchOperationalContext, isOnline, pendingQueue, persistExpedicao, persistOrdemBatida, syncingQueue]);
+  }, [escritaBloqueada, fetchOperationalContext, isOnline, pendingQueue, persistExpedicao, persistOrdemBatida, syncingQueue]);
 
   useEffect(() => {
     if (isOnline && pendingQueue.length > 0 && !syncingQueue) {
@@ -1046,7 +1054,7 @@ export default function ModoTablet() {
     } finally {
       setSaving(false);
     }
-  }, [enqueueOfflineItem, fetchOperationalContext, isOnline]);
+  }, [escritaBloqueada, enqueueOfflineItem, fetchOperationalContext, isOnline]);
 
   const resolvePinHash = useCallback(async () => {
     if (!empresaAtiva?.id) return null;

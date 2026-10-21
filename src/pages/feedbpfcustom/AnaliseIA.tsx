@@ -73,8 +73,8 @@ export default function AnaliseIA() {
       <PageHeader
         icon={Sparkles}
         title="Análise por IA"
-        description="A IA compara seu acervo com os documentos obrigatórios (IN 04/2007 + Decreto 12.031/2024)"
-      />
+        description="A IA compara seu acervo com os documentos obrigatórios"
+       assuntoBaseLegal="autocontrole" />
 
       {!analise && (
         <Card className="border-2 border-dashed border-emerald-500/40 bg-emerald-500/5">

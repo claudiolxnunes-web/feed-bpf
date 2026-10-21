@@ -86,7 +86,7 @@ export default function Produtos() {
         </Button>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
-            <TabsTrigger value="rotulo"><Tag className="w-4 h-4 mr-1" /> Rótulo IN 22</TabsTrigger>
+            <TabsTrigger value="rotulo"><Tag className="w-4 h-4 mr-1" /> Rótulo </TabsTrigger>
             <TabsTrigger value="ficha"><FileText className="w-4 h-4 mr-1" /> Ficha Técnica</TabsTrigger>
             <TabsTrigger value="rtpi"><ClipboardList className="w-4 h-4 mr-1" /> RTPI</TabsTrigger>
             <TabsTrigger value="formulas"><FlaskConical className="w-4 h-4 mr-1" /> Fórmulas</TabsTrigger>
@@ -110,7 +110,7 @@ export default function Produtos() {
 
   return (
     <>
-      <PageHeader icon={Package} title="Produtos" description="Cadastro de fórmulas, rótulos (IN 22) e fichas técnicas" />
+      <PageHeader icon={Package} title="Produtos" description="Cadastro de fórmulas, rótulos e fichas técnicas"  assuntoBaseLegal="rotulagem" />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card><CardContent className="pt-4 text-center">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { AlertTriangle, Plus, Loader2, Bell, Clock, ChevronDown, ChevronUp, ClipboardList, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -95,6 +96,18 @@ export default function NaoConformidades() {
   };
 
   useEffect(() => { fetchData(); }, [user, empresaAtiva]);
+
+  // Pré-preenchimento vindo de outras telas (ex.: Auditoria BPF)
+  const location = useLocation();
+  useEffect(() => {
+    const prefill = (location.state as { prefillNC?: { descricao?: string; setor?: string } } | null)?.prefillNC;
+    if (prefill) {
+      if (prefill.descricao) setFormDescricao(prefill.descricao);
+      if (prefill.setor) setFormSetor(prefill.setor);
+      setOpen(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const resetForm = () => {
     setFormData(new Date().toISOString().split("T")[0]);
@@ -218,8 +231,8 @@ export default function NaoConformidades() {
 
   return (
     <>
-      <PageHeader icon={AlertTriangle} title="Não Conformidades" description="Registro, plano de ação corretiva e gestão de prazos"
-        orientacaoModuloId="nao-conformidades" />
+      <PageHeader icon={AlertTriangle} title="POP 09 - Não Conformidades" description="Registro, plano de ação corretiva e gestão de prazos"
+        orientacaoModuloId="nao-conformidades"  assuntoBaseLegal="autocontrole" />
 
       {/* Alertas de prazo vencido */}
       {vencidas.length > 0 && (

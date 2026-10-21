@@ -130,7 +130,7 @@ export const POPS_CONFIG: PopConfig[] = [
   {
     codigo: "POP-02",
     nome: "Limpeza de Instalações, Equipamentos e Utensílios",
-    descricao: "Procedimentos de limpeza e higienização de todas as áreas, equipamentos e utensílios da fábrica conforme IN 04/2007 e IN 15/2009.",
+    descricao: "Procedimentos de limpeza e higienização de todas as instalações, áreas, equipamentos e utensílios da fábrica conforme IN 04/2007 e IN 15/2009 (Nota: A higiene humana reside no POP 03).",
     modulos_vinculados: [
       { rota: "/higiene", label: "Higiene / Sanitização", descricao: "Cronogramas e checklists de limpeza pesada/concorrente" },
     ],
@@ -189,7 +189,7 @@ export const POPS_CONFIG: PopConfig[] = [
   },
   {
     codigo: "POP-03",
-    nome: "Higiene e Saúde Pessoal",
+    nome: "Higiene e Saúde Pessoal (Treinamentos)",
     descricao: "Procedimentos de higiene pessoal, saúde dos colaboradores, uso de EPIs e comportamento nas áreas de produção conforme IN 04/2007.",
     modulos_vinculados: [
       { rota: "/saude-pessoal", label: "Saúde Pessoal", descricao: "Lançamento único de ASO, exames, EPIs e treinamentos de higiene" },
@@ -198,7 +198,7 @@ export const POPS_CONFIG: PopConfig[] = [
     periodicidades: [
       {
         key: "inspecao_higiene_mensal",
-        label: "PL POP 3.1 — Inspeção Mensal de Higiene e Saúde do Pessoal",
+        label: "PL POP 3.1 — Higiene, Saúde e Treinamento do Pessoal",
         periodos: meses(),
         areas: [
           { area: "Uniformes limpos e completos" },

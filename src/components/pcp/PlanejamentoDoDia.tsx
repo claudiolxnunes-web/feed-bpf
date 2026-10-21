@@ -85,8 +85,8 @@ export default function PlanejamentoDoDia({ ordens, matriz, onAplicado }: Props)
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
               Antes de criar/iniciar as ordens, defina a <strong>produção geral do dia</strong> e o
-              <strong> sequenciamento ótimo</strong> respeitando a Matriz de Sensibilidade (IN 15/2009).
-            </p>
+              <strong> sequenciamento ótimo</strong> respeitando a Matriz de Sensibilidade.
+ </p>
           </div>
           <div className="flex items-end gap-2">
             <div>

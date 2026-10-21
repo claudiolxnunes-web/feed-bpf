@@ -1,3 +1,5 @@
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
+import { getBaseLegal } from "@/config/baseLegal";
 import { useState, useEffect, useMemo } from "react";
 import { BarChart3, Download, Loader2, Calendar, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,7 +66,20 @@ const TAB_LABELS: Record<AtividadeTab, string> = {
   fracionamento: "Fracionamento",
 };
 
-const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const MESES = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
 
 type ValoresMap = Record<AtividadeTab, Record<string, string>>;
 
@@ -86,7 +101,6 @@ export default function RelatorioProducao() {
   const [loading, setLoading] = useState(true);
   const [empresaRegistroSipeagro, setEmpresaRegistroSipeagro] = useState("");
 
-
   // Values per tab per item
   const [valores, setValores] = useState<ValoresMap>({
     producao: {},
@@ -99,7 +113,6 @@ export default function RelatorioProducao() {
   const empresaNome = empresaAtiva?.nome || "";
   const empresaCnpj = empresaAtiva?.cnpj || "";
 
-
   // Load production data and auto-fill the "producao" tab
   useEffect(() => {
     if (!user) return;
@@ -110,14 +123,17 @@ export default function RelatorioProducao() {
       const endYear = Number(mes) === 12 ? Number(ano) + 1 : Number(ano);
       const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
 
+      // Escopo obrigatório: dados apenas da empresa ativa (isolamento multiempresa)
+      const empId = empresaAtiva?.id;
+      const scoped = (q: any) => (empId ? q.eq("empresa_id", empId) : q);
       const [prodRes, produtosRes] = await Promise.all([
-        supabase.from("producao").select("produto, quantidade").gte("data", startDate).lt("data", endDate),
-        supabase.from("produtos").select("nome, classificacao, especie_alvo"),
+        scoped(supabase.from("producao").select("produto, quantidade").gte("data", startDate).lt("data", endDate)),
+        scoped(supabase.from("produtos").select("nome, classificacao, especie_alvo")),
       ]);
 
       // Build mapping from produto name to MAPA item
       const produtoToMapaItem: Record<string, string> = {};
-      for (const p of (produtosRes.data || [])) {
+      for (const p of produtosRes.data || []) {
         const key = p.nome.toLowerCase();
         const cls = (p.classificacao || "").toLowerCase();
         const esp = (p.especie_alvo || "").toLowerCase();
@@ -126,26 +142,32 @@ export default function RelatorioProducao() {
         if (cls.includes("racao") || cls.includes("ração")) {
           if (esp.includes("ave")) produtoToMapaItem[key] = "Ração para aves (Corte e Postura)";
           else if (esp.includes("suíno") || esp.includes("suino")) produtoToMapaItem[key] = "Ração para suínos";
-          else if (esp.includes("ruminante") || esp.includes("bovino") || esp.includes("gado")) produtoToMapaItem[key] = "Ração para ruminantes (Todas as espécies)";
+          else if (esp.includes("ruminante") || esp.includes("bovino") || esp.includes("gado"))
+            produtoToMapaItem[key] = "Ração para ruminantes (Todas as espécies)";
           else produtoToMapaItem[key] = "Ração para outros monogástricos";
         } else if (cls.includes("concentrado")) {
           if (esp.includes("ave")) produtoToMapaItem[key] = "Concentrado para aves (Corte e Postura)";
           else if (esp.includes("suíno") || esp.includes("suino")) produtoToMapaItem[key] = "Concentrado para suínos";
-          else if (esp.includes("ruminante") || esp.includes("bovino")) produtoToMapaItem[key] = "Concentrado para ruminantes (Todas as espécies)";
+          else if (esp.includes("ruminante") || esp.includes("bovino"))
+            produtoToMapaItem[key] = "Concentrado para ruminantes (Todas as espécies)";
           else produtoToMapaItem[key] = "Concentrado para outros monogástricos";
         } else if (cls.includes("suplemento")) {
-          if (esp.includes("companhia") || esp.includes("pet")) produtoToMapaItem[key] = "Suplemento para animais de companhia";
-          else if (esp.includes("ruminante") || esp.includes("bovino")) produtoToMapaItem[key] = "Suplemento para ruminantes (Todas as espécies)";
+          if (esp.includes("companhia") || esp.includes("pet"))
+            produtoToMapaItem[key] = "Suplemento para animais de companhia";
+          else if (esp.includes("ruminante") || esp.includes("bovino"))
+            produtoToMapaItem[key] = "Suplemento para ruminantes (Todas as espécies)";
           else produtoToMapaItem[key] = "Suplemento para outros monogástricos";
         } else if (cls.includes("premix")) {
           if (esp.includes("ave")) produtoToMapaItem[key] = "Premix para aves (Corte e Postura)";
           else if (esp.includes("suíno") || esp.includes("suino")) produtoToMapaItem[key] = "Premix para suínos";
-          else if (esp.includes("ruminante") || esp.includes("bovino")) produtoToMapaItem[key] = "Premix para ruminantes (Todas as espécies)";
+          else if (esp.includes("ruminante") || esp.includes("bovino"))
+            produtoToMapaItem[key] = "Premix para ruminantes (Todas as espécies)";
           else produtoToMapaItem[key] = "Premix para outros monogástricos";
         } else if (cls.includes("nucleo") || cls.includes("núcleo")) {
           if (esp.includes("ave")) produtoToMapaItem[key] = "Núcleo para aves (Corte e Postura)";
           else if (esp.includes("suíno") || esp.includes("suino")) produtoToMapaItem[key] = "Núcleo para suínos";
-          else if (esp.includes("ruminante") || esp.includes("bovino")) produtoToMapaItem[key] = "Núcleo para ruminantes (Todas as espécies)";
+          else if (esp.includes("ruminante") || esp.includes("bovino"))
+            produtoToMapaItem[key] = "Núcleo para ruminantes (Todas as espécies)";
           else produtoToMapaItem[key] = "Núcleo para outros monogástricos";
         } else if (cls.includes("pet") || cls.includes("companhia")) {
           produtoToMapaItem[key] = "Alimento para animais de companhia";
@@ -156,7 +178,7 @@ export default function RelatorioProducao() {
 
       // Aggregate production by MAPA item (in tonnes)
       const agg: Record<string, number> = {};
-      for (const row of (prodRes.data || [])) {
+      for (const row of prodRes.data || []) {
         const mapaItem = produtoToMapaItem[row.produto.toLowerCase()] || "Outros";
         const qty = parseFloat((row.quantidade || "0").replace(/[^\d.,]/g, "").replace(",", ".")) || 0;
         agg[mapaItem] = (agg[mapaItem] || 0) + qty;
@@ -171,7 +193,7 @@ export default function RelatorioProducao() {
         }
       }
 
-      setValores(prev => ({
+      setValores((prev) => ({
         ...prev,
         producao: autoValues,
       }));
@@ -181,7 +203,7 @@ export default function RelatorioProducao() {
   }, [user, ano, mes]);
 
   const handleValueChange = (tab: AtividadeTab, item: string, value: string) => {
-    setValores(prev => ({
+    setValores((prev) => ({
       ...prev,
       [tab]: { ...prev[tab], [item]: value },
     }));
@@ -201,7 +223,7 @@ export default function RelatorioProducao() {
     csv += `Estabelecimento: ${empresaNome}\n`;
     csv += `CNPJ: ${empresaCnpj}\n`;
     csv += `Registro SIPEAGRO/MAPA: ${empresaRegistroSipeagro || "N/I"}\n`;
-    csv += `Conforme IN 17/2017 — Art. 55\n\n`;
+    csv += `Conforme ${getBaseLegal("relatorio_producao_mensal").citacao}\n\n`;
 
     for (const tab of Object.keys(TAB_LABELS) as AtividadeTab[]) {
       const total = getTotal(tab);
@@ -214,7 +236,7 @@ export default function RelatorioProducao() {
       csv += `Total,${total > 0 ? total.toFixed(2).replace(".", ",") : "0,00"}\n`;
     }
 
-    csv += `\n--- Relatório gerado conforme modelo SIPEAGRO (IN 17/2017) ---\n`;
+    csv += `\n--- Relatório gerado conforme modelo de relatório de produção do MAPA (${getBaseLegal("relatorio_producao_mensal").citacao}) ---\n`;
     csv += `Data de geração: ${new Date().toLocaleString("pt-BR")}\n`;
 
     const BOM = "\uFEFF";
@@ -293,8 +315,8 @@ export default function RelatorioProducao() {
       <PageHeader
         icon={BarChart3}
         title="Relatório Mensal de Produção — SIPEAGRO"
-        description="Lançamento mensal conforme formulário MAPA/SIPEAGRO (IN 17/2017) — Produção, Importação, Exportação e Fracionamento"
-      />
+        description={`Lançamento mensal conforme relatório de produção mensal do MAPA — Produção, Importação, Exportação e Fracionamento`}
+       assuntoBaseLegal="relatorio_producao_mensal" />
 
       {/* SIPEAGRO Header Info */}
       <Card className="mb-4 border-primary/20 bg-primary/5">
@@ -304,10 +326,19 @@ export default function RelatorioProducao() {
             <div>
               <h4 className="font-semibold text-sm">Dados do Estabelecimento — SIPEAGRO</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs">
-                <div><span className="text-muted-foreground">Razão Social:</span> <strong>{empresaNome || "—"}</strong></div>
-                <div><span className="text-muted-foreground">CNPJ:</span> <strong>{empresaCnpj || "—"}</strong></div>
-                <div><span className="text-muted-foreground">Registro SIPEAGRO:</span> <strong>{empresaRegistroSipeagro || "N/I"}</strong></div>
-                <div><span className="text-muted-foreground">Base Legal:</span> <strong>IN 17/2017 — Art. 55</strong></div>
+                <div>
+                  <span className="text-muted-foreground">Razão Social:</span> <strong>{empresaNome || "—"}</strong>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">CNPJ:</span> <strong>{empresaCnpj || "—"}</strong>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Registro SIPEAGRO:</span>{" "}
+                  <strong>{empresaRegistroSipeagro || "N/I"}</strong>
+                </div>
+                <div>
+                  <BaseLegalBadge assunto="relatorio_producao_mensal" />
+                </div>
               </div>
             </div>
           </div>
@@ -320,20 +351,29 @@ export default function RelatorioProducao() {
           <label className="text-xs text-muted-foreground block mb-1">Mês</label>
           <Select value={mes} onValueChange={setMes}>
             <SelectTrigger className="w-40">
-              <Calendar className="w-4 h-4 mr-1" /><SelectValue />
+              <Calendar className="w-4 h-4 mr-1" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MESES.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+              {MESES.map((m, i) => (
+                <SelectItem key={i} value={String(i + 1)}>
+                  {m}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <div>
           <label className="text-xs text-muted-foreground block mb-1">Ano</label>
           <Select value={ano} onValueChange={setAno}>
-            <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-28">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {[currentYear - 1, currentYear, currentYear + 1].map(y => (
-                <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+              {[currentYear - 1, currentYear, currentYear + 1].map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -351,11 +391,15 @@ export default function RelatorioProducao() {
         <>
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {(Object.keys(TAB_LABELS) as AtividadeTab[]).map(tab => {
+            {(Object.keys(TAB_LABELS) as AtividadeTab[]).map((tab) => {
               const total = getTotal(tab);
-              const filledCount = Object.values(valores[tab]).filter(v => v.trim() !== "").length;
+              const filledCount = Object.values(valores[tab]).filter((v) => v.trim() !== "").length;
               return (
-                <Card key={tab} className={`cursor-pointer transition-all ${activeTab === tab ? "ring-2 ring-primary" : "hover:bg-muted/30"}`} onClick={() => setActiveTab(tab)}>
+                <Card
+                  key={tab}
+                  className={`cursor-pointer transition-all ${activeTab === tab ? "ring-2 ring-primary" : "hover:bg-muted/30"}`}
+                  onClick={() => setActiveTab(tab)}
+                >
                   <CardContent className="pt-4 text-center">
                     <p className="text-xl font-bold font-display text-primary">
                       {total > 0 ? `${total.toFixed(2).replace(".", ",")} t` : "—"}

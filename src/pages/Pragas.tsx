@@ -1,10 +1,13 @@
+import { TIPOS_PRAGA, ACOES, TIPOS_PRODUTO_EXPURGO, METODOS_EXPURGO } from "@/components/pragas/constants";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { corrigirViaNC } from "@/utils/correcaoNC";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bug, Plus, Trash2, Flame, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Bug, Plus, FileWarning, Flame, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -20,12 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PageHeader from "@/components/PageHeader";
 import { AnexarPlanilhaPop } from "@/components/documentos/AnexarPlanilhaPop";
 
-const TIPOS_PRAGA = ["Roedores", "Insetos voadores", "Insetos rasteiros", "Aves", "Morcegos", "Outros"];
-const ACOES = ["Reposição de iscas", "Desinsetização geral", "Vedação de aberturas", "Remoção de ninhos", "Inspeção rotineira", "Aplicação de gel", "Outra"];
-
 // Expurgo: tipos de produto e métodos
-const TIPOS_PRODUTO_EXPURGO = ["Matéria-prima (grãos)", "Matéria-prima (farelos)", "Produto acabado", "Embalagem", "Silo", "Armazém"];
-const METODOS_EXPURGO = ["Fosfina (PH₃)", "Deltametrina", "Pirimifós-metílico", "Ozônio", "Atmosfera controlada", "Outro"];
 
 export default function Pragas() {
   const { user } = useAuth();
@@ -36,18 +34,33 @@ export default function Pragas() {
 
   // --- Controle de Pragas form ---
   const [pragaForm, setPragaForm] = useState({
-    local: "", tipo_praga: "Roedores", acao: "Inspeção rotineira", responsavel: "", data: new Date().toISOString().split("T")[0],
+    local: "",
+    tipo_praga: "Roedores",
+    acao: "Inspeção rotineira",
+    responsavel: "",
+    data: new Date().toISOString().split("T")[0],
   });
 
   // --- Controle de Expurgo form ---
   const [expurgoForm, setExpurgoForm] = useState({
-    local: "", tipo_produto: "Matéria-prima (grãos)", metodo: "Fosfina (PH₃)",
-    produto_comercial: "", dosagem: "", tempo_exposicao_horas: "",
-    data_inicio: new Date().toISOString().split("T")[0], data_fim: "",
-    responsavel_tecnico: "", empresa_aplicadora: "", art_numero: "",
-    temperatura_ambiente: "", lote_produto: "",
-    vedacao_ok: true, placas_sinalizacao: true, epi_adequado: true,
-    resultado_conforme: true, observacoes: "",
+    local: "",
+    tipo_produto: "Matéria-prima (grãos)",
+    metodo: "Fosfina (PH₃)",
+    produto_comercial: "",
+    dosagem: "",
+    tempo_exposicao_horas: "",
+    data_inicio: new Date().toISOString().split("T")[0],
+    data_fim: "",
+    responsavel_tecnico: "",
+    empresa_aplicadora: "",
+    art_numero: "",
+    temperatura_ambiente: "",
+    lote_produto: "",
+    vedacao_ok: true,
+    placas_sinalizacao: true,
+    epi_adequado: true,
+    resultado_conforme: true,
+    observacoes: "",
   });
 
   // --- Queries ---
@@ -67,14 +80,16 @@ export default function Pragas() {
 
   const handleVerificar = async (id: string) => {
     if (!user) return;
-    const { data: profile } = await supabase.from('profiles').select('nome').eq('user_id', user.id).single();
+    const { data: profile } = await supabase.from("profiles").select("nome").eq("user_id", user.id).single();
     const verificador = profile?.nome || user.email;
-    
-    const { error } = await (supabase.from("controle_pragas" as any) as any).update({
-      verificado_por: verificador,
-      data_verificacao: new Date().toISOString(),
-      status_verificacao: 'aprovado'
-    }).eq('id', id);
+
+    const { error } = await (supabase.from("controle_pragas" as any) as any)
+      .update({
+        verificado_por: verificador,
+        data_verificacao: new Date().toISOString(),
+        status_verificacao: "aprovado",
+      })
+      .eq("id", id);
 
     if (error) toast.error("Erro ao verificar");
     else {
@@ -86,14 +101,22 @@ export default function Pragas() {
   // --- Mutations ---
   const addPraga = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("controle_pragas").insert({ ...pragaForm, user_id: user!.id, empresa_id: empresaAtiva?.id || null });
+      const { error } = await supabase
+        .from("controle_pragas")
+        .insert({ ...pragaForm, user_id: user!.id, empresa_id: empresaAtiva?.id || null });
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["controle_pragas"] });
       toast.success("Registro de praga salvo");
       setOpenPraga(false);
-      setPragaForm({ local: "", tipo_praga: "Roedores", acao: "Inspeção rotineira", responsavel: "", data: new Date().toISOString().split("T")[0] });
+      setPragaForm({
+        local: "",
+        tipo_praga: "Roedores",
+        acao: "Inspeção rotineira",
+        responsavel: "",
+        data: new Date().toISOString().split("T")[0],
+      });
     },
     onError: () => toast.error("Erro ao salvar"),
   });
@@ -122,14 +145,18 @@ export default function Pragas() {
         epi_adequado: expurgoForm.epi_adequado,
         resultado_conforme: expurgoForm.resultado_conforme,
       };
-      const { data: record, error } = await supabase.from("controle_pragas").insert({
-        local: expurgoForm.local,
-        tipo_praga: "Expurgo",
-        acao: JSON.stringify(extras),
-        responsavel: expurgoForm.responsavel_tecnico,
-        data: expurgoForm.data_inicio,
-        user_id: user!.id,
-      }).select().single();
+      const { data: record, error } = await supabase
+        .from("controle_pragas")
+        .insert({
+          local: expurgoForm.local,
+          tipo_praga: "Expurgo",
+          acao: JSON.stringify(extras),
+          responsavel: expurgoForm.responsavel_tecnico,
+          data: expurgoForm.data_inicio,
+          user_id: user!.id,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -141,7 +168,7 @@ export default function Pragas() {
           data: expurgoForm.data_inicio,
           setor: "Manejo de Pragas / Expurgo",
           descricao: `NC identificada no expurgo (${expurgoForm.local}): ${expurgoForm.observacoes}`,
-          status: "pendente"
+          status: "pendente",
         } as any);
       }
     },
@@ -155,35 +182,78 @@ export default function Pragas() {
     },
   });
 
-  const deletePraga = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("controle_pragas").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["controle_pragas"] }); toast.success("Removido"); },
-  });
+  const navigate = useNavigate();
 
   const parseExpurgoExtras = (acao: string) => {
-    try { return JSON.parse(acao); } catch { return null; }
+    try {
+      return JSON.parse(acao);
+    } catch {
+      return null;
+    }
   };
 
   return (
     <div className="space-y-6">
-      <PageHeader icon={Bug} title="POP 07 - Controle Integrado de Pragas" description="Monitoramento integrado de pragas e registros de expurgo — IN 04/2007"
-        orientacaoModuloId="pragas" />
-      <div className="flex justify-end mb-3"><AnexarPlanilhaPop popCodigo="POP-07" popNome="Controle Integrado de Pragas" /></div>
+      <PageHeader
+        icon={Bug}
+        title="POP 07 - Controle de Pragas"
+        description="Monitoramento integrado de pragas e registros de expurgo"
+        orientacaoModuloId="pragas"
+        assuntoBaseLegal="controle_pragas"
+      />
+      <div className="flex justify-end mb-3">
+        <AnexarPlanilhaPop popCodigo="POP-07" popNome="Controle Integrado de Pragas" />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-primary">{registrosPragas.length}</p><p className="text-sm text-muted-foreground">Registros Pragas</p></CardContent></Card>
-        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-orange-600">{registrosExpurgo.length}</p><p className="text-sm text-muted-foreground">Expurgos Realizados</p></CardContent></Card>
-        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-green-600">{registrosExpurgo.filter((e: any) => { const x = parseExpurgoExtras(e.acao); return x?.resultado_conforme; }).length}</p><p className="text-sm text-muted-foreground">Expurgos Conformes</p></CardContent></Card>
-        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-destructive">{registrosExpurgo.filter((e: any) => { const x = parseExpurgoExtras(e.acao); return x && !x.resultado_conforme; }).length}</p><p className="text-sm text-muted-foreground">Não Conformes</p></CardContent></Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold text-primary">{registrosPragas.length}</p>
+            <p className="text-sm text-muted-foreground">Registros Pragas</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold text-orange-600">{registrosExpurgo.length}</p>
+            <p className="text-sm text-muted-foreground">Expurgos Realizados</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold text-green-600">
+              {
+                registrosExpurgo.filter((e: any) => {
+                  const x = parseExpurgoExtras(e.acao);
+                  return x?.resultado_conforme;
+                }).length
+              }
+            </p>
+            <p className="text-sm text-muted-foreground">Expurgos Conformes</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold text-destructive">
+              {
+                registrosExpurgo.filter((e: any) => {
+                  const x = parseExpurgoExtras(e.acao);
+                  return x && !x.resultado_conforme;
+                }).length
+              }
+            </p>
+            <p className="text-sm text-muted-foreground">Não Conformes</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="pragas">
         <TabsList>
-          <TabsTrigger value="pragas"><Bug className="w-4 h-4 mr-1" /> Controle de Pragas</TabsTrigger>
-          <TabsTrigger value="expurgo"><Flame className="w-4 h-4 mr-1" /> Planilha Controle de Expurgo</TabsTrigger>
+          <TabsTrigger value="pragas">
+            <Bug className="w-4 h-4 mr-1" /> Controle de Pragas
+          </TabsTrigger>
+          <TabsTrigger value="expurgo">
+            <Flame className="w-4 h-4 mr-1" /> Planilha Controle de Expurgo
+          </TabsTrigger>
         </TabsList>
 
         {/* === ABA PRAGAS === */}
@@ -193,27 +263,75 @@ export default function Pragas() {
               <CardTitle className="font-display">Registros de Pragas</CardTitle>
               <Dialog open={openPraga} onOpenChange={setOpenPraga}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Novo Registro</Button>
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" /> Novo Registro
+                  </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Registrar Ocorrência de Praga</DialogTitle></DialogHeader>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Registrar Ocorrência de Praga</DialogTitle>
+                  </DialogHeader>
                   <div className="grid gap-3">
-                    <div><Label>Data</Label><Input type="date" value={pragaForm.data} onChange={e => setPragaForm(p => ({ ...p, data: e.target.value }))} /></div>
-                    <div><Label>Local</Label><Input value={pragaForm.local} onChange={e => setPragaForm(p => ({ ...p, local: e.target.value }))} placeholder="Ex: Depósito MP, Silo 3" /></div>
-                    <div><Label>Tipo de Praga</Label>
-                      <Select value={pragaForm.tipo_praga} onValueChange={v => setPragaForm(p => ({ ...p, tipo_praga: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>{TIPOS_PRAGA.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    <div>
+                      <Label>Data</Label>
+                      <Input
+                        type="date"
+                        value={pragaForm.data}
+                        onChange={(e) => setPragaForm((p) => ({ ...p, data: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Local</Label>
+                      <Input
+                        value={pragaForm.local}
+                        onChange={(e) => setPragaForm((p) => ({ ...p, local: e.target.value }))}
+                        placeholder="Ex: Depósito MP, Silo 3"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tipo de Praga</Label>
+                      <Select
+                        value={pragaForm.tipo_praga}
+                        onValueChange={(v) => setPragaForm((p) => ({ ...p, tipo_praga: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIPOS_PRAGA.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {t}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Ação Realizada</Label>
-                      <Select value={pragaForm.acao} onValueChange={v => setPragaForm(p => ({ ...p, acao: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>{ACOES.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+                    <div>
+                      <Label>Ação Realizada</Label>
+                      <Select value={pragaForm.acao} onValueChange={(v) => setPragaForm((p) => ({ ...p, acao: v }))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ACOES.map((a) => (
+                            <SelectItem key={a} value={a}>
+                              {a}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Responsável</Label><Input value={pragaForm.responsavel} onChange={e => setPragaForm(p => ({ ...p, responsavel: e.target.value }))} placeholder="Nome ou empresa" /></div>
-                    <Button onClick={() => addPraga.mutate()} disabled={!pragaForm.local}>Salvar</Button>
+                    <div>
+                      <Label>Responsável</Label>
+                      <Input
+                        value={pragaForm.responsavel}
+                        onChange={(e) => setPragaForm((p) => ({ ...p, responsavel: e.target.value }))}
+                        placeholder="Nome ou empresa"
+                      />
+                    </div>
+                    <Button onClick={() => addPraga.mutate()} disabled={!pragaForm.local}>
+                      Salvar
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -234,30 +352,56 @@ export default function Pragas() {
 
                 <TableBody>
                   {registrosPragas.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Nenhum registro</TableCell></TableRow>
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        Nenhum registro
+                      </TableCell>
+                    </TableRow>
                   )}
                   {registrosPragas.map((r: any) => (
                     <TableRow key={r.id}>
                       <TableCell className="whitespace-nowrap">{r.data}</TableCell>
                       <TableCell>{r.local}</TableCell>
-                      <TableCell><Badge variant="outline">{r.tipo_praga}</Badge></TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{r.tipo_praga}</Badge>
+                      </TableCell>
                       <TableCell>{r.acao}</TableCell>
                       <TableCell>{r.responsavel}</TableCell>
                       <TableCell>
-                        {r.status_verificacao === 'aprovado' ? (
+                        {r.status_verificacao === "aprovado" ? (
                           <Badge variant="outline" className="text-green-600 border-green-600 gap-1 text-[10px]">
                             <CheckCircle2 className="w-3 h-3" /> {r.verificado_por}
                           </Badge>
                         ) : (
-                          <Button size="sm" variant="ghost" className="h-7 text-[10px] gap-1 px-2" onClick={() => handleVerificar(r.id)}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-[10px] gap-1 px-2"
+                            onClick={() => handleVerificar(r.id)}
+                          >
                             <ShieldCheck className="w-3 h-3 text-primary" /> Verificar
                           </Button>
                         )}
                       </TableCell>
-                      <TableCell><Button size="icon" variant="ghost" onClick={() => deletePraga.mutate(r.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="gap-1 text-xs"
+                          title="Registros não são excluídos — correção via Não Conformidade"
+                          onClick={() =>
+                            corrigirViaNC(navigate, {
+                              tabela: "controle_pragas",
+                              registroId: r.id,
+                              descricao: `Controle de pragas — local: ${r.local} — praga: ${r.tipo_praga} — ação: ${r.acao}`,
+                            })
+                          }
+                        >
+                          <FileWarning className="w-4 h-4 text-primary" /> Corrigir via NC
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
-
                 </TableBody>
               </Table>
             </CardContent>
@@ -268,61 +412,194 @@ export default function Pragas() {
         <TabsContent value="expurgo">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="font-display flex items-center gap-2"><Flame className="w-5 h-5" /> Planilha de Controle de Expurgo</CardTitle>
+              <CardTitle className="font-display flex items-center gap-2">
+                <Flame className="w-5 h-5" /> Planilha de Controle de Expurgo
+              </CardTitle>
               <Dialog open={openExpurgo} onOpenChange={setOpenExpurgo}>
                 <DialogTrigger asChild>
-                  <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Registrar Expurgo</Button>
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" /> Registrar Expurgo
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle>Registro de Operação de Expurgo</DialogTitle></DialogHeader>
-                  <p className="text-xs text-muted-foreground mb-2">Conforme IN 04/2007 — POP 07. Registrar todas as operações de expurgo/fumigação realizadas.</p>
+                  <DialogHeader>
+                    <DialogTitle>Registro de Operação de Expurgo</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    — POP 07. Registrar todas as operações de expurgo/fumigação realizadas.
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div><Label>Data Início</Label><Input type="date" value={expurgoForm.data_inicio} onChange={e => setExpurgoForm(f => ({ ...f, data_inicio: e.target.value }))} /></div>
-                    <div><Label>Data Fim</Label><Input type="date" value={expurgoForm.data_fim} onChange={e => setExpurgoForm(f => ({ ...f, data_fim: e.target.value }))} /></div>
-                    <div><Label>Local / Silo / Armazém</Label><Input value={expurgoForm.local} onChange={e => setExpurgoForm(f => ({ ...f, local: e.target.value }))} placeholder="Ex: Silo 2, Armazém MP" /></div>
-                    <div><Label>Tipo de Produto</Label>
-                      <Select value={expurgoForm.tipo_produto} onValueChange={v => setExpurgoForm(f => ({ ...f, tipo_produto: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>{TIPOS_PRODUTO_EXPURGO.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    <div>
+                      <Label>Data Início</Label>
+                      <Input
+                        type="date"
+                        value={expurgoForm.data_inicio}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, data_inicio: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Data Fim</Label>
+                      <Input
+                        type="date"
+                        value={expurgoForm.data_fim}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, data_fim: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Local / Silo / Armazém</Label>
+                      <Input
+                        value={expurgoForm.local}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, local: e.target.value }))}
+                        placeholder="Ex: Silo 2, Armazém MP"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tipo de Produto</Label>
+                      <Select
+                        value={expurgoForm.tipo_produto}
+                        onValueChange={(v) => setExpurgoForm((f) => ({ ...f, tipo_produto: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIPOS_PRODUTO_EXPURGO.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {t}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Lote do Produto</Label><Input value={expurgoForm.lote_produto} onChange={e => setExpurgoForm(f => ({ ...f, lote_produto: e.target.value }))} placeholder="Lote da MP ou PA" /></div>
-                    <div><Label>Método / Princípio Ativo</Label>
-                      <Select value={expurgoForm.metodo} onValueChange={v => setExpurgoForm(f => ({ ...f, metodo: v }))}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>{METODOS_EXPURGO.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                    <div>
+                      <Label>Lote do Produto</Label>
+                      <Input
+                        value={expurgoForm.lote_produto}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, lote_produto: e.target.value }))}
+                        placeholder="Lote da MP ou PA"
+                      />
+                    </div>
+                    <div>
+                      <Label>Método / Princípio Ativo</Label>
+                      <Select
+                        value={expurgoForm.metodo}
+                        onValueChange={(v) => setExpurgoForm((f) => ({ ...f, metodo: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {METODOS_EXPURGO.map((m) => (
+                            <SelectItem key={m} value={m}>
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
-                    <div><Label>Produto Comercial</Label><Input value={expurgoForm.produto_comercial} onChange={e => setExpurgoForm(f => ({ ...f, produto_comercial: e.target.value }))} placeholder="Nome comercial do produto" /></div>
-                    <div><Label>Dosagem</Label><Input value={expurgoForm.dosagem} onChange={e => setExpurgoForm(f => ({ ...f, dosagem: e.target.value }))} placeholder="Ex: 3 pastilhas/ton" /></div>
-                    <div><Label>Tempo Exposição (h)</Label><Input type="number" value={expurgoForm.tempo_exposicao_horas} onChange={e => setExpurgoForm(f => ({ ...f, tempo_exposicao_horas: e.target.value }))} placeholder="72" /></div>
-                    <div><Label>Temperatura Ambiente (°C)</Label><Input value={expurgoForm.temperatura_ambiente} onChange={e => setExpurgoForm(f => ({ ...f, temperatura_ambiente: e.target.value }))} placeholder="25" /></div>
-                    <div><Label>Empresa Aplicadora</Label><Input value={expurgoForm.empresa_aplicadora} onChange={e => setExpurgoForm(f => ({ ...f, empresa_aplicadora: e.target.value }))} placeholder="Razão social" /></div>
-                    <div><Label>Nº ART / Licença</Label><Input value={expurgoForm.art_numero} onChange={e => setExpurgoForm(f => ({ ...f, art_numero: e.target.value }))} placeholder="ART do responsável" /></div>
-                    <div className="col-span-2"><Label>Responsável Técnico</Label><Input value={expurgoForm.responsavel_tecnico} onChange={e => setExpurgoForm(f => ({ ...f, responsavel_tecnico: e.target.value }))} placeholder="Nome do RT" /></div>
+                    <div>
+                      <Label>Produto Comercial</Label>
+                      <Input
+                        value={expurgoForm.produto_comercial}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, produto_comercial: e.target.value }))}
+                        placeholder="Nome comercial do produto"
+                      />
+                    </div>
+                    <div>
+                      <Label>Dosagem</Label>
+                      <Input
+                        value={expurgoForm.dosagem}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, dosagem: e.target.value }))}
+                        placeholder="Ex: 3 pastilhas/ton"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tempo Exposição (h)</Label>
+                      <Input
+                        type="number"
+                        value={expurgoForm.tempo_exposicao_horas}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, tempo_exposicao_horas: e.target.value }))}
+                        placeholder="72"
+                      />
+                    </div>
+                    <div>
+                      <Label>Temperatura Ambiente (°C)</Label>
+                      <Input
+                        value={expurgoForm.temperatura_ambiente}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, temperatura_ambiente: e.target.value }))}
+                        placeholder="25"
+                      />
+                    </div>
+                    <div>
+                      <Label>Empresa Aplicadora</Label>
+                      <Input
+                        value={expurgoForm.empresa_aplicadora}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, empresa_aplicadora: e.target.value }))}
+                        placeholder="Razão social"
+                      />
+                    </div>
+                    <div>
+                      <Label>Nº ART / Licença</Label>
+                      <Input
+                        value={expurgoForm.art_numero}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, art_numero: e.target.value }))}
+                        placeholder="ART do responsável"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Responsável Técnico</Label>
+                      <Input
+                        value={expurgoForm.responsavel_tecnico}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, responsavel_tecnico: e.target.value }))}
+                        placeholder="Nome do RT"
+                      />
+                    </div>
 
                     <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t">
                       <h4 className="col-span-2 font-semibold text-sm">Checklist de Segurança</h4>
                       <label className="flex items-center gap-2 text-sm">
-                        <Checkbox checked={expurgoForm.vedacao_ok} onCheckedChange={c => setExpurgoForm(f => ({ ...f, vedacao_ok: !!c }))} />
+                        <Checkbox
+                          checked={expurgoForm.vedacao_ok}
+                          onCheckedChange={(c) => setExpurgoForm((f) => ({ ...f, vedacao_ok: !!c }))}
+                        />
                         Vedação adequada do local
                       </label>
                       <label className="flex items-center gap-2 text-sm">
-                        <Checkbox checked={expurgoForm.placas_sinalizacao} onCheckedChange={c => setExpurgoForm(f => ({ ...f, placas_sinalizacao: !!c }))} />
+                        <Checkbox
+                          checked={expurgoForm.placas_sinalizacao}
+                          onCheckedChange={(c) => setExpurgoForm((f) => ({ ...f, placas_sinalizacao: !!c }))}
+                        />
                         Placas de sinalização instaladas
                       </label>
                       <label className="flex items-center gap-2 text-sm">
-                        <Checkbox checked={expurgoForm.epi_adequado} onCheckedChange={c => setExpurgoForm(f => ({ ...f, epi_adequado: !!c }))} />
+                        <Checkbox
+                          checked={expurgoForm.epi_adequado}
+                          onCheckedChange={(c) => setExpurgoForm((f) => ({ ...f, epi_adequado: !!c }))}
+                        />
                         EPI adequado utilizado
                       </label>
                       <label className="flex items-center gap-2 text-sm">
-                        <Checkbox checked={expurgoForm.resultado_conforme} onCheckedChange={c => setExpurgoForm(f => ({ ...f, resultado_conforme: !!c }))} />
+                        <Checkbox
+                          checked={expurgoForm.resultado_conforme}
+                          onCheckedChange={(c) => setExpurgoForm((f) => ({ ...f, resultado_conforme: !!c }))}
+                        />
                         Resultado conforme (sem infestação residual)
                       </label>
                     </div>
 
-                    <div className="col-span-2"><Label>Observações</Label><Textarea value={expurgoForm.observacoes} onChange={e => setExpurgoForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} /></div>
-                    <div className="col-span-2"><Button className="w-full" onClick={() => addExpurgo.mutate()} disabled={!expurgoForm.local}>Salvar Registro de Expurgo</Button></div>
+                    <div className="col-span-2">
+                      <Label>Observações</Label>
+                      <Textarea
+                        value={expurgoForm.observacoes}
+                        onChange={(e) => setExpurgoForm((f) => ({ ...f, observacoes: e.target.value }))}
+                        rows={2}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Button className="w-full" onClick={() => addExpurgo.mutate()} disabled={!expurgoForm.local}>
+                        Salvar Registro de Expurgo
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -368,12 +645,40 @@ export default function Pragas() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {x?.vedacao_ok && <Badge variant="outline" className="text-[10px] px-1">Vedação</Badge>}
-                              {x?.placas_sinalizacao && <Badge variant="outline" className="text-[10px] px-1">Sinaliz.</Badge>}
-                              {x?.epi_adequado && <Badge variant="outline" className="text-[10px] px-1">EPI</Badge>}
+                              {x?.vedacao_ok && (
+                                <Badge variant="outline" className="text-[10px] px-1">
+                                  Vedação
+                                </Badge>
+                              )}
+                              {x?.placas_sinalizacao && (
+                                <Badge variant="outline" className="text-[10px] px-1">
+                                  Sinaliz.
+                                </Badge>
+                              )}
+                              {x?.epi_adequado && (
+                                <Badge variant="outline" className="text-[10px] px-1">
+                                  EPI
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
-                          <TableCell><Button size="icon" variant="ghost" onClick={() => deletePraga.mutate(r.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="gap-1 text-xs"
+                              title="Registros não são excluídos — correção via Não Conformidade"
+                              onClick={() =>
+                                corrigirViaNC(navigate, {
+                                  tabela: "controle_pragas",
+                                  registroId: r.id,
+                                  descricao: `Expurgo — local: ${r.local} — data: ${r.data}`,
+                                })
+                              }
+                            >
+                              <FileWarning className="w-4 h-4 text-primary" /> Corrigir via NC
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -382,12 +687,17 @@ export default function Pragas() {
               )}
 
               {/* Alertas de segurança */}
-              {registrosExpurgo.some((r: any) => { const x = parseExpurgoExtras(r.acao); return x && (!x.vedacao_ok || !x.placas_sinalizacao || !x.epi_adequado); }) && (
+              {registrosExpurgo.some((r: any) => {
+                const x = parseExpurgoExtras(r.acao);
+                return x && (!x.vedacao_ok || !x.placas_sinalizacao || !x.epi_adequado);
+              }) && (
                 <Card className="mt-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/10">
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="w-5 h-5 text-yellow-600" />
-                      <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">Atenção: Há registros de expurgo com itens de segurança não atendidos.</p>
+                      <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                        Atenção: Há registros de expurgo com itens de segurança não atendidos.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>

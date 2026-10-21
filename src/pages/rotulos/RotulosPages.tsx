@@ -9,8 +9,8 @@ const PreviewAlert = () => (
     <Info className="h-4 w-4 text-teal-600" />
     <AlertTitle className="text-teal-700 font-bold">Nutri_Agro Labels — Ambiente Dedicado</AlertTitle>
     <AlertDescription className="text-teal-600">
-      Selecione um produto para acessar Rótulo (IN 22), Ficha Técnica, RTPI e Níveis de Garantia.
-    </AlertDescription>
+ Selecione um produto para acessar Rótulo, Ficha Técnica, RTPI e Níveis de Garantia.
+ </AlertDescription>
   </Alert>
 );
 
@@ -36,8 +36,8 @@ export const RotulosDashboardPage = () => (
         <Sparkles className="h-12 w-12 text-teal-200 mb-4" />
         <h3 className="text-xl font-bold mb-2 text-foreground">Gerador de Rótulos</h3>
         <p className="text-muted-foreground max-w-md mb-4">
-          Cadastre seus produtos e gere rótulos comerciais conforme MAPA (IN 04/2007 e Decreto 12.031/2024) com exportação para Zebra (ZPL), Word e Excel.
-        </p>
+ Cadastre seus produtos e gere rótulos comerciais para exportação em Zebra (ZPL), Word e Excel.
+ </p>
         <Button asChild>
           <Link to="/rotulos/editor">Acessar Cadastro de Produtos</Link>
         </Button>
@@ -76,7 +76,7 @@ export const RotulosZebraPage = () => (
       </div>
       <div className="space-y-3 text-sm text-muted-foreground">
         <p>1. Conecte sua impressora Zebra via USB ou rede.</p>
-        <p>2. Acesse <Link to="/rotulos/editor" className="text-teal-600 underline">Editor de Rótulos</Link>, selecione o produto desejado e abra a aba <strong>Rótulo IN 22</strong>.</p>
+        <p>2. Acesse <Link to="/rotulos/editor" className="text-teal-600 underline">Editor de Rótulos</Link>, selecione o produto desejado e abra a aba <strong>Rótulo </strong>.</p>
         <p>3. Use o botão <strong>Exportar ZPL</strong> dentro do editor para baixar o comando e enviar à impressora.</p>
       </div>
       <Button asChild className="mt-6">

@@ -1,6 +1,8 @@
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Printer, Download, Save, RefreshCw, Settings, Eye, Send, FileText } from "lucide-react";
+import { Loader2, Printer, Download, Save, RefreshCw, Settings, Eye, Send, FileText, FileDown } from "lucide-react";
 import { exportRotuloDocx } from "@/utils/rotuloDocxExport";
+import { exportRotuloPdf } from "@/utils/rotuloPdfExport";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { gerarCarimboSync, carimboHTMLCompacto } from "@/utils/carimboDocumento";
+import { gerarCarimbo, carimboHTMLCompacto } from "@/utils/carimboDocumento";
 
 interface Props {
   produtoId: string;
@@ -553,8 +555,8 @@ function TabelaConsumo({ niveisObj, onNiveisChange }: { niveisObj: Record<string
         <Table>{tableHeader}<TableBody>{VR_VITAMINAS.map(r => renderRow(r, editable))}</TableBody></Table>
       </div>
       <p className="text-[9px] text-muted-foreground italic">
-        ¹ Valor diário de referência para manutenção de um animal de 450 kg de peso corporal (NRC / IN 12/2004 – MAPA).
-      </p>
+ ¹ Valor diário de referência para manutenção de um animal de 450 kg de peso corporal (referência nutricional).
+ </p>
     </div>
   );
 }
@@ -1194,14 +1196,16 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
     downloadZPL();
   }
 
-  function handlePrint() {
-    const carimbo = gerarCarimboSync({
-      documentoTipo: "Rótulo Comercial",
-      documentoId: rotulo.nome_comercial,
-    });
-    const html = buildPrintHTML(rotulo, niveisObj);
+  async function handlePrint() {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+    const html = buildPrintHTML(rotulo, niveisObj);
+    // Selo sobre o conteúdo exibido do rótulo (HTML de impressão) + metadados.
+    const carimbo = await gerarCarimbo({
+      documentoTipo: "Rótulo Comercial",
+      documentoId: rotulo.nome_comercial,
+      conteudo: html,
+    });
     printWindow.document.write(`
       <html><head><title>Rótulo – ${rotulo.nome_comercial}</title>
       <style>
@@ -1215,6 +1219,15 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
       </body></html>
     `);
     printWindow.document.close();
+  }
+
+  async function handleExportPdf() {
+    await exportRotuloPdf({
+      larguraMm: rotulo.largura_mm,
+      alturaMm: rotulo.altura_mm,
+      nomeArquivo: `Rotulo-${(rotulo.nome_comercial || "sem-nome").replace(/[^\w\-]+/g, "_")}`,
+      html: buildPrintHTML(rotulo, niveisObj),
+    });
   }
 
   const updateField = (field: keyof RotuloData, value: any) => {
@@ -1263,10 +1276,13 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
                     <Download className="w-4 h-4 mr-1" /> Download ZPL
                   </Button>
                   <Button variant="outline" size="sm" onClick={handlePrint}>
-                    <Printer className="w-4 h-4 mr-1" /> PDF / Jato de Tinta
+                    <Printer className="w-4 h-4 mr-1" /> Imprimir
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExportPdf}>
+                    <FileDown className="w-4 h-4 mr-1" /> Exportar PDF
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => exportRotuloDocx(rotulo, niveisObj)}>
-                    <FileText className="w-4 h-4 mr-1" /> Editar no Word
+                    <FileText className="w-4 h-4 mr-1" /> Exportar Word
                   </Button>
                 </div>
               </CardTitle>
@@ -1312,11 +1328,11 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
           {/* Identificação */}
           <Card>
             <CardContent className="pt-6 space-y-4">
-              <h3 className="font-semibold text-foreground text-sm">Identificação do Produto</h3>
+              <h3 className="font-semibold text-foreground text-sm">Identificação do Produto <BaseLegalBadge assunto="rotulagem" /></h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div><Label className="text-xs">Nome Comercial</Label><Input value={rotulo.nome_comercial} onChange={(e) => updateField("nome_comercial", e.target.value)} /></div>
                 <div>
-                  <Label className="text-xs">Tipo de Rótulo (IN 22)</Label>
+                  <Label className="text-xs">Tipo de Rótulo </Label>
                   <Select value={rotulo.tipo_rotulo} onValueChange={(v) => updateField("tipo_rotulo", v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -1392,7 +1408,7 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
               <div>
                 <Label className="text-xs">Níveis de Garantia por kg do Produto</Label>
                 <Textarea value={rotulo.niveis_garantia_texto} onChange={(e) => updateField("niveis_garantia_texto", e.target.value)} rows={5} placeholder="Gerado automaticamente ao sincronizar do produto" />
-                <p className="text-[10px] text-muted-foreground mt-1">Formato IN 22: Nutriente (Mín./Máx.) valor unidade. Editável manualmente.</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Formato: Nutriente (Mín./Máx.) valor unidade. Editável manualmente.</p>
               </div>
             </CardContent>
           </Card>
@@ -1432,8 +1448,8 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
                 <Label className="text-xs">Exibir tabela de consumo por 100g de suplemento no rótulo</Label>
               </div>
               <p className="text-[10px] text-muted-foreground">
-                Ativado automaticamente para Sal Mineral e Suplementos de Bovinos (IN 12/2004 – MAPA). Mostra macro e microminerais com VR para 450 kg.
-              </p>
+ Ativado automaticamente para Sal Mineral e Suplementos de Bovinos (referência nutricional). Mostra macro e microminerais com VR para 450 kg.
+ </p>
             </CardContent>
           </Card>
 
@@ -1449,10 +1465,13 @@ export default function RotuloEditor({ produtoId, produtoNome }: Props) {
               <Download className="w-4 h-4 mr-1" /> Download ZPL
             </Button>
             <Button variant="outline" onClick={handlePrint}>
-              <Printer className="w-4 h-4 mr-1" /> Imprimir PDF
+              <Printer className="w-4 h-4 mr-1" /> Imprimir
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf}>
+              <FileDown className="w-4 h-4 mr-1" /> Exportar PDF
             </Button>
             <Button variant="outline" onClick={() => exportRotuloDocx(rotulo, niveisObj)}>
-              <FileText className="w-4 h-4 mr-1" /> Editar no Word
+              <FileText className="w-4 h-4 mr-1" /> Exportar Word
             </Button>
           </div>
         </TabsContent>

@@ -17,15 +17,17 @@ export const MODULOS_CUSTOM: ModuloCustom[] = [
   { codigo: "fornecedores",   nome: "Fornecedores",         descricao: "Qualificação SIPEAGRO",                   grupo: "cadastros", padrao_ativo: true },
 
   // POPs (IN 04/2007)
-  { codigo: "pop-01-agua",         nome: "POP 01 — Água",              descricao: "Potabilidade e reservatórios",  grupo: "pops", padrao_ativo: true  },
+  { codigo: "pop-01-recebimento",  nome: "POP 01 — Recebimento",       descricao: "Recepção e controle de insumos", grupo: "pops", padrao_ativo: true  },
+  { codigo: "pop-01-armazenamento",nome: "POP 01 — Armazenamento",     descricao: "Estoque e PEPS/FEFO",            grupo: "pops", padrao_ativo: true  },
   { codigo: "pop-02-higiene",      nome: "POP 02 — Higiene",           descricao: "Sanitização de superfícies",    grupo: "pops", padrao_ativo: true  },
+  { codigo: "pop-02-transporte",   nome: "POP 02 — Higiene do Transporte", descricao: "Inspeção e limpeza de veículos", grupo: "pops", padrao_ativo: true  },
   { codigo: "pop-03-saude",        nome: "POP 03 — Saúde e Visitantes",descricao: "ASO, biossegurança",            grupo: "pops", padrao_ativo: true  },
-  { codigo: "pop-04-mp",           nome: "POP 04 — Matérias-Primas",   descricao: "Recebimento e retenção",        grupo: "pops", padrao_ativo: true  },
-  { codigo: "pop-05-armazenamento",nome: "POP 05 — Armazenamento",     descricao: "Estoque e FIFO",                grupo: "pops", padrao_ativo: true  },
+  { codigo: "pop-04-agua",         nome: "POP 04 — Água",              descricao: "Potabilidade e reservatórios",  grupo: "pops", padrao_ativo: true  },
+  { codigo: "pop-05-producao",     nome: "POP 05 — Produção",          descricao: "Processo e contaminação cruzada", grupo: "pops", padrao_ativo: true  },
   { codigo: "pop-06-manutencao",   nome: "POP 06 — Manutenção",        descricao: "Preventiva e calibração",       grupo: "pops", padrao_ativo: true  },
   { codigo: "pop-07-pragas",       nome: "POP 07 — Pragas",            descricao: "MIP e expurgo",                 grupo: "pops", padrao_ativo: false },
   { codigo: "pop-08-residuos",     nome: "POP 08 — Resíduos",          descricao: "PGRS e efluentes",              grupo: "pops", padrao_ativo: true  },
-  { codigo: "pop-09-transporte",   nome: "POP 09 — Transporte",        descricao: "Checklist de veículos",         grupo: "pops", padrao_ativo: true  },
+  { codigo: "pop-09-rastreabilidade", nome: "POP 09 — Rastreabilidade", descricao: "Rastreabilidade e recolhimento", grupo: "pops", padrao_ativo: true  },
   { codigo: "pop-10-pac",          nome: "POP 10 — PAC",               descricao: "Análise de perigos e HACCP",    grupo: "pops", padrao_ativo: true  },
 
   // Operacional

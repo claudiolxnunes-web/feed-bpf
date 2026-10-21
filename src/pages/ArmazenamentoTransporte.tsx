@@ -1,3 +1,4 @@
+import { CHECKLIST_VEICULO, CHECKLIST_DEPOSITO } from "@/components/armazenamento/constants";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
@@ -14,80 +15,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Truck, Thermometer, Warehouse, ClipboardList, CheckCircle2, AlertTriangle, Plus, Download } from "lucide-react";
+import {
+  Truck,
+  Thermometer,
+  Warehouse,
+  ClipboardList,
+  CheckCircle2,
+  AlertTriangle,
+  Plus,
+  Download,
+} from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 
 // ── CHECKLIST INSPEÇÃO DE VEÍCULO (POP-02 / PL POP 2.4 — Higiene/Limpeza de Veículos — IN 15/2009) ──
-const CHECKLIST_VEICULO: { area: string; itens: string[] }[] = [
-  { area: "Condições Gerais do Veículo", itens: [
-    "Carroceria limpa e livre de resíduos de cargas anteriores",
-    "Lona/cobertura em bom estado (sem furos ou rasgos)",
-    "Piso da carroceria íntegro e sem frestas",
-    "Ausência de pragas, roedores ou vestígios de infestação",
-    "Odor adequado — sem cheiros estranhos ou contaminantes",
-    "Veículo exclusivo para transporte de alimentos para animais (verificar)",
-  ]},
-  { area: "Documentação do Veículo", itens: [
-    "Nota fiscal de transporte conferida",
-    "Placa e dados do veículo conferidos com a documentação",
-    "Motorista identificado (CNH e credencial de acesso)",
-    "Certificado de desinfecção do veículo válido",
-    "Registro de cargas anteriores disponível (rastreabilidade)",
-  ]},
-  { area: "Condições de Carga / Descarga", itens: [
-    "Embalagens íntegras (sem rasgos, furos ou umidade)",
-    "Empilhamento correto conforme limite de peso",
-    "Paletes em bom estado e sem contaminação",
-    "Produto separado de substâncias incompatíveis",
-    "Identificação/rótulo visível em todas as embalagens",
-  ]},
-  { area: "Proteção contra Contaminação Cruzada", itens: [
-    "Não transporta simultaneamente rações medicadas e não-medicadas",
-    "Granel: verificação de resíduo de produto anterior",
-    "Compartimentos limpos e secos",
-    "Ausência de produtos químicos, combustíveis ou agrotóxicos no mesmo compartimento",
-  ]},
-  { area: "Conformidade IN 15/2009", itens: [
-    "Veículo não transportou ruminantes ou seus derivados (quando aplicável BSE)",
-    "Registro de flushing do compartimento (transporte a granel medicado)",
-    "Certificado de análise da carga disponível (quando exigido)",
-    "Temperatura de transporte verificada (produtos sensíveis)",
-  ]},
-];
 
 // ── CHECKLIST DEPÓSITO / ARMAZÉM ──
-const CHECKLIST_DEPOSITO: { area: string; itens: string[] }[] = [
-  { area: "Estrutura Física", itens: [
-    "Piso em bom estado, sem rachaduras ou buracos",
-    "Paredes limpas e sem infiltrações",
-    "Cobertura íntegra (sem goteiras ou frestas)",
-    "Iluminação adequada e funcional",
-    "Ventilação natural ou mecânica funcionando",
-    "Portas e janelas com proteção contra pragas (telas)",
-  ]},
-  { area: "Organização e Estocagem", itens: [
-    "Paletes a no mínimo 10 cm do piso",
-    "Distância mínima de 50 cm das paredes",
-    "Empilhamento dentro do limite máximo permitido",
-    "Produtos identificados com lote e validade",
-    "Separação entre matéria-prima e produto acabado",
-    "Área de quarentena identificada e isolada",
-    "Sistema FIFO/FEFO (primeiro a vencer, primeiro a sair) aplicado",
-  ]},
-  { area: "Controle Ambiental", itens: [
-    "Temperatura do depósito verificada e registrada",
-    "Umidade relativa do depósito verificada e registrada",
-    "Sem formação de condensação nas paredes/teto",
-    "Sem presença de mofo ou fungos visíveis",
-    "Produtos sensíveis à temperatura armazenados adequadamente",
-  ]},
-  { area: "Segurança e Prevenção", itens: [
-    "Extintores de incêndio dentro da validade e acessíveis",
-    "Sinalizações de segurança visíveis",
-    "Área de produtos químicos separada do estoque de alimentos",
-    "Produtos devolvidos/rejeitados em área segregada e identificada",
-  ]},
-];
 
 export default function ArmazenamentoTransporte() {
   const { user } = useAuth();
@@ -126,22 +68,29 @@ export default function ArmazenamentoTransporte() {
 
   // Fetch records
   const { data: registros = [] } = useQuery({
-    queryKey: ["armazenamento_transporte_pops"],
+    queryKey: ["armazenamento_transporte_pops", empresaAtiva?.id],
     queryFn: async () => {
+      if (!empresaAtiva?.id) return [];
       const { data, error } = await supabase
         .from("execucao_pops")
         .select("*")
         // Inclui códigos antigos (POP-09-*, POP-DEPOSITO, POP-TEMP-UMID) e novos (POP-01-*, POP-02-*) para preservar histórico
         .in("codigo_pop", [
-          "POP-02-VEICULO", "POP-09-VEICULO", "POP-VEICULO",
-          "POP-01-DEPOSITO", "POP-DEPOSITO",
-          "POP-01-TEMP-UMID", "POP-TEMP-UMID",
+          "POP-02-VEICULO",
+          "POP-09-VEICULO",
+          "POP-VEICULO",
+          "POP-01-DEPOSITO",
+          "POP-DEPOSITO",
+          "POP-01-TEMP-UMID",
+          "POP-TEMP-UMID",
         ])
+        .eq("empresa_id", empresaAtiva.id)
         .order("data_execucao", { ascending: false })
         .limit(200);
       if (error) throw error;
       return data;
     },
+    enabled: !!empresaAtiva?.id,
   });
 
   const veicRegistros = registros.filter((r: any) => r.codigo_pop?.includes("VEICULO"));
@@ -149,9 +98,9 @@ export default function ArmazenamentoTransporte() {
   const tempRegistros = registros.filter((r: any) => r.codigo_pop?.includes("TEMP-UMID"));
 
   const saveVeiculoInspecao = async () => {
-    if (!user || !veicResp) return;
+    if (!user || !empresaAtiva?.id || !veicResp) return;
     setSavingVeic(true);
-    const totalItens = CHECKLIST_VEICULO.flatMap(a => a.itens).length;
+    const totalItens = CHECKLIST_VEICULO.flatMap((a) => a.itens).length;
     const conformes = Object.values(veicChecklist).filter(Boolean).length;
     const pct = Math.round((conformes / totalItens) * 100);
 
@@ -160,14 +109,19 @@ export default function ArmazenamentoTransporte() {
       `Placa: ${veicPlaca || "—"} | Transportadora: ${veicTransportadora || "—"}`,
       `Tipo de carga: ${veicTipoCarga === "granel" ? "Granel" : "Ensacado/Paletizado"}`,
       `Conformidade: ${conformes}/${totalItens} itens (${pct}%)`,
-      ...CHECKLIST_VEICULO.flatMap(area =>
-        area.itens.filter(item => !veicChecklist[`${area.area}::${item}`]).map(item => `❌ NC: [${area.area}] ${item}`)
+      ...CHECKLIST_VEICULO.flatMap((area) =>
+        area.itens
+          .filter((item) => !veicChecklist[`${area.area}::${item}`])
+          .map((item) => `❌ NC: [${area.area}] ${item}`),
       ),
       veicObs ? `Obs: ${veicObs}` : "",
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const { error } = await supabase.from("execucao_pops").insert({
-      user_id: user.id, empresa_id: empresaAtiva?.id || null,
+      user_id: user.id,
+      empresa_id: empresaAtiva.id,
       codigo_pop: "POP-02-VEICULO",
       nome_pop: "PL POP 2.4 — Inspeção/Higiene de Veículo de Transporte",
       executor: veicResp,
@@ -190,9 +144,9 @@ export default function ArmazenamentoTransporte() {
   };
 
   const saveDepositoInspecao = async () => {
-    if (!user || !depResp) return;
+    if (!user || !empresaAtiva?.id || !depResp) return;
     setSavingDep(true);
-    const totalItens = CHECKLIST_DEPOSITO.flatMap(a => a.itens).length;
+    const totalItens = CHECKLIST_DEPOSITO.flatMap((a) => a.itens).length;
     const conformes = Object.values(depChecklist).filter(Boolean).length;
     const pct = Math.round((conformes / totalItens) * 100);
 
@@ -200,14 +154,19 @@ export default function ArmazenamentoTransporte() {
       `[INSPEÇÃO DE DEPÓSITO — POP-01 / Armazenamento de MP e PA — IN 04/2007]`,
       `Local: ${depLocal || "—"} | Temp: ${depTemp || "—"}°C | Umid: ${depUmid || "—"}%`,
       `Conformidade: ${conformes}/${totalItens} itens (${pct}%)`,
-      ...CHECKLIST_DEPOSITO.flatMap(area =>
-        area.itens.filter(item => !depChecklist[`${area.area}::${item}`]).map(item => `❌ NC: [${area.area}] ${item}`)
+      ...CHECKLIST_DEPOSITO.flatMap((area) =>
+        area.itens
+          .filter((item) => !depChecklist[`${area.area}::${item}`])
+          .map((item) => `❌ NC: [${area.area}] ${item}`),
       ),
       depObs ? `Obs: ${depObs}` : "",
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const { error } = await supabase.from("execucao_pops").insert({
-      user_id: user.id, empresa_id: empresaAtiva?.id || null,
+      user_id: user.id,
+      empresa_id: empresaAtiva.id,
       codigo_pop: "POP-01-DEPOSITO",
       nome_pop: "Inspeção de Depósito / Armazém (Armazenamento de MP)",
       executor: depResp,
@@ -231,7 +190,7 @@ export default function ArmazenamentoTransporte() {
   };
 
   const saveLogTempUmid = async () => {
-    if (!user || !logResp) return;
+    if (!user || !empresaAtiva?.id || !logResp) return;
     setSavingLog(true);
     const tempNum = parseFloat(logTemp);
     const umidNum = parseFloat(logUmid);
@@ -245,10 +204,13 @@ export default function ArmazenamentoTransporte() {
       `Temperatura: ${logTemp || "—"}°C | Umidade: ${logUmid || "—"}%`,
       ...alertas,
       logObs ? `Obs: ${logObs}` : "",
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const { error } = await supabase.from("execucao_pops").insert({
-      user_id: user.id, empresa_id: empresaAtiva?.id || null,
+      user_id: user.id,
+      empresa_id: empresaAtiva.id,
       codigo_pop: "POP-01-TEMP-UMID",
       nome_pop: "Monitoramento de Temperatura e Umidade (Armazenamento)",
       executor: logResp,
@@ -273,9 +235,9 @@ export default function ArmazenamentoTransporte() {
   const renderChecklist = (
     items: { area: string; itens: string[] }[],
     checklist: Record<string, boolean>,
-    setChecklist: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+    setChecklist: React.Dispatch<React.SetStateAction<Record<string, boolean>>>,
   ) => {
-    const totalItens = items.flatMap(a => a.itens).length;
+    const totalItens = items.flatMap((a) => a.itens).length;
     const conformes = Object.values(checklist).filter(Boolean).length;
     const pct = totalItens > 0 ? Math.round((conformes / totalItens) * 100) : 0;
 
@@ -286,25 +248,32 @@ export default function ArmazenamentoTransporte() {
             {conformes}/{totalItens} — {pct}%
           </Badge>
           {pct >= 80 ? (
-            <span className="text-xs text-primary flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Conforme</span>
+            <span className="text-xs text-primary flex items-center gap-1">
+              <CheckCircle2 className="w-4 h-4" /> Conforme
+            </span>
           ) : (
-            <span className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Não Conforme</span>
+            <span className="text-xs text-destructive flex items-center gap-1">
+              <AlertTriangle className="w-4 h-4" /> Não Conforme
+            </span>
           )}
         </div>
-        {items.map(area => (
+        {items.map((area) => (
           <Card key={area.area}>
             <CardHeader className="py-2 px-4">
               <CardTitle className="text-sm">{area.area}</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-3 space-y-1">
-              {area.itens.map(item => {
+              {area.itens.map((item) => {
                 const key = `${area.area}::${item}`;
                 return (
-                  <label key={key} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer text-xs">
+                  <label
+                    key={key}
+                    className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer text-xs"
+                  >
                     <input
                       type="checkbox"
                       checked={!!checklist[key]}
-                      onChange={e => setChecklist(prev => ({ ...prev, [key]: e.target.checked }))}
+                      onChange={(e) => setChecklist((prev) => ({ ...prev, [key]: e.target.checked }))}
                       className="h-4 w-4 rounded"
                     />
                     <span className={checklist[key] ? "text-muted-foreground line-through" : ""}>{item}</span>
@@ -335,20 +304,33 @@ export default function ArmazenamentoTransporte() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         icon={Warehouse}
-        title="Armazenamento & Transporte"
-        description="Armazenamento (POP-01 — Recebimento/Estocagem de MP) e Transporte (POP-02 / PL POP 2.4 — Higiene e Limpeza de Veículos)"
+        title="POP 01 e POP 02 - Armazenamento e Transporte"
+        description="Armazenamento (POP 01) e Transporte (POP 02 - Higiene de Veículos)"
         orientacaoModuloId="armazenamento-transporte"
+        assuntoBaseLegal="bpf_geral"
       />
 
       <Tabs defaultValue="veiculo" className="space-y-4">
         <TabsList className="flex-wrap">
-          <TabsTrigger value="veiculo"><Truck className="w-4 h-4 mr-1" />Inspeção de Veículo</TabsTrigger>
-          <TabsTrigger value="deposito"><Warehouse className="w-4 h-4 mr-1" />Inspeção de Depósito</TabsTrigger>
-          <TabsTrigger value="temp_umid"><Thermometer className="w-4 h-4 mr-1" />Temp / Umidade</TabsTrigger>
-          <TabsTrigger value="historico"><ClipboardList className="w-4 h-4 mr-1" />Histórico ({registros.length})</TabsTrigger>
+          <TabsTrigger value="veiculo">
+            <Truck className="w-4 h-4 mr-1" />
+            Inspeção de Veículo
+          </TabsTrigger>
+          <TabsTrigger value="deposito">
+            <Warehouse className="w-4 h-4 mr-1" />
+            Inspeção de Depósito
+          </TabsTrigger>
+          <TabsTrigger value="temp_umid">
+            <Thermometer className="w-4 h-4 mr-1" />
+            Temp / Umidade
+          </TabsTrigger>
+          <TabsTrigger value="historico">
+            <ClipboardList className="w-4 h-4 mr-1" />
+            Histórico ({registros.length})
+          </TabsTrigger>
         </TabsList>
 
         {/* ── INSPEÇÃO DE VEÍCULO ── */}
@@ -358,10 +340,12 @@ export default function ArmazenamentoTransporte() {
               <div className="flex items-start gap-3">
                 <Truck className="w-6 h-6 text-primary mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-sm">POP-02 / PL POP 2.4 — Inspeção e Higiene de Veículos de Transporte (IN 15/2009)</h4>
+                  <h4 className="font-semibold text-sm">
+                    POP-02 / PL POP 2.4 — Inspeção e Higiene de Veículos de Transporte{" "}
+                  </h4>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Todo veículo de transporte de matéria-prima ou produto acabado deve ser inspecionado
-                    quanto a limpeza, integridade e ausência de contaminantes antes da carga/descarga.
+                    Todo veículo de transporte de matéria-prima ou produto acabado deve ser inspecionado quanto a
+                    limpeza, integridade e ausência de contaminantes antes da carga/descarga.
                   </p>
                 </div>
               </div>
@@ -369,16 +353,38 @@ export default function ArmazenamentoTransporte() {
           </Card>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div><Label>Data *</Label><Input type="date" value={veicData} onChange={e => setVeicData(e.target.value)} /></div>
-            <div><Label>Responsável *</Label><Input value={veicResp} onChange={e => setVeicResp(e.target.value)} placeholder="Nome do inspetor" /></div>
-            <div><Label>Placa do Veículo</Label><Input value={veicPlaca} onChange={e => setVeicPlaca(e.target.value.toUpperCase())} placeholder="ABC-1234" /></div>
-            <div><Label>Transportadora</Label><Input value={veicTransportadora} onChange={e => setVeicTransportadora(e.target.value)} placeholder="Nome da empresa" /></div>
+            <div>
+              <Label>Data *</Label>
+              <Input type="date" value={veicData} onChange={(e) => setVeicData(e.target.value)} />
+            </div>
+            <div>
+              <Label>Responsável *</Label>
+              <Input value={veicResp} onChange={(e) => setVeicResp(e.target.value)} placeholder="Nome do inspetor" />
+            </div>
+            <div>
+              <Label>Placa do Veículo</Label>
+              <Input
+                value={veicPlaca}
+                onChange={(e) => setVeicPlaca(e.target.value.toUpperCase())}
+                placeholder="ABC-1234"
+              />
+            </div>
+            <div>
+              <Label>Transportadora</Label>
+              <Input
+                value={veicTransportadora}
+                onChange={(e) => setVeicTransportadora(e.target.value)}
+                placeholder="Nome da empresa"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Tipo de Carga</Label>
               <Select value={veicTipoCarga} onValueChange={setVeicTipoCarga}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ensacado">Ensacado / Paletizado</SelectItem>
                   <SelectItem value="granel">Granel</SelectItem>
@@ -387,7 +393,10 @@ export default function ArmazenamentoTransporte() {
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Observações</Label><Input value={veicObs} onChange={e => setVeicObs(e.target.value)} placeholder="Observações gerais..." /></div>
+            <div>
+              <Label>Observações</Label>
+              <Input value={veicObs} onChange={(e) => setVeicObs(e.target.value)} placeholder="Observações gerais..." />
+            </div>
           </div>
 
           {renderChecklist(CHECKLIST_VEICULO, veicChecklist, setVeicChecklist)}
@@ -407,8 +416,8 @@ export default function ArmazenamentoTransporte() {
                 <div>
                   <h4 className="font-semibold text-sm">POP-01 — Inspeção de Depósito / Armazém de MP e PA</h4>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Verificação periódica das condições de armazenamento, incluindo temperatura, umidade,
-                    organização, identificação de lotes e prevenção contra pragas e contaminação.
+                    Verificação periódica das condições de armazenamento, incluindo temperatura, umidade, organização,
+                    identificação de lotes e prevenção contra pragas e contaminação.
                   </p>
                 </div>
               </div>
@@ -416,15 +425,37 @@ export default function ArmazenamentoTransporte() {
           </Card>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div><Label>Data *</Label><Input type="date" value={depData} onChange={e => setDepData(e.target.value)} /></div>
-            <div><Label>Responsável *</Label><Input value={depResp} onChange={e => setDepResp(e.target.value)} placeholder="Nome" /></div>
-            <div><Label>Local / Depósito</Label><Input value={depLocal} onChange={e => setDepLocal(e.target.value)} placeholder="Ex: Depósito MP, PA..." /></div>
+            <div>
+              <Label>Data *</Label>
+              <Input type="date" value={depData} onChange={(e) => setDepData(e.target.value)} />
+            </div>
+            <div>
+              <Label>Responsável *</Label>
+              <Input value={depResp} onChange={(e) => setDepResp(e.target.value)} placeholder="Nome" />
+            </div>
+            <div>
+              <Label>Local / Depósito</Label>
+              <Input
+                value={depLocal}
+                onChange={(e) => setDepLocal(e.target.value)}
+                placeholder="Ex: Depósito MP, PA..."
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              <div><Label>Temp (°C)</Label><Input type="number" value={depTemp} onChange={e => setDepTemp(e.target.value)} placeholder="25" /></div>
-              <div><Label>Umid (%)</Label><Input type="number" value={depUmid} onChange={e => setDepUmid(e.target.value)} placeholder="60" /></div>
+              <div>
+                <Label>Temp (°C)</Label>
+                <Input type="number" value={depTemp} onChange={(e) => setDepTemp(e.target.value)} placeholder="25" />
+              </div>
+              <div>
+                <Label>Umid (%)</Label>
+                <Input type="number" value={depUmid} onChange={(e) => setDepUmid(e.target.value)} placeholder="60" />
+              </div>
             </div>
           </div>
-          <div><Label>Observações</Label><Input value={depObs} onChange={e => setDepObs(e.target.value)} /></div>
+          <div>
+            <Label>Observações</Label>
+            <Input value={depObs} onChange={(e) => setDepObs(e.target.value)} />
+          </div>
 
           {renderChecklist(CHECKLIST_DEPOSITO, depChecklist, setDepChecklist)}
 
@@ -443,12 +474,16 @@ export default function ArmazenamentoTransporte() {
                 <div>
                   <h4 className="font-semibold text-sm">POP-01 — Controle de Temperatura e Umidade dos Depósitos</h4>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Registro diário ou por turno de temperatura e umidade relativa nos depósitos de
-                    matéria-prima e produto acabado (condições de armazenamento — IN 04/2007).
+                    Registro diário ou por turno de temperatura e umidade relativa nos depósitos de matéria-prima e
+                    produto acabado (condições de armazenamento).
                   </p>
                   <div className="flex gap-2 mt-2">
-                    <Badge variant="outline" className="text-[10px]">Temp ideal: 15–25°C</Badge>
-                    <Badge variant="outline" className="text-[10px]">Umidade ideal: 40–65%</Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      Temp ideal: 15–25°C
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      Umidade ideal: 40–65%
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -458,12 +493,20 @@ export default function ArmazenamentoTransporte() {
           <Card>
             <CardContent className="pt-4 space-y-3">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div><Label>Data *</Label><Input type="date" value={logData} onChange={e => setLogData(e.target.value)} /></div>
-                <div><Label>Hora</Label><Input type="time" value={logHora} onChange={e => setLogHora(e.target.value)} /></div>
+                <div>
+                  <Label>Data *</Label>
+                  <Input type="date" value={logData} onChange={(e) => setLogData(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Hora</Label>
+                  <Input type="time" value={logHora} onChange={(e) => setLogHora(e.target.value)} />
+                </div>
                 <div>
                   <Label>Local *</Label>
                   <Select value={logLocal} onValueChange={setLogLocal}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Depósito MP">Depósito Matéria-Prima</SelectItem>
                       <SelectItem value="Depósito PA">Depósito Produto Acabado</SelectItem>
@@ -474,12 +517,36 @@ export default function ArmazenamentoTransporte() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div><Label>Responsável *</Label><Input value={logResp} onChange={e => setLogResp(e.target.value)} placeholder="Nome" /></div>
+                <div>
+                  <Label>Responsável *</Label>
+                  <Input value={logResp} onChange={(e) => setLogResp(e.target.value)} placeholder="Nome" />
+                </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div><Label>Temperatura (°C) *</Label><Input type="number" step="0.1" value={logTemp} onChange={e => setLogTemp(e.target.value)} placeholder="Ex: 24.5" /></div>
-                <div><Label>Umidade Relativa (%) *</Label><Input type="number" step="0.1" value={logUmid} onChange={e => setLogUmid(e.target.value)} placeholder="Ex: 58" /></div>
-                <div><Label>Observações</Label><Input value={logObs} onChange={e => setLogObs(e.target.value)} placeholder="Opcional" /></div>
+                <div>
+                  <Label>Temperatura (°C) *</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={logTemp}
+                    onChange={(e) => setLogTemp(e.target.value)}
+                    placeholder="Ex: 24.5"
+                  />
+                </div>
+                <div>
+                  <Label>Umidade Relativa (%) *</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={logUmid}
+                    onChange={(e) => setLogUmid(e.target.value)}
+                    placeholder="Ex: 58"
+                  />
+                </div>
+                <div>
+                  <Label>Observações</Label>
+                  <Input value={logObs} onChange={(e) => setLogObs(e.target.value)} placeholder="Opcional" />
+                </div>
               </div>
 
               {/* Alerts */}
@@ -489,8 +556,16 @@ export default function ArmazenamentoTransporte() {
                     <AlertTriangle className="w-5 h-5 text-destructive" />
                     <span className="text-xs font-semibold text-destructive">Alerta de Condição Ambiental</span>
                   </div>
-                  {parseFloat(logTemp) > 30 && <p className="text-xs text-destructive mt-1">⚠️ Temperatura acima de 30°C — risco para ingredientes sensíveis e formação de micotoxinas.</p>}
-                  {parseFloat(logUmid) > 70 && <p className="text-xs text-destructive mt-1">⚠️ Umidade acima de 70% — risco de formação de fungos e degradação de produto.</p>}
+                  {parseFloat(logTemp) > 30 && (
+                    <p className="text-xs text-destructive mt-1">
+                      ⚠️ Temperatura acima de 30°C — risco para ingredientes sensíveis e formação de micotoxinas.
+                    </p>
+                  )}
+                  {parseFloat(logUmid) > 70 && (
+                    <p className="text-xs text-destructive mt-1">
+                      ⚠️ Umidade acima de 70% — risco de formação de fungos e degradação de produto.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -509,13 +584,15 @@ export default function ArmazenamentoTransporte() {
               </CardHeader>
               <CardContent className="px-0 pb-0">
                 <Table>
-                  <TableHeader><TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Local</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Detalhes</TableHead>
-                  </TableRow></TableHeader>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Local</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Detalhes</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {tempRegistros.slice(0, 30).map((r: any) => (
                       <TableRow key={r.id}>
@@ -523,7 +600,13 @@ export default function ArmazenamentoTransporte() {
                         <TableCell>{r.setor}</TableCell>
                         <TableCell>{r.executor}</TableCell>
                         <TableCell>
-                          <Badge className={r.status === "concluido" ? "bg-primary/20 text-primary text-[10px]" : "bg-destructive/20 text-destructive text-[10px]"}>
+                          <Badge
+                            className={
+                              r.status === "concluido"
+                                ? "bg-primary/20 text-primary text-[10px]"
+                                : "bg-destructive/20 text-destructive text-[10px]"
+                            }
+                          >
                             {r.status === "concluido" ? "OK" : "Alerta"}
                           </Badge>
                         </TableCell>
@@ -544,36 +627,46 @@ export default function ArmazenamentoTransporte() {
               <Download className="w-4 h-4 mr-1" /> Exportar CSV
             </Button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <Card><CardContent className="pt-4 text-center">
-              <p className="text-2xl font-bold text-primary">{veicRegistros.length}</p>
-              <p className="text-[10px] text-muted-foreground">Inspeções de Veículo</p>
-            </CardContent></Card>
-            <Card><CardContent className="pt-4 text-center">
-              <p className="text-2xl font-bold text-primary">{depRegistros.length}</p>
-              <p className="text-[10px] text-muted-foreground">Inspeções de Depósito</p>
-            </CardContent></Card>
-            <Card><CardContent className="pt-4 text-center">
-              <p className="text-2xl font-bold text-primary">{tempRegistros.length}</p>
-              <p className="text-[10px] text-muted-foreground">Leituras Temp/Umid</p>
-            </CardContent></Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <Card>
+              <CardContent className="pt-4 text-center">
+                <p className="text-2xl font-bold text-primary">{veicRegistros.length}</p>
+                <p className="text-[10px] text-muted-foreground">Inspeções de Veículo</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 text-center">
+                <p className="text-2xl font-bold text-primary">{depRegistros.length}</p>
+                <p className="text-[10px] text-muted-foreground">Inspeções de Depósito</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 text-center">
+                <p className="text-2xl font-bold text-primary">{tempRegistros.length}</p>
+                <p className="text-[10px] text-muted-foreground">Leituras Temp/Umid</p>
+              </CardContent>
+            </Card>
           </div>
 
           {registros.length === 0 ? (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">
-              <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p>Nenhum registro encontrado</p>
-            </CardContent></Card>
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p>Nenhum registro encontrado</p>
+              </CardContent>
+            </Card>
           ) : (
             <Card>
               <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Executor</TableHead>
-                  <TableHead>Setor</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Executor</TableHead>
+                    <TableHead>Setor</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {registros.map((r: any) => (
                     <TableRow key={r.id}>
@@ -582,7 +675,13 @@ export default function ArmazenamentoTransporte() {
                       <TableCell>{r.executor}</TableCell>
                       <TableCell className="text-xs">{r.setor}</TableCell>
                       <TableCell>
-                        <Badge className={r.status === "concluido" ? "bg-primary/20 text-primary text-[10px]" : "bg-destructive/20 text-destructive text-[10px]"}>
+                        <Badge
+                          className={
+                            r.status === "concluido"
+                              ? "bg-primary/20 text-primary text-[10px]"
+                              : "bg-destructive/20 text-destructive text-[10px]"
+                          }
+                        >
                           {r.status === "concluido" ? "Conforme" : "NC"}
                         </Badge>
                       </TableCell>

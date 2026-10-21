@@ -14,6 +14,8 @@ export interface Empresa {
   capacidade: string | null;
   origem_agua?: "poco" | "concessionaria" | null;
   prefixo_doc?: string | null;
+  config_modos_preenchimento?: Record<string, "digital" | "hibrido">;
+  limite_pontos_digitais?: number;
 }
 
 interface EmpresaContextType {

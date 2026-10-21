@@ -1,5 +1,6 @@
 // Worker de cadências de vendas — processa envios pendentes (email + WhatsApp)
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendTemplateEmailLogged } from '../_shared/transactional-email-templates/send-and-log.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -76,21 +77,14 @@ Deno.serve(async (req) => {
           if (!r.ok) throw new Error(`WhatsApp ${r.status}: ${(await r.text()).slice(0, 200)}`);
         } else if (passo.canal === 'email') {
           if (!exec.lead_email) throw new Error('Sem email');
-          const r = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SERVICE_KEY}` },
-            body: JSON.stringify({
-              templateName: 'crm-message',
-              recipientEmail: exec.lead_email,
-              idempotencyKey: `cad-${exec.id}-${exec.passo_atual}`,
-              templateData: {
-                assunto: renderVars(passo.assunto || 'Mensagem BPF Consult', vars),
-                corpo_html: renderVars(passo.corpo, vars),
-                remetente_nome: 'Equipe Comercial BPF Consult',
-              },
-            }),
+          await sendTemplateEmailLogged(supabase, 'crm-message', exec.lead_email, {
+            idempotencyKey: `cad-${exec.id}-${exec.passo_atual}`,
+            templateData: {
+              assunto: renderVars(passo.assunto || 'Mensagem BPF Consult', vars),
+              corpo_html: renderVars(passo.corpo, vars),
+              remetente_nome: 'Equipe Comercial BPF Consult',
+            },
           });
-          if (!r.ok) throw new Error(`Email ${r.status}: ${(await r.text()).slice(0, 200)}`);
         }
 
         results.enviadas++;

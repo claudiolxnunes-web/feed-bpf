@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { POPS_CUSTOM, type CampoModelo, type CampoTipo } from "@/config/feedBpfCustomConfig";
 import { toast } from "sonner";
+import { importarTemplateManualBPF } from "@/utils/importarTemplateManual";
+import { Book } from "lucide-react";
 
 interface Modelo {
   id: string;
@@ -81,12 +83,38 @@ export default function MeusModelos() {
     <div className="space-y-6">
       <PageHeader icon={Layers} title="Meus Modelos" description="Formulários digitais construídos a partir dos SEUS modelos" />
 
-      <Dialog open={novoOpen} onOpenChange={setNovoOpen}>
-        <DialogTrigger asChild>
-          <Button className="bg-emerald-600 hover:bg-emerald-700"><Plus className="w-4 h-4 mr-2" /> Novo modelo</Button>
-        </DialogTrigger>
-        <ModeloEditor open={novoOpen} onClose={() => { setNovoOpen(false); carregar(); }} empresaId={empresaId} userId={user!.id} modelo={null} />
-      </Dialog>
+      <div className="flex flex-wrap gap-2">
+        <Dialog open={novoOpen} onOpenChange={setNovoOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-emerald-600 hover:bg-emerald-700">
+              <Plus className="w-4 h-4 mr-2" /> Novo modelo
+            </Button>
+          </DialogTrigger>
+          <ModeloEditor 
+            open={novoOpen} 
+            onClose={() => { setNovoOpen(false); carregar(); }} 
+            empresaId={empresaId} 
+            userId={user!.id} 
+            modelo={null} 
+          />
+        </Dialog>
+
+        <Button 
+          variant="outline" 
+          className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+          onClick={async () => {
+            const res = await importarTemplateManualBPF(empresaId, user!.id);
+            if (res.success) {
+              toast.success("Manual e ITs importados com sucesso!");
+              carregar();
+            } else {
+              toast.error("Erro ao importar template.");
+            }
+          }}
+        >
+          <Book className="w-4 h-4 mr-2" /> Importar Manual BPF
+        </Button>
+      </div>
 
       {editando && (
         <Dialog open={!!editando} onOpenChange={(o) => !o && setEditando(null)}>

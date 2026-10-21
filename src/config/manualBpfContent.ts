@@ -1,11 +1,17 @@
+import { getBaseLegal, ORIENTACOES_PAC } from "@/config/baseLegal";
+import { citar798 } from "@/config/carryOver798";
 import { DOCUMENTOS_ATIVACAO_CHECKLIST } from "@/config/documentosAtivacaoChecklist";
+import manualBpfDocAsset from "@/assets/modelos/manual_bpf.docx.asset.json";
 
 export interface ManualBpfSection {
   id: string;
   numero: string;
   titulo: string;
   conteudo: string[];
+  linkModelo?: string;
 }
+
+export const MANUAL_BPF_ASSET_URL = manualBpfDocAsset.url;
 
 export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
   {
@@ -28,7 +34,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     numero: "2",
     titulo: "Objetivo",
     conteudo: [
-      "O Manual de Boas Práticas de Fabricação tem como base a Instrução Normativa 04, de 13 de fevereiro de 2007 — Regulamentos Técnicos sobre as condições higiênico-sanitárias e de boas práticas de fabricação para estabelecimentos fabricantes de alimentos para animais.",
+      `O Manual de Boas Práticas de Fabricação tem como base a ${getBaseLegal("bpf_geral").citacao} — Regulamentos Técnicos sobre as condições higiênico-sanitárias e de boas práticas de fabricação para estabelecimentos fabricantes de alimentos para animais.`,
       "O objetivo é estabelecer diretrizes relativas à implementação e gestão das normas internas que regem as boas práticas de fabricação na unidade, assegurando que os requisitos essenciais sejam adequadamente seguidos e compreendidos.",
       "O manual descreve as operações realizadas na planta, englobando: higiene sanitária, higienização das instalações, equipamentos e utensílios, controle de pragas, controle da qualidade da água, controle dos hábitos higiênicos e saúde dos funcionários, garantia da rastreabilidade e qualidade do produto final, e prevenção da contaminação cruzada.",
     ],
@@ -112,7 +118,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     numero: "5.4",
     titulo: "Gestão de Saúde dos Manipuladores e ASO (POP 03)",
     conteudo: [
-      "A empresa mantém programa de controle de saúde dos manipuladores conforme NR-7 (PCMSO) e POP 03 da IN 04/2007.",
+      `A empresa mantém programa de controle de saúde dos manipuladores conforme NR-7 (PCMSO) e POP 03 da ${getBaseLegal("bpf_geral").citacao}.`,
       "─── EXAMES OBRIGATÓRIOS ───",
       "Todo colaborador da área de produção e manipulação deve possuir ASO (Atestado de Saúde Ocupacional) válido, emitido por médico do trabalho, contemplando os seguintes exames:",
       "• Admissional: realizado antes do início das atividades.",
@@ -135,7 +141,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     numero: "5.5",
     titulo: "Potabilidade da Água e Higienização dos Reservatórios (POP 04)",
     conteudo: [
-      "A água utilizada na empresa é potável e monitorada conforme orientação do POP 04 da IN 04/2007 e Portaria GM/MS 888/2021.",
+      `A água utilizada na empresa é potável e monitorada conforme orientação do POP 04 da ${getBaseLegal("bpf_geral").citacao} e Portaria GM/MS 888/2021.`,
       "─── ORIGEM E DISTRIBUIÇÃO ───",
       "A origem da água pode ser de rede pública de abastecimento ou poço artesiano, com potabilidade controlada por laudos periódicos.",
       "A água chega por encanamento até as caixas d'água, que abastecem sanitários, bebedouros e áreas de produção.",
@@ -208,7 +214,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
       "Para realizar a rastreabilidade verifica-se: identificação da ração (número do lote) → identificação da Ordem de Produção → lotes das MP e embalagens.",
       "O procedimento de recall aplica-se em situações como: contaminação identificada após liberação dos produtos, ou prejuízo da imagem da empresa. A empresa possui equipe de recall e planos de ação para recolhimento ágil e seguro.",
       "Etapas do recall: Detectar → Acionar equipe → Comunicar → Rastrear produto no mercado → Isolar e recolher → Avaliar condições → Repor cliente → Tratar NC e realizar ações preventivas/corretivas.",
-      "O sistema realiza testes de recall simulado com cronômetro, medindo a eficiência da equipe para rastrear um lote em até 4 horas, conforme Art. 28 do Decreto 12.031/2024.",
+      `O sistema realiza testes de recall simulado com cronômetro, medindo a eficiência da equipe para rastrear um lote em até 4 horas, conforme ${getBaseLegal("recolhimento_recall").citacao}.`,
     ],
   },
   {
@@ -217,6 +223,9 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     titulo: "Programa de Autocontrole — PAC (POP 10)",
     conteudo: [
       "O Programa de Autocontrole (PAC) é o instrumento central de gestão da qualidade da empresa, integrando todos os 9 POPs obrigatórios e o Manual de BPF em um ciclo contínuo de verificação, auditoria e melhoria.",
+      ORIENTACOES_PAC.origem,
+      ORIENTACOES_PAC.requisitos,
+      ORIENTACOES_PAC.perigos,
       "─── ESTRUTURA DO PAC ───",
       "O PAC é composto por três pilares:",
       "1. CHECKLIST MENSAL DE AUTOCONTROLE (PL POP 10.1): Verificação mensal de conformidade de cada POP. Avalia se os registros estão completos, assinados e dentro do prazo de retenção.",
@@ -250,15 +259,17 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
       "• Dietilestilbestrol (DES) e outros hormônios sintéticos proibidos",
       "• Avoparcina, olaquindox e carbadox",
       "─── SUBSTÂNCIAS COM LIMITES ───",
-      "• Ionóforos (monensina, salinomicina, lasalocida): carry-over máximo < 1% para produtos sem medicamento",
-      "• Medicamentos veterinários: carry-over máximo < 3% para espécies não-alvo",
+      `• Carry-over: o produto fabricado logo depois pode ter até 2,5% da concentração do princípio ativo, comprovado em 3 repetições da sequência-piloto (${citar798("art. 29")} e §1º)`,
+      `• Amostra coletada no último ponto compartilhado da linha (${citar798("art. 28, IV")})`,
+      `• Homogeneidade: CV até 10% no método de concentração (${citar798("art. 26")})`,
+      `• Produto não-alvo verificado no mínimo a cada 12 meses (${citar798("art. 25, V, b")}); registros guardados por 2 anos`,
       "• Micotoxinas — Aflatoxina: limite máximo ≤ 20 ppb (µg/kg) para rações",
       "• Metais pesados: conforme limites da legislação vigente",
       "─── CONTROLES IMPLEMENTADOS ───",
       "O sistema monitora continuamente:",
       "• Certificados de análise de cada lote de matéria-prima recebida",
       "• Testes de carry-over após limpeza de linha (flushing, HPLC, swab)",
-      "• Sequenciamento de produção baseado na Matriz de Sensibilidade",
+      `• Plano de sequenciamento validado ou limpeza validada, a partir da Matriz de Sensibilidade (${citar798("art. 25, II")})`,
       "• Rastreabilidade de ingredientes de origem animal (alertas EEB automáticos)",
       "• Laudos laboratoriais de micotoxinas e resíduos químicos",
     ],
@@ -287,7 +298,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     numero: "5.14",
     titulo: "Retenção de Amostras de Contraprova",
     conteudo: [
-      "A empresa mantém programa de retenção de amostras (contraprova) conforme exigido pela IN 04/2007 e pelo Decreto 12.031/2024.",
+      `A empresa mantém programa de retenção de amostras (contraprova) como ${getBaseLegal("amostra_arquivo").citacao}; ${getBaseLegal("amostra_arquivo").observacao}.`,
       "─── PROCEDIMENTO ───",
       "Para cada lote de produto acabado fabricado, é retida uma amostra representativa identificada com: nome do produto, número do lote, data de fabricação, data de validade e responsável pela coleta.",
       "As amostras são armazenadas em local seco, protegido da luz solar e identificado, pelo período equivalente ao prazo de validade do produto.",
@@ -326,7 +337,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     numero: "6",
     titulo: "Categorização de Risco do Estabelecimento",
     conteudo: [
-      "FUNDAMENTO LEGAL: A categorização de risco dos estabelecimentos fabricantes de produtos destinados à alimentação animal é regulamentada pelo Decreto nº 12.031/2024, que alterou o Decreto nº 6.296/2007 (RIISPOA Animal), e pela Instrução Normativa nº 17/2017 do MAPA, que estabelece o Regulamento Técnico de Boas Práticas de Fabricação.",
+      `FUNDAMENTO LEGAL: A categorização de risco dos estabelecimentos fabricantes de produtos destinados à alimentação animal é regulamentada pelo ${getBaseLegal("decreto_base").citacao}, cujo antecessor foi revogado, e pela ${getBaseLegal("bpf_geral").citacao} do MAPA, que estabelece o Regulamento Técnico de Boas Práticas de Fabricação.`,
       "OBJETIVO: Classificar o estabelecimento em uma categoria de risco (Baixo, Médio, Alto ou Crítico) com base na avaliação de múltiplos fatores que influenciam a segurança do produto final, orientando a frequência de fiscalização e o nível de controles exigidos pelo MAPA.",
       "─── CRITÉRIOS DE CATEGORIZAÇÃO ───",
       "A categorização de risco considera os seguintes fatores principais, conforme legislação vigente:",
@@ -362,7 +373,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
       "• 50% a 79% de conformidade → Risco MÉDIO (cor amarela)",
       "• < 50% de conformidade → Risco ALTO (cor vermelha)",
       "─── CATEGORIAS DE AVALIAÇÃO ───",
-      "O questionário abrange as seguintes categorias, alinhadas aos POPs e ao Decreto 12.031/2024:",
+      `O questionário abrange as seguintes categorias, alinhadas aos POPs e ao ${getBaseLegal("decreto_base").citacao}:`,
       "1. Infraestrutura e Instalações — Layout, piso, telas, iluminação",
       "2. Higiene e Sanitização — Cronograma, produtos, validação de limpeza",
       "3. Controle de Matérias-Primas — Qualificação de fornecedores, recebimento, substâncias proibidas",
@@ -384,11 +395,11 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
       "• Após ocorrência de NC crítica ou recall",
       "• Quando solicitado pelo SIF/DIPOA/MAPA em fiscalização",
       "─── REFERÊNCIAS NORMATIVAS ───",
-      "• Decreto nº 12.031/2024 — Altera o Decreto 6.296/2007 sobre inspeção e fiscalização de produtos para alimentação animal",
-      "• Instrução Normativa nº 17/2017 — Regulamento Técnico de Boas Práticas de Fabricação",
-      "• Instrução Normativa nº 04/2007 — Regulamento Técnico sobre condições higiênico-sanitárias",
+      `• ${getBaseLegal("autocontrole").citacao} — Programas de autocontrole e classificação de perigos`,
+      `• ${getBaseLegal("bpf_geral").citacao} — Regulamento Técnico de Boas Práticas de Fabricação`,
+      `• ${getBaseLegal("bpf_geral").citacao} — Regulamento Técnico sobre condições higiênico-sanitárias`,
       "• Instrução Normativa nº 15/2009 — Substâncias proibidas e indesejáveis na alimentação animal",
-      "• Instrução Normativa nº 22/2009 — Rotulagem de produtos destinados à alimentação animal",
+      `• ${getBaseLegal("rotulagem").citacao} — Rotulagem de produtos destinados à alimentação animal`,
       "• Instrução Normativa nº 12/2004 — Cadastro de estabelecimentos e produtos no SIPEAGRO",
       "• NOTA: Utilize o módulo 'Matriz de Risco' > aba 'Questionário de Risco' do sistema para realizar a avaliação automatizada com cálculo de pontuação em tempo real.",
     ],
@@ -444,11 +455,11 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
       "As ITs são revisadas anualmente junto com os POPs ou sempre que houver mudança no processo, equipamento ou legislação. Todas as ITs estão disponíveis para consulta no Guia dos POPs (/guia-pops) e como modelos na Biblioteca de Modelos (/modelos).",
       "Os operadores devem ser treinados nas ITs pertinentes às suas funções antes de executar as atividades. O registro do treinamento é feito no módulo de Treinamentos.",
       "─── REGISTRO DA EXECUÇÃO (DIÁRIO OPERACIONAL) ───",
-      "Toda execução de POP/IT deve ser registrada no módulo Execução de ITs/POPs (/execucao-pops), que funciona como o diário de bordo digital da fábrica. Este registro é a evidência exigida pelo MAPA (IN 04/2007 Art. 4º e Decreto 12.031/2024) de que os procedimentos não ficam apenas no papel.",
+      `Toda execução de POP/IT deve ser registrada no módulo Execução de ITs/POPs (/execucao-pops), que funciona como o diário de bordo digital da fábrica. Este registro é a evidência exigida pelo MAPA (${getBaseLegal("bpf_geral").citacao} Art. 4º e ${getBaseLegal("decreto_base").citacao}) de que os procedimentos não ficam apenas no papel.`,
       "• Painel de alertas: o sistema monitora a periodicidade de cada POP (POP-02 e POP-05 = 7 dias; POP-06 = 7 dias; POP-01, POP-03, POP-04, POP-07, POP-09 = 30 dias; POP-08 = 90 dias) e exibe em vermelho qualquer POP com execução atrasada.",
-      "• Checklist específico por POP: ao registrar uma execução, o sistema carrega automaticamente o checklist do POP escolhido (12 itens triagem + ASO para POP-02; 15 itens limpeza + produto químico para POP-03; 11 itens potabilidade + laudo para POP-04; 16 itens higiene pessoal para POP-05; 8 itens vistoria veículo para POP-09).",
+      "• Checklist específico por POP: ao registrar uma execução, o sistema carrega automaticamente o checklist do POP escolhido (ex: Limpeza para POP-02; Saúde e ASO para POP-03; Potabilidade para POP-04; Controle de Produção para POP-05; Vistoria de Veículo para POP-09).",
       "• Filtros de período: status, POP/IT, data início e data fim — permitindo gerar relatórios mensais, trimestrais ou por setor para auditoria.",
-      "• Carimbo anti-fraude: cada execução exportada em PDF recebe selo SHA-256 + data/hora conforme MP 2.200-2/2001.",
+      `• Registro com identificação do responsável, data e hora; selo de integridade nas execuções exportadas em PDF. Referência: ${getBaseLegal("autocontrole").norma} (${getBaseLegal("autocontrole").artigo}, §3º).`,
       "Recomenda-se ao Responsável Técnico revisar este painel diariamente e não permitir que nenhum POP fique com status de atraso por mais de 48h.",
     ],
   },
@@ -461,7 +472,7 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
       "O preenchimento padrão recomendado é: versão 01, data de revisão 2026-04-22, próxima revisão 2027-04-22, status Ativo e responsável 'Responsável Técnico / Qualidade'.",
       `Checklist-base: ${DOCUMENTOS_ATIVACAO_CHECKLIST.map((item) => `${item.codigo} — ${item.nome}`).join(" | ")}`,
       "Este cadastro inicial habilita os vínculos automáticos entre Documentos, Guia de POPs/ITs, planilhas físicas impressas, planilhas digitais e diário operacional.",
-      "As impressões devem manter o carimbo de impressão e os PDFs/exportações devem preservar o carimbo anti-fraude SHA-256 para rastreabilidade documental.",
+      "As impressões devem manter o carimbo de impressão e os PDFs/exportações devem preservar o selo de integridade para rastreabilidade documental.",
     ],
   },
   {
@@ -471,24 +482,24 @@ export const MANUAL_BPF_SECTIONS: ManualBpfSection[] = [
     conteudo: [
       "Este Manual e os POPs associados foram elaborados em conformidade com a seguinte legislação vigente:",
       "─── LEGISLAÇÃO FEDERAL ───",
-      "• Decreto nº 12.031/2024 — Inspeção e fiscalização de produtos destinados à alimentação animal",
-      "• Instrução Normativa nº 04/2007 — Condições higiênico-sanitárias e BPF",
+      `• ${getBaseLegal("autocontrole").citacao} — Programas de autocontrole e classificação de perigos`,
+      `• ${getBaseLegal("bpf_geral").citacao} — Condições higiênico-sanitárias e BPF`,
       "• Instrução Normativa nº 15/2009 — Substâncias proibidas, indesejáveis e contaminantes",
-      "• Instrução Normativa nº 17/2017 — Regulamento Técnico de BPF (categorização de risco)",
-      "• Instrução Normativa nº 22/2009 — Rotulagem de produtos para alimentação animal",
+      `• ${getBaseLegal("bpf_geral").citacao} — Regulamento Técnico de BPF`,
+      `• ${getBaseLegal("rotulagem").citacao} — Rotulagem de produtos para alimentação animal`,
       "• Instrução Normativa nº 12/2004 — Cadastro de estabelecimentos e produtos (SIPEAGRO)",
-      "• Instrução Normativa nº 30/2009 — Critérios para registro de rações e suplementos",
+      `• ${getBaseLegal("rotulagem").citacao} — Critérios para registro de rações e suplementos`,
       "─── NORMAS TÉCNICAS ───",
       "• Portaria de Potabilidade da Água (MS) — Parâmetros microbiológicos e físico-químicos",
       "• NR-6, NR-7, NR-9 do MTE — Segurança e saúde ocupacional",
       "• INMETRO — Calibração de instrumentos de medição",
       "─── SISTEMA FEED BPF ───",
       "Todos os módulos do sistema estão alinhados com as exigências normativas acima, cobrindo:",
-      "• 10 POPs obrigatórios com planilhas digitais (PL POP 1.1 a 10.3)",
-      "• Checklists de liberação de linha e carry-over (IN 15/2009)",
-      "• Rastreabilidade bidirecional e recall simulado (Decreto 12.031/2024)",
-      "• Categorização de risco automatizada (IN 17/2017)",
-      "• Sala do Auditor com 68 itens de fiscalização (Decreto 12.031/2024)",
+      "• 9 POPs de BPF e o PAC organizado como POP 10, com planilhas digitais (PL POP 1.1 a 10.3)",
+      `• Checklists de liberação de linha e carry-over (${getBaseLegal("alimentos_medicados").citacao})`,
+      `• Rastreabilidade bidirecional e recall simulado (${getBaseLegal("rastreabilidade").citacao}; ${getBaseLegal("recolhimento_recall").citacao})`,
+      `• Categorização de risco automatizada (${getBaseLegal("autocontrole").citacao})`,
+      `• Sala do Auditor com 68 itens de fiscalização (${getBaseLegal("autocontrole").citacao})`,
       "• Controle de substâncias proibidas e alertas EEB (IN 15/2009)",
       "• Controle de visitantes e biosseguridade (IN 15/2009)",
       "• Gestão de ASOs com alertas automáticos de vencimento anual",

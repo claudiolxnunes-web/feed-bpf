@@ -13,6 +13,9 @@ const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // batch máximo por execução (por segurança)
 const MAX_PER_RUN = 12;
+// orçamento de tempo por execução (cron 1 min) e tempo p/ considerar 'enviando' travado
+const TIME_BUDGET_MS = 40_000;
+const STUCK_MINUTES = 5;
 
 interface Campanha {
   id: string;
@@ -45,7 +48,18 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
   const summary = { processadas: 0, enviadas: 0, erros: 0, optouts: 0, campanhas: 0 };
 
+  const startedAt = Date.now();
+  const timeLeft = () => TIME_BUDGET_MS - (Date.now() - startedAt);
+
   try {
+    // 0. Recuperação: re-enfileira mensagens travadas em 'enviando' (execução anterior morreu)
+    const stuckBefore = new Date(Date.now() - STUCK_MINUTES * 60_000).toISOString();
+    const { error: recErr } = await supabase.from('campanha_mensagens')
+      .update({ status: 'pendente' })
+      .eq('status', 'enviando')
+      .lt('agendado_para', stuckBefore);
+    if (recErr) console.error('recovery error', recErr);
+
     // 1. Buscar campanhas ativas
     const { data: campanhas, error: campErr } = await supabase
       .from('campanhas')
@@ -59,6 +73,7 @@ Deno.serve(async (req) => {
     }
 
     for (const camp of campanhas as Campanha[]) {
+      if (timeLeft() < 8_000) break;
       summary.campanhas++;
 
       // Reset contador diário
@@ -112,13 +127,15 @@ Deno.serve(async (req) => {
       let contadorOptouts = 0;
 
       for (const msg of mensagens) {
+        if (timeLeft() < 8_000) break; // deixa o restante como 'pendente' p/ próxima execução
         summary.processadas++;
 
-        // marca enviando (lock leve)
-        await supabase.from('campanha_mensagens').update({
+        // marca enviando (lock leve); se outra execução pegou, pula
+        const { data: locked } = await supabase.from('campanha_mensagens').update({
           status: 'enviando',
           tentativas: msg.tentativas + 1,
-        }).eq('id', msg.id).eq('status', 'pendente');
+        }).eq('id', msg.id).eq('status', 'pendente').select('id');
+        if (!locked || locked.length === 0) continue;
 
         // Verifica opt-out
         const { data: opt } = await supabase
@@ -140,6 +157,7 @@ Deno.serve(async (req) => {
         try {
           const resp = await fetch(`${SUPABASE_URL}/functions/v1/evolution-send`, {
             method: 'POST',
+            signal: AbortSignal.timeout(15_000),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${SERVICE_KEY}`,
@@ -179,7 +197,7 @@ Deno.serve(async (req) => {
         }
 
         // Pequena pausa entre envios no mesmo run (2s) — o ritmo real vem de agendado_para
-        await new Promise((r) => setTimeout(r, 2000));
+        if (timeLeft() > 10_000) await new Promise((r) => setTimeout(r, 1000));
       }
 
       // Atualiza contadores da campanha

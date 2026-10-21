@@ -4,6 +4,7 @@
 // instance goes offline, sends an e-mail alert (once per outage) and tries to
 // push a WhatsApp warning as best-effort.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { sendTemplateEmailLogged } from '../_shared/transactional-email-templates/send-and-log.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -118,20 +119,10 @@ Deno.serve(async (req) => {
 
       for (const to of recipients) {
         try {
-          const resp = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            },
-            body: JSON.stringify({
-              template_name: 'whatsapp-alert',
-              recipient_email: to,
-              template_data: templateData,
-              idempotency_key: `wa-alert-${cfg.id}-${new Date().toISOString().slice(0, 13)}`,
-            }),
+          await sendTemplateEmailLogged(admin, 'whatsapp-alert', to, {
+            idempotencyKey: `wa-alert-${cfg.id}-${new Date().toISOString().slice(0, 13)}`,
+            templateData,
           });
-          if (!resp.ok) console.error('email fail', to, await resp.text());
         } catch (e) {
           console.error('email err', to, e);
         }

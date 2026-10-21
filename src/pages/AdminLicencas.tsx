@@ -12,7 +12,15 @@ import { toast } from "sonner";
 import { Shield, UserCheck, UserX, Loader2, RefreshCw, Building2, Search, Plus } from "lucide-react";
 import { canAccessLicenseAdmin } from "@/config/adminAccess";
 import { getProductLabel, PRODUCT_LABELS } from "@/utils/productUtils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 interface LicenseEntry {
@@ -49,10 +57,10 @@ const ACCESS_LEVEL_LABELS: Record<string, string> = {
   avancado: "Avançado",
 };
 
-export default function AdminLicencas({ 
-  isTab = false, 
-  product: forcedProduct 
-}: { 
+export default function AdminLicencas({
+  isTab = false,
+  product: forcedProduct,
+}: {
   isTab?: boolean;
   product?: string;
 }) {
@@ -67,11 +75,11 @@ export default function AdminLicencas({
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({ 
-    email: "", 
-    produto: product || "auditsbpf", 
-    dias: "365", 
-    nivel: "entrada" 
+  const [createForm, setCreateForm] = useState({
+    email: "",
+    produto: product || "auditsbpf",
+    dias: "365",
+    nivel: "entrada",
   });
   const [creating, setCreating] = useState(false);
 
@@ -84,7 +92,7 @@ export default function AdminLicencas({
       { value: "nutricrm", label: "NutriCRM" },
       { value: "agrogestao", label: "AgroGestão CRM" },
     ],
-    []
+    [],
   );
 
   const handleCreate = async () => {
@@ -129,9 +137,9 @@ export default function AdminLicencas({
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("admin-licencas", {
-        body: { 
+        body: {
           action: "list",
-          produto: product 
+          produto: product,
         },
       });
       if (error) throw error;
@@ -153,9 +161,9 @@ export default function AdminLicencas({
         (e) =>
           e.empresa_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
           e.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (e.produto || "").toLowerCase().includes(searchTerm.toLowerCase())
+          (e.produto || "").toLowerCase().includes(searchTerm.toLowerCase()),
       ),
-    [entries, searchTerm]
+    [entries, searchTerm],
   );
 
   const grouped = useMemo(() => {
@@ -233,8 +241,8 @@ export default function AdminLicencas({
   };
 
   const handleRevoke = async (entry: LicenseEntry) => {
-      const targetId = entry.licenca_id || entry.id;
-      setActionLoading(targetId + "-revoke");
+    const targetId = entry.licenca_id || entry.id;
+    setActionLoading(targetId + "-revoke");
     try {
       const { error } = await supabase.functions.invoke("admin-licencas", {
         body: { action: "revoke", licenca_id: targetId, empresa_id: entry.empresa_id },
@@ -254,9 +262,7 @@ export default function AdminLicencas({
 
   const daysRemaining = (e: LicenseEntry) => {
     if (e.liberado_admin) return "∞";
-    const diff = Math.ceil(
-      (new Date(e.data_expiracao).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-    );
+    const diff = Math.ceil((new Date(e.data_expiracao).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return diff > 0 ? `${diff}d` : "0d";
   };
   const getEntryTitle = (entry: LicenseEntry) => {
@@ -281,9 +287,7 @@ export default function AdminLicencas({
                   {product ? `Licenças: ${getProductLabel(product)}` : "Licenças por Empresa"}
                 </h1>
                 {product && (
-                  <p className="text-sm text-muted-foreground">
-                    Gerenciando acesso específico para este programa
-                  </p>
+                  <p className="text-sm text-muted-foreground">Gerenciando acesso específico para este programa</p>
                 )}
               </div>
             </div>
@@ -311,7 +315,7 @@ export default function AdminLicencas({
                 Nova Licença
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Criar Licença Manual</DialogTitle>
                 <DialogDescription>
@@ -336,10 +340,14 @@ export default function AdminLicencas({
                     onValueChange={(v) => setCreateForm((p) => ({ ...p, produto: v }))}
                     disabled={!!product}
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {PRODUTOS_OPCOES.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -347,11 +355,10 @@ export default function AdminLicencas({
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label>Período</Label>
-                    <Select
-                      value={createForm.dias}
-                      onValueChange={(v) => setCreateForm((p) => ({ ...p, dias: v }))}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select value={createForm.dias} onValueChange={(v) => setCreateForm((p) => ({ ...p, dias: v }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="30">30 dias</SelectItem>
                         <SelectItem value="90">90 dias</SelectItem>
@@ -362,11 +369,10 @@ export default function AdminLicencas({
                   </div>
                   <div className="space-y-1">
                     <Label>Nível</Label>
-                    <Select
-                      value={createForm.nivel}
-                      onValueChange={(v) => setCreateForm((p) => ({ ...p, nivel: v }))}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    <Select value={createForm.nivel} onValueChange={(v) => setCreateForm((p) => ({ ...p, nivel: v }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="entrada">Entrada</SelectItem>
                         <SelectItem value="intermediario">Intermediário</SelectItem>
@@ -377,7 +383,9 @@ export default function AdminLicencas({
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>Cancelar</Button>
+                <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={creating}>
+                  Cancelar
+                </Button>
                 <Button onClick={handleCreate} disabled={creating}>
                   {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Criar
@@ -397,9 +405,7 @@ export default function AdminLicencas({
           </div>
         ) : filtered.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
-              Nenhuma licença encontrada.
-            </CardContent>
+            <CardContent className="py-12 text-center text-muted-foreground">Nenhuma licença encontrada.</CardContent>
           </Card>
         ) : (
           <div className="space-y-8">
@@ -411,7 +417,7 @@ export default function AdminLicencas({
                   </Badge>
                   <span className="text-xs text-muted-foreground">{prodEntries.length} licença(s)</span>
                 </div>
-                
+
                 <div className="grid gap-3">
                   {prodEntries.map((e) => (
                     <Card key={e.id} className="overflow-hidden">
@@ -424,11 +430,17 @@ export default function AdminLicencas({
                           <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-muted-foreground">
                             <span className="truncate font-mono text-xs">{e.email}</span>
                             <span>·</span>
-                            <Badge variant="outline" className="text-[10px]">{PLAN_LABELS[e.plano] || e.plano}</Badge>
+                            <Badge variant="outline" className="text-[10px]">
+                              {PLAN_LABELS[e.plano] || e.plano}
+                            </Badge>
                             <span>·</span>
-                            <span className="text-xs">Nível: {ACCESS_LEVEL_LABELS[e.nivel || ""] || "Não definido"}</span>
+                            <span className="text-xs">
+                              Nível: {ACCESS_LEVEL_LABELS[e.nivel || ""] || "Não definido"}
+                            </span>
                             <span>·</span>
-                            <span className="text-xs">Exp: {new Date(e.data_expiracao).toLocaleDateString("pt-BR")}</span>
+                            <span className="text-xs">
+                              Exp: {new Date(e.data_expiracao).toLocaleDateString("pt-BR")}
+                            </span>
                             <span>·</span>
                             <span className="text-xs font-bold">{daysRemaining(e)}</span>
                           </div>
@@ -436,94 +448,96 @@ export default function AdminLicencas({
 
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant={isActive(e) ? "default" : "destructive"}>
-                            {e.liberado_admin ? "Admin" : isActive(e) ? "Ativa" : e.status === "revogada" ? "Revogada" : "Expirada"}
+                            {e.liberado_admin
+                              ? "Admin"
+                              : isActive(e)
+                                ? "Ativa"
+                                : e.status === "revogada"
+                                  ? "Revogada"
+                                  : "Expirada"}
                           </Badge>
-                           {e.origem === "consultor" && <Badge variant="outline">Consultor</Badge>}
-                           {e.excedente && <Badge variant="secondary">Excedente</Badge>}
+                          {e.origem === "consultor" && <Badge variant="outline">Consultor</Badge>}
+                          {e.excedente && <Badge variant="secondary">Excedente</Badge>}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                           {(() => {
-                              const targetId = e.licenca_id || e.id;
-                              return (
-                                <>
-                                  <Select
-                                     value={selectedLevels[targetId] || e.nivel || "entrada"}
-                                     onValueChange={(v) =>
-                                        setSelectedLevels((prev) => ({ ...prev, [targetId]: v }))
-                                     }
-                                  >
-                                    <SelectTrigger className="w-[140px] h-8 text-xs">
-                                      <SelectValue placeholder="Nível" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="entrada">Entrada</SelectItem>
-                                      <SelectItem value="intermediario">Intermediário</SelectItem>
-                                      <SelectItem value="avancado">Avançado</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                          {(() => {
+                            const targetId = e.licenca_id || e.id;
+                            return (
+                              <>
+                                <Select
+                                  value={selectedLevels[targetId] || e.nivel || "entrada"}
+                                  onValueChange={(v) => setSelectedLevels((prev) => ({ ...prev, [targetId]: v }))}
+                                >
+                                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                                    <SelectValue placeholder="Nível" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="entrada">Entrada</SelectItem>
+                                    <SelectItem value="intermediario">Intermediário</SelectItem>
+                                    <SelectItem value="avancado">Avançado</SelectItem>
+                                  </SelectContent>
+                                </Select>
 
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs"
-                                    onClick={() => handleUpdateLevel(e)}
-                                     disabled={!canManage || actionLoading === (targetId + "-level")}
-                                  >
-                                     {actionLoading === (targetId + "-level") ? (
-                                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                                    ) : null}
-                                    Nível
-                                  </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 text-xs"
+                                  onClick={() => handleUpdateLevel(e)}
+                                  disabled={!canManage || actionLoading === targetId + "-level"}
+                                >
+                                  {actionLoading === targetId + "-level" ? (
+                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                  ) : null}
+                                  Nível
+                                </Button>
 
-                                  <Select
-                                     value={selectedDays[targetId] || ""}
-                                     onValueChange={(v) =>
-                                        setSelectedDays((prev) => ({ ...prev, [targetId]: v }))
-                                     }
-                                  >
-                                    <SelectTrigger className="w-[110px] h-8 text-xs">
-                                      <SelectValue placeholder="Período" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="30">30 dias</SelectItem>
-                                      <SelectItem value="90">90 dias</SelectItem>
-                                      <SelectItem value="180">180 dias</SelectItem>
-                                      <SelectItem value="365">1 ano</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                <Select
+                                  value={selectedDays[targetId] || ""}
+                                  onValueChange={(v) => setSelectedDays((prev) => ({ ...prev, [targetId]: v }))}
+                                >
+                                  <SelectTrigger className="w-[110px] h-8 text-xs">
+                                    <SelectValue placeholder="Período" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="30">30 dias</SelectItem>
+                                    <SelectItem value="90">90 dias</SelectItem>
+                                    <SelectItem value="180">180 dias</SelectItem>
+                                    <SelectItem value="365">1 ano</SelectItem>
+                                  </SelectContent>
+                                </Select>
 
-                                  <Button
-                                    size="sm"
-                                    className="h-8 text-xs"
-                                    onClick={() => handleGrant(e)}
-                                     disabled={!canManage || actionLoading === (targetId + "-grant")}
-                                  >
-                                     {actionLoading === (targetId + "-grant") ? (
-                                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                                    ) : (
-                                      <UserCheck className="w-3 h-3 mr-1" />
-                                    )}
-                                    Liberar
-                                  </Button>
+                                <Button
+                                  size="sm"
+                                  className="h-8 text-xs"
+                                  onClick={() => handleGrant(e)}
+                                  disabled={!canManage || actionLoading === targetId + "-grant"}
+                                >
+                                  {actionLoading === targetId + "-grant" ? (
+                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                  ) : (
+                                    <UserCheck className="w-3 h-3 mr-1" />
+                                  )}
+                                  Liberar
+                                </Button>
 
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="h-8 text-xs"
-                                    onClick={() => handleRevoke(e)}
-                                     disabled={!canManage || actionLoading === (targetId + "-revoke")}
-                                  >
-                                     {actionLoading === (targetId + "-revoke") ? (
-                                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                                    ) : (
-                                      <UserX className="w-3 h-3 mr-1" />
-                                    )}
-                                    Revogar
-                                  </Button>
-                                </>
-                              );
-                           })()}
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-8 text-xs"
+                                  onClick={() => handleRevoke(e)}
+                                  disabled={!canManage || actionLoading === targetId + "-revoke"}
+                                >
+                                  {actionLoading === targetId + "-revoke" ? (
+                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                  ) : (
+                                    <UserX className="w-3 h-3 mr-1" />
+                                  )}
+                                  Revogar
+                                </Button>
+                              </>
+                            );
+                          })()}
                         </div>
                       </CardContent>
                     </Card>

@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Lock, Unlock, Download, FileText, BookOpen, ClipboardList, Table2, Shield, Wrench, FlaskConical, Bug, Droplets, Activity, Users, Truck, Printer, Eye } from "lucide-react";
+import { textoTela } from "@/lib/textoTela";
+import { useState, useEffect } from "react";
+import { Lock, Unlock, Download, FileText, BookOpen, ClipboardList, Table2, Shield, Wrench, FlaskConical, Bug, Droplets, Activity, Users, Truck, Printer, Eye, Search, Filter, Star, FileSignature } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +10,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
 import { TEMPLATE_GENERATORS } from "@/utils/excelTemplates";
+import { INSTRUCOES_TRABALHO } from "@/config/instrucoesTrabalho";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { PrintableTemplate } from "@/components/PrintableTemplate";
 import { printElement } from "@/utils/printUtils";
+import { MODELOS_ASSETS } from "@/config/modelosAssetsMapping";
+
 
 
 
@@ -20,11 +26,13 @@ interface ModeloDoc {
   categoria: string;
   arquivo: string;
   novo?: boolean;
+  digitalRoute?: string;
+  it_conteudo?: string;
 }
 
 const MODELOS: ModeloDoc[] = [
   // Manual
-  { nome: "Manual BPF", descricao: "Manual de Boas Práticas de Fabricação completo (IN 04/2007)", categoria: "manual", arquivo: "Manual_BPF" },
+  { nome: "Manual BPF", descricao: "Manual de Boas Práticas de Fabricação completo (IN 04/2007)", categoria: "manual", arquivo: "Manual" },
 
   // POPs atualizados conforme estrutura do sistema (10 POPs)
   { nome: "POP 01 — Qualificação de Fornecedores", descricao: "Seleção, avaliação e qualificação de fornecedores de matérias-primas", categoria: "pop", arquivo: "POP-01" },
@@ -41,7 +49,7 @@ const MODELOS: ModeloDoc[] = [
   // Planilhas por POP
   { nome: "PL POP 1.1–1.8 — Fornecedores", descricao: "Qualificação, recebimento MP/embalagens, lotes internos e expurgo", categoria: "planilha", arquivo: "PL_POP_1" },
   { nome: "PL POP 2.1–2.4 — Limpeza", descricao: "Registros de limpeza diária, semanal, mensal e veículos", categoria: "planilha", arquivo: "PL_POP_2" },
-  { nome: "PL POP 3.1 — Higiene Pessoal", descricao: "Checklist de higiene, saúde, adornos, ASOs e visitantes", categoria: "planilha", arquivo: "PL_POP_3" },
+  { nome: "PL POP 3.1 — Higiene e Saúde Pessoal", descricao: "Checklist de higiene, saúde, adornos, ASOs e visitantes", categoria: "planilha", arquivo: "PL_POP_3" },
   { nome: "PL POP 4.1–4.3 — Água", descricao: "Controle de cloro, reservatórios e laudos laboratoriais", categoria: "planilha", arquivo: "PL_POP_4" },
   { nome: "PL POP 5.1–5.2 — Contaminação Cruzada", descricao: "Checklist de prevenção e monitoramento de limpeza", categoria: "planilha", arquivo: "PL_POP_5" },
   { nome: "PL POP 6.1–6.4 — Manutenção/Calibração", descricao: "Cronograma, calibrações, ordens de serviço e lista de equipamentos", categoria: "planilha", arquivo: "PL_POP_6" },
@@ -131,27 +139,117 @@ const categoriaIcons: Record<string, React.ElementType> = {
   auditoria: Shield,
   produto: FlaskConical,
   instrucao: ClipboardList,
+  configuracao: Wrench,
+  original: Download,
 };
 
 const categoriaLabels: Record<string, string> = {
-  manual: "Manual",
-  pop: "POPs",
-  planilha: "Planilhas POP",
-  formulario: "Formulários",
-  equipamento: "Equipamentos",
-  treinamento: "Treinamentos",
-  auditoria: "Auditoria/Gestão",
-  produto: "Produtos/Rótulos",
-  instrucao: "Instruções de Trabalho",
+  manual: "Manual de BPF",
+  pop: "POPs Descritivos (Word)",
+  planilha: "Planilhas com Código (Excel)",
+  formulario: "Formulários / Registros",
+  equipamento: "Equipamentos / Calibração",
+  treinamento: "Treinamentos / RH",
+  auditoria: "Auditoria / Gestão",
+  produto: "Produtos / Rótulos",
+  instrucao: "Instruções de Trabalho (ITs)",
+  configuracao: "Documentos de Configuração",
+  original: "Arquivos Originais (Zip)",
 };
 
 export default function Modelos() {
-  const [desbloqueado, setDesbloqueado] = useState(false);
+  const [desbloqueado, setDesbloqueado] = useState(() => {
+    return sessionStorage.getItem("bpf_modelos_unlocked") === "true";
+  });
+
   const [senha, setSenha] = useState("");
   const [verificando, setVerificando] = useState(false);
   const [filtro, setFiltro] = useState<string>("todos");
   const [selectedModelo, setSelectedModelo] = useState<ModeloDoc | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [modelosCustom, setModelosCustom] = useState<ModeloDoc[]>([]);
+  const [busca, setBusca] = useState("");
+  const [favoritos, setFavoritos] = useState<string[]>(() => {
+    return JSON.parse(localStorage.getItem("bpf_modelos_favoritos") || "[]");
+  });
+
+  const toggleFavorito = (arquivo: string) => {
+    const newFavoritos = favoritos.includes(arquivo)
+      ? favoritos.filter(f => f !== arquivo)
+      : [...favoritos, arquivo];
+    setFavoritos(newFavoritos);
+    localStorage.setItem("bpf_modelos_favoritos", JSON.stringify(newFavoritos));
+    toast.success(favoritos.includes(arquivo) ? "Removido dos favoritos" : "Adicionado aos favoritos");
+  };
+
+  useEffect(() => {
+    async function fetchModelosCustom() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        // Buscar empresa ativa do localStorage (padrao do hook useEmpresa)
+        const empresaId = localStorage.getItem("bpf_empresa_ativa_id");
+        if (!empresaId) return;
+
+        const { data, error } = await supabase
+          .from("modelos_empresa")
+          .select("nome, descricao, pop_codigo")
+          .eq("empresa_id", empresaId)
+          .eq("ativo", true);
+
+        if (data && !error) {
+          const mapped: ModeloDoc[] = data.map(m => ({
+            nome: m.nome,
+            descricao: m.descricao || `Documento configurado vinculado ao ${m.pop_codigo}`,
+            categoria: "configuracao",
+            arquivo: `custom-${m.nome.replace(/\s+/g, "-")}`, // ID temporário para identificação
+            novo: true
+          }));
+          setModelosCustom(mapped);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar modelos custom:", err);
+      }
+    }
+
+    fetchModelosCustom();
+  }, []);
+
+  // Mapear arquivos originais para o formato da lista de modelos
+  const modelosOriginais: ModeloDoc[] = Object.entries(MODELOS_ASSETS).flatMap(([key, items]) => 
+    items.map(item => ({
+      nome: item.label,
+      descricao: `Arquivo original enviado via Zip — Vinculado a ${key}`,
+      categoria: "original",
+      arquivo: key, // Usamos a chave do grupo para download
+      novo: true
+    }))
+  );
+
+  const todosModelos = [...MODELOS, ...modelosOriginais, ...modelosCustom].map(m => {
+    // Vincular conteúdo das ITs para busca interna
+    const itRelacionada = INSTRUCOES_TRABALHO.find(it => it.id === m.arquivo);
+    
+    // Vincular rota de formulário digital se existir
+    let digitalRoute = "";
+    if (m.categoria === "formulario" || m.categoria === "planilha") {
+      // Tentar encontrar modelo custom correspondente para link direto
+      const customMatch = modelosCustom.find(c => c.nome === m.nome);
+      if (customMatch) {
+        digitalRoute = `/feedbpf-custom/registros/novo?modelo=${customMatch.arquivo.replace("custom-", "")}`;
+      }
+    }
+
+    if (itRelacionada) {
+      return {
+        ...m,
+        digitalRoute,
+        it_conteudo: `${itRelacionada.objetivo} ${itRelacionada.passos.join(" ")} ${itRelacionada.materiais.join(" ")}`
+      };
+    }
+    return { ...m, digitalRoute };
+  });
 
   const verificarSenha = async () => {
     if (!senha.trim()) { toast.error("Digite a senha de acesso"); return; }
@@ -173,6 +271,7 @@ export default function Modelos() {
       const result = await res.json();
       if (res.ok && result.success) {
         setDesbloqueado(true);
+        sessionStorage.setItem("bpf_modelos_unlocked", "true");
         toast.success("Acesso liberado! Bem-vindo à biblioteca de modelos.");
       } else {
         toast.error(result.error || "Senha incorreta");
@@ -184,10 +283,48 @@ export default function Modelos() {
     }
   };
 
-  const modelosFiltrados = filtro === "todos" ? MODELOS : MODELOS.filter(m => m.categoria === filtro);
-  const categorias = ["todos", ...Object.keys(categoriaLabels)];
+  const modelosFiltrados = todosModelos.filter(m => {
+    const matchesFiltro = filtro === "todos" 
+      || (filtro === "favoritos" && favoritos.includes(m.arquivo))
+      || m.categoria === filtro;
+      
+    const matchesBusca = busca === "" || 
+      m.nome.toLowerCase().includes(busca.toLowerCase()) || 
+      m.descricao.toLowerCase().includes(busca.toLowerCase()) ||
+      (m.it_conteudo && m.it_conteudo.toLowerCase().includes(busca.toLowerCase()));
+      
+    return matchesFiltro && matchesBusca;
+  });
+
+  const categorias = ["todos", "favoritos", ...Object.keys(categoriaLabels)];
 
   const handleDownload = (modelo: ModeloDoc) => {
+    // 1. Tentar baixar do mapeamento de assets (arquivos físicos importados)
+    const assetGroup = MODELOS_ASSETS[modelo.arquivo];
+    if (assetGroup && assetGroup.length > 0) {
+      // Se for um item da categoria "original", procuramos pelo label exato
+      const specificAsset = assetGroup.find(a => a.label === modelo.nome);
+      if (specificAsset) {
+        window.open(specificAsset.url, "_blank");
+        toast.success(`${modelo.nome} — Download iniciado!`);
+        return;
+      }
+      
+      // Fallback para o primeiro item do grupo se não encontrou pelo label
+      window.open(assetGroup[0].url, "_blank");
+      toast.success(`${modelo.nome} — Download iniciado!`);
+      return;
+    }
+
+
+    // 2. Fallback para documentos de configuração (redirecionar para Registros Digitais)
+    if (modelo.categoria === "configuracao") {
+      toast.info("Redirecionando para a área de Registros Digitais para visualizar este documento...");
+      window.location.href = "/feedbpf-custom/registros";
+      return;
+    }
+
+    // 3. Fallback para geradores de template Excel dinâmicos
     const generator = TEMPLATE_GENERATORS[modelo.arquivo];
     if (generator) {
       generator();
@@ -198,6 +335,13 @@ export default function Modelos() {
   };
 
   const handlePreview = (modelo: ModeloDoc) => {
+    // Se for um asset físico (Word/PDF/Excel do Zip), abrimos direto ou baixamos
+    const assets = MODELOS_ASSETS[modelo.arquivo];
+    if (modelo.categoria === "original" || (assets && assets.length > 0)) {
+      handleDownload(modelo);
+      return;
+    }
+
     setSelectedModelo(modelo);
     setShowPreview(true);
   };
@@ -344,20 +488,43 @@ export default function Modelos() {
         description={`${MODELOS.length} documentos — ${totalNovos} novos modelos adicionados`}
       />
 
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou descrição..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Filter className="w-4 h-4 text-muted-foreground mr-1" />
+          <Select value={filtro} onValueChange={setFiltro}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {categorias.map(cat => (
+                <SelectItem key={cat} value={cat}>
+                  {cat === "todos" ? `Todos (${todosModelos.length})` : 
+                   cat === "favoritos" ? `Favoritos (${favoritos.length})` :
+                   categoriaLabels[cat]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
         <Unlock className="w-5 h-5 text-primary" />
         <span className="text-sm font-medium text-primary">Acesso ativo</span>
-        <span className="text-muted-foreground mx-2">|</span>
-        {categorias.map(cat => (
-          <Button
-            key={cat}
-            variant={filtro === cat ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFiltro(cat)}
-          >
-            {cat === "todos" ? `Todos (${MODELOS.length})` : categoriaLabels[cat]}
-          </Button>
-        ))}
+        {busca && (
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+            Resultados para: "{busca}" ({modelosFiltrados.length})
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -376,7 +543,18 @@ export default function Modelos() {
                     <Icon className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm leading-tight">{modelo.nome}</CardTitle>
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-sm leading-tight">{modelo.nome}</CardTitle>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorito(modelo.arquivo);
+                        }}
+                        className="shrink-0 text-muted-foreground hover:text-yellow-500 transition-colors"
+                      >
+                        <Star className={`w-4 h-4 ${favoritos.includes(modelo.arquivo) ? "fill-yellow-500 text-yellow-500" : ""}`} />
+                      </button>
+                    </div>
                     <span className="text-xs text-muted-foreground mt-1 inline-block px-2 py-0.5 bg-muted rounded-full">
                       {categoriaLabels[modelo.categoria]}
                     </span>
@@ -384,14 +562,37 @@ export default function Modelos() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-muted-foreground mb-3 h-8 line-clamp-2">{modelo.descricao}</p>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => handlePreview(modelo)}>
-                    <Eye className="w-4 h-4 mr-1" /> Ver/Imprimir
-                  </Button>
-                  <Button size="sm" variant="default" className="flex-1" onClick={() => handleDownload(modelo)}>
-                    <Download className="w-4 h-4 mr-1" /> Excel
-                  </Button>
+                <p className="text-xs text-muted-foreground mb-3 h-8 line-clamp-2">{textoTela(modelo.descricao)}</p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => handlePreview(modelo)}>
+                      <Eye className="w-4 h-4 mr-1" /> Ver/Imprimir
+                    </Button>
+                    <Button size="sm" variant="default" className="flex-1" onClick={() => handleDownload(modelo)}>
+                      <Download className="w-4 h-4 mr-1" /> Excel
+                    </Button>
+                  </div>
+                  
+                  {(modelo as any).digitalRoute && (
+                    <Button asChild size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700">
+                      <Link to={(modelo as any).digitalRoute}>
+                        <FileSignature className="w-4 h-4 mr-1" /> Registro Digital
+                      </Link>
+                    </Button>
+                  )}
+                  
+                  {modelo.categoria === "instrucao" && (
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-full"
+                      asChild
+                    >
+                      <Link to={`/execucao-pops?pop=${modelo.arquivo.split("-")[1]}`}>
+                        <Eye className="w-4 h-4 mr-1" /> Ver IT Detalhada
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

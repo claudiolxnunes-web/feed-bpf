@@ -56,8 +56,8 @@ const NIVEIS: NivelInfo[] = [
     porte: "Pequeno porte — modo híbrido",
     features: [
       "Gestão 100% digital de Documentos & POPs",
-      "Rastreabilidade, Recall e Matriz de Risco (Decreto 12.031/2024)",
-      "Saúde do Pessoal / ASO (NR-07)",
+      "Rastreabilidade, Recall e Matriz de Risco",
+      "Saúde do Pessoal / ASO",
       "Operacionais em planilha física + arquivamento PDF",
       "Até 1 empresa",
     ],

@@ -12,6 +12,19 @@ export const TIPOS_DOC = [
   { value: "MN", label: "MN — Manual" },
 ] as const;
 
+export const FREQUENCIAS_DOC = [
+  { value: "DIARIA", label: "Diária" },
+  { value: "SEMANAL", label: "Semanal" },
+  { value: "QUINZENAL", label: "Quinzenal" },
+  { value: "MENSAL", label: "Mensal" },
+  { value: "TRIMESTRAL", label: "Trimestral" },
+  { value: "SEMESTRAL", label: "Semestral" },
+  { value: "ANUAL", label: "Anual" },
+  { value: "EVENTUAL", label: "Eventual/Outros" },
+] as const;
+
+export type FrequenciaDoc = typeof FREQUENCIAS_DOC[number]["value"];
+
 export type TipoDoc = typeof TIPOS_DOC[number]["value"];
 
 /** Extrai o número do POP a partir de "POP-01" → "01" */
@@ -80,7 +93,7 @@ export function nomeDisplay(
 
 /**
  * Caminho de storage padronizado:
- *   {scopeId}/POP-01/PL/POP-01_PL-001_08-07-2026.pdf
+ *   {scopeId}/POP-01/IT-01-01/MENSAL/v1/POP-01_PL-001_08-07-2026.pdf
  */
 export function storagePath(
   scopeId: string,
@@ -89,13 +102,22 @@ export function storagePath(
   numero: number | string,
   data: string | Date,
   originalFileName: string,
-  prefixo?: string | null
+  prefixo?: string | null,
+  itCodigo?: string | null,
+  frequencia?: string | null,
+  versao?: number | string
 ): string {
   const ext = originalFileName.includes(".")
     ? originalFileName.split(".").pop()!.toLowerCase().replace(/[^a-z0-9]/g, "")
     : "bin";
   const base = nomePadronizado(popCodigo, tipo, numero, data, prefixo);
-  return `bpf/${scopeId}/POP-${popShort(popCodigo)}/${tipo}/${base}.${ext}`;
+  
+  const popDir = `POP-${popShort(popCodigo)}`;
+  const itDir = itCodigo ? itCodigo.replace(/[^A-Z0-9-]/gi, "") : tipo;
+  const freqDir = frequencia ? frequencia.toUpperCase() : "GERAL";
+  const vDir = versao ? `v${versao}` : "v1";
+
+  return `bpf/${scopeId}/${popDir}/${itDir}/${freqDir}/${vDir}/${base}.${ext}`;
 }
 
 /** Extrai a extensão preservando pontos internos do nome original */

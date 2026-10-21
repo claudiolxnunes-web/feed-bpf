@@ -1,10 +1,14 @@
+import { getBaseLegal } from "@/config/baseLegal";
 /**
- * Carimbo Anti-Fraude para Documentos — Decreto 12.031/2024 & MP 2.200-2/2001 (MAPA)
+ * Selo de integridade para documentos — baseLegal: autocontrole, §3º do artigo de registros.
  *
  * Padroniza data/hora de emissão, usuário responsável, identificação do documento
- * e hash curto de integridade em TODOS os documentos (impressos e digitais) gerados
- * pelo sistema, atendendo à exigência regulatória contra fraudes em registros oficiais.
+ * e selo SHA-256 do conteúdo completo em TODOS os documentos (impressos e digitais) gerados
+ * pelo sistema, sem representar assinatura com certificado ICP-Brasil.
  */
+
+import { gerarHashIntegridade } from "@/utils/integridade";
+import { toast } from "sonner";
 
 export interface CarimboInfo {
   documentoTipo: string;        // Ex: "Ficha de Produção", "Ficha Técnica"
@@ -13,105 +17,89 @@ export interface CarimboInfo {
   usuario?: string;             // E-mail / nome do usuário logado
   dataHoraISO: string;          // ISO 8601
   dataHoraBR: string;           // dd/mm/aaaa hh:mm:ss
-  hashCurto: string;            // 12 chars hex — selo de integridade
+  /** SHA-256 completo (64 hex) do conteúdo + metadados; null quando o selo não pôde ser emitido. */
+  hashCompleto: string | null;
+  /** 16 primeiros caracteres do hash, em maiúsculas, exibidos no rodapé; "" sem selo. */
+  hashCurto: string;
   selo: string;                 // String formatada para exibição
 }
 
+export interface CarimboParams {
+  documentoTipo: string;
+  documentoId?: string;
+  empresa?: string;
+  usuario?: string;
+  /** Conteúdo completo exibido no documento (HTML/texto/JSON), sem o próprio selo. */
+  conteudo: string;
+}
+
+export const SELO_INDISPONIVEL = "SELO DE INTEGRIDADE NÃO EMITIDO (navegador sem suporte a SHA-256)";
+
+/** Texto canônico hasheado: metadados + conteúdo completo. */
+export function montarBaseCarimbo(p: Omit<CarimboParams, "conteudo">, dataHoraISO: string, conteudo: string): string {
+  return [
+    `tipo=${p.documentoTipo}`,
+    `id=${p.documentoId ?? ""}`,
+    `empresa=${p.empresa ?? ""}`,
+    `usuario=${p.usuario ?? ""}`,
+    `emitido=${dataHoraISO}`,
+    "conteudo:",
+    conteudo,
+  ].join("\n");
+}
+
+const temSubtle = (): boolean => typeof crypto !== "undefined" && !!crypto.subtle;
+
 /**
- * Gera um hash curto (12 chars) determinístico a partir do conteúdo.
- * Usa SubtleCrypto (SHA-256) quando disponível; caso contrário, fallback djb2.
+ * Gera o selo com SHA-256 (mesmo padrão de utils/integridade.ts) sobre conteúdo + metadados.
+ * Sem crypto.subtle (ou em erro), não emite selo: avisa o usuário e devolve hashCompleto = null.
  */
-async function hashCurto(conteudo: string): Promise<string> {
-  if (typeof crypto !== "undefined" && crypto.subtle) {
+export async function gerarCarimbo(params: CarimboParams): Promise<CarimboInfo> {
+  const agora = new Date();
+  const dataHoraISO = agora.toISOString();
+  const dataHoraBR = agora.toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const { conteudo, ...meta } = params;
+  let hashCompleto: string | null = null;
+  if (temSubtle()) {
     try {
-      const data = new TextEncoder().encode(conteudo);
-      const buf = await crypto.subtle.digest("SHA-256", data);
-      return Array.from(new Uint8Array(buf))
-        .slice(0, 6)
-        .map(b => b.toString(16).padStart(2, "0"))
-        .join("")
-        .toUpperCase();
+      hashCompleto = await gerarHashIntegridade(montarBaseCarimbo(meta, dataHoraISO, conteudo));
     } catch {
-      /* fall through */
+      hashCompleto = null;
     }
   }
-  // Fallback síncrono (djb2)
-  let h = 5381;
-  for (let i = 0; i < conteudo.length; i++) h = ((h << 5) + h) + conteudo.charCodeAt(i);
-  return (h >>> 0).toString(16).padStart(8, "0").toUpperCase().slice(0, 12);
-}
-
-/** Hash síncrono (djb2) para uso em fluxos não-async */
-function hashCurtoSync(conteudo: string): string {
-  let h = 5381;
-  for (let i = 0; i < conteudo.length; i++) h = ((h << 5) + h) + conteudo.charCodeAt(i);
-  return (h >>> 0).toString(16).padStart(8, "0").toUpperCase().slice(0, 12);
-}
-
-/** Versão síncrona — usa djb2. Recomendado para fluxos de impressão. */
-export function gerarCarimboSync(params: {
-  documentoTipo: string;
-  documentoId?: string;
-  empresa?: string;
-  usuario?: string;
-}): CarimboInfo {
-  const agora = new Date();
-  const dataHoraISO = agora.toISOString();
-  const dataHoraBR = agora.toLocaleString("pt-BR", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  });
-  const base = [
-    params.documentoTipo,
-    params.documentoId || "",
-    params.empresa || "",
-    params.usuario || "",
-    dataHoraISO,
-  ].join("|");
-  const hash = hashCurtoSync(base);
+  if (!hashCompleto) {
+    toast.warning("Selo de integridade não emitido: este navegador não suporta SHA-256. O documento sai sem selo.");
+  }
+  const hashCurto = hashCompleto ? hashCompleto.slice(0, 16).toUpperCase() : "";
   return {
-    documentoTipo: params.documentoTipo,
-    documentoId: params.documentoId,
-    empresa: params.empresa,
-    usuario: params.usuario,
+    ...meta,
     dataHoraISO,
     dataHoraBR,
-    hashCurto: hash,
-    selo: `INTEGRIDADE: ${hash}`,
+    hashCompleto,
+    hashCurto,
+    selo: hashCompleto ? `INTEGRIDADE: ${hashCurto}` : SELO_INDISPONIVEL,
   };
 }
 
-export async function gerarCarimbo(params: {
-  documentoTipo: string;
-  documentoId?: string;
-  empresa?: string;
-  usuario?: string;
-}): Promise<CarimboInfo> {
-  const agora = new Date();
-  const dataHoraISO = agora.toISOString();
-  const dataHoraBR = agora.toLocaleString("pt-BR", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  });
-  const base = [
-    params.documentoTipo,
-    params.documentoId || "",
-    params.empresa || "",
-    params.usuario || "",
-    dataHoraISO,
-  ].join("|");
-  const hash = await hashCurto(base);
-  const selo = `INTEGRIDADE: ${hash}`;
-  return {
-    documentoTipo: params.documentoTipo,
-    documentoId: params.documentoId,
-    empresa: params.empresa,
-    usuario: params.usuario,
-    dataHoraISO,
-    dataHoraBR,
-    hashCurto: hash,
-    selo,
-  };
+/** Marcador onde o rodapé do selo será inserido num documento HTML. */
+export const CARIMBO_PLACEHOLDER = "<!--__CARIMBO_INTEGRIDADE__-->";
+
+/**
+ * Calcula o selo sobre o HTML do documento (sem o selo) e substitui o marcador pelo rodapé.
+ * O conteúdo hasheado é exatamente o HTML exibido, com o marcador removido.
+ */
+export async function inserirCarimbo(
+  html: string,
+  params: Omit<CarimboParams, "conteudo">,
+  formato: "completo" | "compacto" = "completo",
+): Promise<{ html: string; carimbo: CarimboInfo }> {
+  const conteudo = html.split(CARIMBO_PLACEHOLDER).join("");
+  const carimbo = await gerarCarimbo({ ...params, conteudo });
+  const bloco = formato === "compacto" ? carimboHTMLCompacto(carimbo) : carimboHTML(carimbo);
+  return { html: html.split(CARIMBO_PLACEHOLDER).join(bloco), carimbo };
 }
 
 /**
@@ -130,7 +118,7 @@ function esc(s: string | undefined | null): string {
 
 export function carimboHTML(info: CarimboInfo): string {
   return `
-<div style="margin-top:14px;padding:8px 10px;border-top:2px solid #1a1a2e;font-family:Arial,sans-serif;font-size:9px;color:#444;background:#fafafa;">
+<div data-sha256="${esc(info.hashCompleto ?? "")}" data-emitido="${esc(info.dataHoraISO)}" style="margin-top:14px;padding:8px 10px;border-top:2px solid #1a1a2e;font-family:Arial,sans-serif;font-size:9px;color:#444;background:#fafafa;">
   <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
     <div>
       <strong>${esc(info.documentoTipo)}</strong>${info.documentoId ? ` — ${esc(info.documentoId)}` : ""}
@@ -143,8 +131,7 @@ export function carimboHTML(info: CarimboInfo): string {
     </div>
   </div>
   <div style="margin-top:4px;font-size:8px;color:#888;">
-    Documento com data/hora de emissão e selo de integridade — Decreto 12.031/2024 &amp; MP 2.200-2/2001 (MAPA).
-    Adulteração invalida o registro.
+    Registro com identificação do responsável, data e hora; selo de integridade — ${getBaseLegal("autocontrole").norma} (${getBaseLegal("autocontrole").artigo}, §3º).
   </div>
 </div>`;
 }
@@ -152,7 +139,7 @@ export function carimboHTML(info: CarimboInfo): string {
 /** Versão monocromática mais compacta para fichas operacionais */
 export function carimboHTMLCompacto(info: CarimboInfo): string {
   return `
-<div style="margin-top:10px;padding:4px 6px;border-top:1px solid #000;font-family:Arial,sans-serif;font-size:9px;color:#222;display:flex;justify-content:space-between;">
+<div data-sha256="${esc(info.hashCompleto ?? "")}" data-emitido="${esc(info.dataHoraISO)}" style="margin-top:10px;padding:4px 6px;border-top:1px solid #000;font-family:Arial,sans-serif;font-size:9px;color:#222;display:flex;justify-content:space-between;">
   <span>${esc(info.documentoTipo)}${info.documentoId ? ` — ${esc(info.documentoId)}` : ""}${info.empresa ? ` | ${esc(info.empresa)}` : ""}</span>
   <span>Emitido: <strong>${esc(info.dataHoraBR)}</strong>${info.usuario ? ` | ${esc(info.usuario)}` : ""} | <span style="font-family:monospace;">${esc(info.selo)}</span></span>
 </div>`;
@@ -168,7 +155,8 @@ export function carimboTexto(info: CarimboInfo): string {
     `Emitido em: ${info.dataHoraBR}`,
     info.usuario ? `Por: ${info.usuario}` : "",
     info.selo,
-    "Decreto 12.031/2024 & MP 2.200-2/2001 (MAPA) — Adulteração invalida o registro.",
+    info.hashCompleto ? `SHA-256: ${info.hashCompleto}` : "",
+    `Registro com identificação do responsável, data e hora; selo de integridade — ${getBaseLegal("autocontrole").norma} (${getBaseLegal("autocontrole").artigo}, §3º).`,
     "─────────────────────────────────────────────",
   ].filter(Boolean).join("\n");
 }

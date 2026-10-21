@@ -2,25 +2,28 @@ import * as XLSX from "xlsx";
 import { DESVIOS_CBAA_2017 } from "@/config/desviosAnaliticos";
 
 // Helper to create a styled worksheet with proper column widths and formatting
-function createSheet(data: (string | number | boolean | null)[][], colWidths: number[], merges: XLSX.Range[] = []): XLSX.WorkSheet {
+function createSheet(
+  data: (string | number | boolean | null)[][],
+  colWidths: number[],
+  merges: XLSX.Range[] = [],
+): XLSX.WorkSheet {
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws["!cols"] = colWidths.map(w => ({ wch: w }));
+  ws["!cols"] = colWidths.map((w) => ({ wch: w }));
   if (merges.length > 0) {
     ws["!merges"] = merges;
   }
   // Set print area
   ws["!printarea"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: data.length - 1, c: colWidths.length - 1 } });
-  
+
   // Set basic page setup for better printing
   ws["!margins"] = { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3 };
-  
+
   return ws;
 }
 
 function downloadWorkbook(wb: XLSX.WorkBook, filename: string) {
   XLSX.writeFile(wb, `${filename}.xlsx`, { bookType: "xlsx" });
 }
-
 
 // ─── POP 1: Fornecedores ───
 export function gerarPL_POP_1() {
@@ -31,15 +34,31 @@ export function gerarPL_POP_1() {
     ["", "PLANILHA 1.1 — QUALIFICAÇÃO DE FORNECEDORES"],
     ["", "Empresa:", "________________________", "", "Responsável:", "________________________"],
     [""],
-    ["Nº", "Fornecedor", "CNPJ", "Registro MAPA/SIPEAGRO", "Produtos Fornecidos", "Ficha Técnica", "Cert. Análise", "Alvará", "Registro Produto", "Nota Avaliação (0-10)", "Status", "Próx. Avaliação", "Observações"],
+    [
+      "Nº",
+      "Fornecedor",
+      "CNPJ",
+      "Registro MAPA/SIPEAGRO",
+      "Produtos Fornecidos",
+      "Ficha Técnica",
+      "Cert. Análise",
+      "Alvará",
+      "Registro Produto",
+      "Nota Avaliação (0-10)",
+      "Status",
+      "Próx. Avaliação",
+      "Observações",
+    ],
     ...Array.from({ length: 20 }, (_, i) => [i + 1, "", "", "", "", "☐", "☐", "☐", "☐", "", "", "", ""]),
     [""],
     ["", "Critérios: ≥8 Aprovado | 6-7 Aprovado com restrição | <6 Reprovado"],
     ["", "Assinatura RT:", "________________________", "CRMV:", "____________", "Data:", "__/__/__"],
   ];
-  const ws1 = createSheet(qual, [5, 25, 18, 22, 25, 12, 12, 10, 14, 14, 12, 14, 20], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 12 } }
-  ]);
+  const ws1 = createSheet(
+    qual,
+    [5, 25, 18, 22, 25, 12, 12, 10, 14, 14, 12, 14, 20],
+    [{ s: { r: 0, c: 1 }, e: { r: 0, c: 12 } }],
+  );
   XLSX.utils.book_append_sheet(wb, ws1, "1.1 Qualificação");
 
   // 1.2 Recebimento de MP
@@ -47,14 +66,56 @@ export function gerarPL_POP_1() {
     ["", "PLANILHA 1.2 — RECEBIMENTO DE MATÉRIA-PRIMA"],
     ["", "Empresa:", "________________________", "", "Mês/Ano:", "____/____"],
     [""],
-    ["Data", "Fornecedor", "Matéria-Prima", "Lote", "Quantidade", "Unid.", "Validade", "Odor", "Insetos", "Umidade (%)", "Temp. (°C)", "Cert. Análise", "Aprovado", "Responsável", "Obs."],
-    ...Array.from({ length: 30 }, () => ["", "", "", "", "", "", "", "☐N ☐A", "☐Aus ☐Pres", "", "", "☐", "☐S ☐N", "", ""]),
+    [
+      "Data",
+      "Fornecedor",
+      "Matéria-Prima",
+      "Lote",
+      "Quantidade",
+      "Unid.",
+      "Validade",
+      "Odor",
+      "Insetos",
+      "Umidade (%)",
+      "Temp. (°C)",
+      "Cert. Análise",
+      "Aprovado",
+      "Responsável",
+      "Obs.",
+    ],
+    ...Array.from({ length: 30 }, () => [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "☐N ☐A",
+      "☐Aus ☐Pres",
+      "",
+      "",
+      "☐",
+      "☐S ☐N",
+      "",
+      "",
+    ]),
     [""],
-    ["", "Assinatura Executor:", "________________________", "Assinatura Supervisor:", "________________________", "Data:", "__/__/__"],
+    [
+      "",
+      "Assinatura Executor:",
+      "________________________",
+      "Assinatura Supervisor:",
+      "________________________",
+      "Data:",
+      "__/__/__",
+    ],
   ];
-  const ws2 = createSheet(receb, [10, 20, 20, 12, 10, 6, 10, 10, 12, 10, 10, 12, 10, 15, 15], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 14 } }
-  ]);
+  const ws2 = createSheet(
+    receb,
+    [10, 20, 20, 12, 10, 6, 10, 10, 12, 10, 10, 12, 10, 15, 15],
+    [{ s: { r: 0, c: 1 }, e: { r: 0, c: 14 } }],
+  );
   XLSX.utils.book_append_sheet(wb, ws2, "1.2 Recebimento MP");
 
   // 1.3 Recebimento de Embalagens
@@ -62,17 +123,25 @@ export function gerarPL_POP_1() {
     ["", "PLANILHA 1.3 — RECEBIMENTO DE EMBALAGENS"],
     ["", "Empresa:", "________________________", "", "Mês/Ano:", "____/____"],
     [""],
-    ["Data", "Fornecedor", "Tipo Embalagem", "Lote", "Quantidade", "Integridade", "Limpeza", "Aprovado", "Responsável", "Obs."],
+    [
+      "Data",
+      "Fornecedor",
+      "Tipo Embalagem",
+      "Lote",
+      "Quantidade",
+      "Integridade",
+      "Limpeza",
+      "Aprovado",
+      "Responsável",
+      "Obs.",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "", "", "☐C ☐NC", "☐C ☐NC", "☐S ☐N", "", ""]),
   ];
-  const ws3 = createSheet(emb, [10, 20, 18, 12, 10, 12, 12, 10, 15, 20], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 9 } }
-  ]);
+  const ws3 = createSheet(emb, [10, 20, 18, 12, 10, 12, 12, 10, 15, 20], [{ s: { r: 0, c: 1 }, e: { r: 0, c: 9 } }]);
   XLSX.utils.book_append_sheet(wb, ws3, "1.3 Embalagens");
 
   downloadWorkbook(wb, "PL_POP_1_Fornecedores");
 }
-
 
 // ─── POP 2: Limpeza ───
 export function gerarPL_POP_2() {
@@ -83,7 +152,19 @@ export function gerarPL_POP_2() {
     ["PLANILHA 2.1 — REGISTRO DE LIMPEZA DIÁRIA"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Área/Equipamento", "Tipo Limpeza", "Produto Utilizado", "Concentração", "Hora Início", "Hora Fim", "Conforme", "Executor", "Verificado por", "Obs."],
+    [
+      "Data",
+      "Área/Equipamento",
+      "Tipo Limpeza",
+      "Produto Utilizado",
+      "Concentração",
+      "Hora Início",
+      "Hora Fim",
+      "Conforme",
+      "Executor",
+      "Verificado por",
+      "Obs.",
+    ],
     ...Array.from({ length: 31 }, () => ["", "", "☐Seca ☐Úmida", "", "", "", "", "☐C ☐NC", "", "", ""]),
     [""],
     ["Assinatura RT:", "", "CRMV:", "", "Data:", ""],
@@ -108,7 +189,16 @@ export function gerarPL_POP_2() {
     ["Empresa:", "", "", "Ano:", ""],
     [""],
     ["Mês", "Área/Equipamento", "Procedimento", "Produto", "Conforme", "Executor", "Data Execução", "Obs."],
-    ...["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"].map(m => [m, "", "", "", "☐C ☐NC", "", "", ""]),
+    ...["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"].map((m) => [
+      m,
+      "",
+      "",
+      "",
+      "☐C ☐NC",
+      "",
+      "",
+      "",
+    ]),
   ];
   const ws3 = createSheet(mensal, [8, 22, 25, 18, 10, 15, 14, 20]);
   XLSX.utils.book_append_sheet(wb, ws3, "2.3 Limpeza Mensal");
@@ -132,10 +222,23 @@ export function gerarPL_POP_3() {
   const wb = XLSX.utils.book_new();
 
   const higiene = [
-    ["PLANILHA 3.1 — CHECKLIST DE HIGIENE PESSOAL"],
+    ["PLANILHA 3.1 — HIGIENE E SAÚDE PESSOAL (TREINAMENTOS)"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Colaborador", "Uniforme Limpo", "Sem Adornos", "Unhas Cortadas", "Barba Feita", "Mãos Lavadas", "EPI Completo", "Sem Sintomas", "Conforme", "Verificado por", "Obs."],
+    [
+      "Data",
+      "Colaborador",
+      "Uniforme Limpo",
+      "Sem Adornos",
+      "Unhas Cortadas",
+      "Barba Feita",
+      "Mãos Lavadas",
+      "EPI Completo",
+      "Sem Sintomas",
+      "Conforme",
+      "Verificado por",
+      "Obs.",
+    ],
     ...Array.from({ length: 25 }, () => ["", "", "☐", "☐", "☐", "☐", "☐", "☐", "☐", "☐C ☐NC", "", ""]),
     [""],
     ["CONTROLE DE ASOs"],
@@ -143,7 +246,18 @@ export function gerarPL_POP_3() {
     ...Array.from({ length: 15 }, () => ["", "", "", "", "", "☐S ☐N", "", ""]),
     [""],
     ["CONTROLE DE VISITANTES"],
-    ["Data", "Nome Visitante", "Empresa", "Documento", "Motivo", "EPI Fornecido", "Orientação Bio", "Entrada", "Saída", "Acompanhante"],
+    [
+      "Data",
+      "Nome Visitante",
+      "Empresa",
+      "Documento",
+      "Motivo",
+      "EPI Fornecido",
+      "Orientação Bio",
+      "Entrada",
+      "Saída",
+      "Acompanhante",
+    ],
     ...Array.from({ length: 10 }, () => ["", "", "", "", "", "☐", "☐", "", "", ""]),
     [""],
     ["Assinatura RT:", "", "CRMV:", "", "Data:", ""],
@@ -151,7 +265,7 @@ export function gerarPL_POP_3() {
   const ws = createSheet(higiene, [10, 18, 12, 12, 12, 10, 12, 12, 12, 10, 14, 18]);
   XLSX.utils.book_append_sheet(wb, ws, "3.1 Higiene Pessoal");
 
-  downloadWorkbook(wb, "PL_POP_3_Higiene_Pessoal");
+  downloadWorkbook(wb, "PL_POP_3_Higiene_Saude_Pessoal");
 }
 
 // ─── POP 4: Água ───
@@ -222,7 +336,19 @@ export function gerarPL_POP_5() {
     ["PLANILHA 5.1 — PREVENÇÃO DE CONTAMINAÇÃO CRUZADA"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Produto Anterior", "Produto Seguinte", "Flushing Realizado", "Kg Flushing", "Destino Flushing", "Limpeza Conforme", "Teste Carry-Over", "Resultado", "Responsável", "Obs."],
+    [
+      "Data",
+      "Produto Anterior",
+      "Produto Seguinte",
+      "Flushing Realizado",
+      "Kg Flushing",
+      "Destino Flushing",
+      "Limpeza Conforme",
+      "Teste Carry-Over",
+      "Resultado",
+      "Responsável",
+      "Obs.",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "☐S ☐N", "", "", "☐C ☐NC", "☐S ☐N/A", "", "", ""]),
     [""],
     ["Referência: IN nº 15/2009 — Contaminação Cruzada por Medicamentos"],
@@ -234,7 +360,18 @@ export function gerarPL_POP_5() {
     ["PLANILHA 5.2 — MONITORAMENTO DE LIMPEZA DE LINHA"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Linha/Equipamento", "Tipo Limpeza", "Tempo (min)", "Inspeção Visual", "Swab Realizado", "Resultado", "Aprovado", "Executor", "Obs."],
+    [
+      "Data",
+      "Linha/Equipamento",
+      "Tipo Limpeza",
+      "Tempo (min)",
+      "Inspeção Visual",
+      "Swab Realizado",
+      "Resultado",
+      "Aprovado",
+      "Executor",
+      "Obs.",
+    ],
     ...Array.from({ length: 15 }, () => ["", "", "☐Seca ☐Úmida", "", "☐C ☐NC", "☐S ☐N", "", "☐S ☐N", "", ""]),
   ];
   const ws2 = createSheet(monitor, [10, 20, 16, 10, 14, 14, 12, 10, 15, 18]);
@@ -251,7 +388,24 @@ export function gerarPL_POP_6() {
     ["PLANILHA 6.1 — CRONOGRAMA DE MANUTENÇÃO PREVENTIVA"],
     ["Empresa:", "", "", "Ano:", ""],
     [""],
-    ["Equipamento", "Código", "Frequência", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez", "Responsável"],
+    [
+      "Equipamento",
+      "Código",
+      "Frequência",
+      "Jan",
+      "Fev",
+      "Mar",
+      "Abr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Set",
+      "Out",
+      "Nov",
+      "Dez",
+      "Responsável",
+    ],
     ...Array.from({ length: 15 }, () => ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]),
     [""],
     ["Legenda: P = Programada | R = Realizada | A = Adiada"],
@@ -263,7 +417,19 @@ export function gerarPL_POP_6() {
     ["PLANILHA 6.2 — REGISTRO DE CALIBRAÇÃO DE EQUIPAMENTOS"],
     ["Empresa:", "", "", "Ano:", ""],
     [""],
-    ["Equipamento", "Código", "Tipo", "Localização", "Data Calibração", "Próxima Calibração", "Nº Certificado", "Empresa Calibradora", "Resultado", "Conforme", "Responsável"],
+    [
+      "Equipamento",
+      "Código",
+      "Tipo",
+      "Localização",
+      "Data Calibração",
+      "Próxima Calibração",
+      "Nº Certificado",
+      "Empresa Calibradora",
+      "Resultado",
+      "Conforme",
+      "Responsável",
+    ],
     ...Array.from({ length: 15 }, () => ["", "", "", "", "", "", "", "", "", "☐C ☐NC", ""]),
   ];
   const ws2 = createSheet(calib, [18, 10, 12, 15, 14, 16, 14, 18, 12, 10, 15]);
@@ -273,7 +439,18 @@ export function gerarPL_POP_6() {
     ["PLANILHA 6.3 — ORDENS DE SERVIÇO DE MANUTENÇÃO"],
     ["Empresa:", "", "", "Ano:", ""],
     [""],
-    ["Nº OS", "Data Abertura", "Equipamento", "Tipo", "Descrição", "Peças Trocadas", "Custo (R$)", "Data Conclusão", "Status", "Responsável"],
+    [
+      "Nº OS",
+      "Data Abertura",
+      "Equipamento",
+      "Tipo",
+      "Descrição",
+      "Peças Trocadas",
+      "Custo (R$)",
+      "Data Conclusão",
+      "Status",
+      "Responsável",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "☐Prev ☐Corr", "", "", "", "", "", ""]),
   ];
   const ws3 = createSheet(os, [8, 14, 18, 14, 25, 18, 12, 14, 12, 15]);
@@ -283,7 +460,18 @@ export function gerarPL_POP_6() {
     ["PLANILHA 6.4 — LISTA DE EQUIPAMENTOS"],
     ["Empresa:", "", "", "Data:", ""],
     [""],
-    ["Nº", "Equipamento", "Código/Tag", "Fabricante", "Modelo", "Nº Série", "Localização", "Data Aquisição", "Status", "Obs."],
+    [
+      "Nº",
+      "Equipamento",
+      "Código/Tag",
+      "Fabricante",
+      "Modelo",
+      "Nº Série",
+      "Localização",
+      "Data Aquisição",
+      "Status",
+      "Obs.",
+    ],
     ...Array.from({ length: 25 }, (_, i) => [i + 1, "", "", "", "", "", "", "", "", ""]),
   ];
   const ws4 = createSheet(equipamentos, [5, 22, 12, 15, 15, 15, 15, 14, 10, 18]);
@@ -300,7 +488,17 @@ export function gerarPL_POP_7() {
     ["PLANILHA 7.1 — MONITORAMENTO SEMANAL DE PRAGAS"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Local/Área", "Tipo Dispositivo", "Nº Dispositivo", "Praga Encontrada", "Quantidade", "Ação Tomada", "Responsável", "Obs."],
+    [
+      "Data",
+      "Local/Área",
+      "Tipo Dispositivo",
+      "Nº Dispositivo",
+      "Praga Encontrada",
+      "Quantidade",
+      "Ação Tomada",
+      "Responsável",
+      "Obs.",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "", "", "", "", "", ""]),
     [""],
     ["Legenda: R = Roedor | I = Inseto Rasteiro | V = Inseto Voador | A = Ave"],
@@ -312,8 +510,28 @@ export function gerarPL_POP_7() {
     ["PLANILHA 7.2 — CONTROLE MENSAL DE PRAGAS"],
     ["Empresa:", "", "", "Ano:", ""],
     [""],
-    ["Mês", "Empresa Controladora", "Técnico", "Produtos Utilizados", "Registro ANVISA", "Áreas Tratadas", "Pragas Alvo", "Próxima Aplicação", "Obs."],
-    ...["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"].map(m => [m, "", "", "", "", "", "", "", ""]),
+    [
+      "Mês",
+      "Empresa Controladora",
+      "Técnico",
+      "Produtos Utilizados",
+      "Registro ANVISA",
+      "Áreas Tratadas",
+      "Pragas Alvo",
+      "Próxima Aplicação",
+      "Obs.",
+    ],
+    ...["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"].map((m) => [
+      m,
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+    ]),
   ];
   const ws2 = createSheet(mensal, [8, 20, 15, 20, 14, 18, 15, 16, 18]);
   XLSX.utils.book_append_sheet(wb, ws2, "7.2 Controle Mensal");
@@ -324,15 +542,30 @@ export function gerarPL_POP_7() {
     ["PLANILHA 7.3 — OBSERVAÇÃO DIÁRIA DE PRAGAS (chão de fábrica)"],
     ["Empresa:", "", "", "Mês/Ano:", "", "Área/Setor:", ""],
     [""],
-    ["Instruções: Marcar 'X' na coluna correspondente sempre que houver evidência (visual, fezes, ninhos, dejetos, vestígios). Comunicar imediatamente o RT."],
+    [
+      "Instruções: Marcar 'X' na coluna correspondente sempre que houver evidência (visual, fezes, ninhos, dejetos, vestígios). Comunicar imediatamente o RT.",
+    ],
     [""],
-    ["Data", "Hora", "Roedores", "Aves/Pássaros", "Insetos Voadores", "Insetos Rasteiros", "Outros", "Local exato/observação", "Ação imediata", "Responsável (nome + assinatura)"],
+    [
+      "Data",
+      "Hora",
+      "Roedores",
+      "Aves/Pássaros",
+      "Insetos Voadores",
+      "Insetos Rasteiros",
+      "Outros",
+      "Local exato/observação",
+      "Ação imediata",
+      "Responsável (nome + assinatura)",
+    ],
     ...Array.from({ length: 31 }, (_, i) => [i + 1, "", "☐", "☐", "☐", "☐", "☐", "", "", ""]),
     [""],
     ["Legenda: ☐ = sem evidência | X = presença detectada"],
     ["Tipos de evidência: visual / fezes / pegadas / ninhos / penas / asas / restos / dejetos / odor"],
     [""],
-    ["Encaminhamento: registros de presença detectada DEVEM gerar registro no módulo POP-07 (Pragas) e Não Conformidade quando aplicável."],
+    [
+      "Encaminhamento: registros de presença detectada DEVEM gerar registro no módulo POP-07 (Pragas) e Não Conformidade quando aplicável.",
+    ],
     [""],
     ["Verificado por (RT):", "", "CRMV:", "", "Data:", ""],
   ];
@@ -350,7 +583,20 @@ export function gerarPL_POP_8() {
     ["PLANILHA 8.1 — CONTROLE DE RESÍDUOS E EFLUENTES"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Tipo Resíduo", "Classificação", "Origem", "Quantidade", "Unid.", "Destino Final", "Empresa Coletora", "Nº Manifesto", "Licença Ambiental", "Responsável", "Obs."],
+    [
+      "Data",
+      "Tipo Resíduo",
+      "Classificação",
+      "Origem",
+      "Quantidade",
+      "Unid.",
+      "Destino Final",
+      "Empresa Coletora",
+      "Nº Manifesto",
+      "Licença Ambiental",
+      "Responsável",
+      "Obs.",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "", "", "", "", "", "", "", "", ""]),
     [""],
     ["Classificação: I (Perigoso) | IIA (Não Inerte) | IIB (Inerte)"],
@@ -370,7 +616,20 @@ export function gerarPL_POP_9() {
     ["PLANILHA 9.1 — RASTREABILIDADE DE LOTES"],
     ["Empresa:", "", "", "Mês/Ano:", ""],
     [""],
-    ["Produto", "Lote Produto", "Data Fabricação", "Matéria-Prima", "Lote MP", "Fornecedor", "Cliente Destino", "NF Venda", "Data Venda", "Quantidade", "Espécie Destino", "Obs."],
+    [
+      "Produto",
+      "Lote Produto",
+      "Data Fabricação",
+      "Matéria-Prima",
+      "Lote MP",
+      "Fornecedor",
+      "Cliente Destino",
+      "NF Venda",
+      "Data Venda",
+      "Quantidade",
+      "Espécie Destino",
+      "Obs.",
+    ],
     ...Array.from({ length: 25 }, () => ["", "", "", "", "", "", "", "", "", "", "", ""]),
   ];
   const ws1 = createSheet(rastreio, [18, 14, 14, 18, 12, 18, 18, 12, 12, 10, 14, 18]);
@@ -380,7 +639,20 @@ export function gerarPL_POP_9() {
     ["PLANILHA 9.2 — REGISTRO DE RECALL / RECOLHIMENTO"],
     ["Empresa:", "", "", "Data:", ""],
     [""],
-    ["Nº Recall", "Data Início", "Motivo", "Produto", "Lotes Afetados", "Qtd. Distribuída", "Clientes Notificados", "Qtd. Recolhida", "Destino", "Status", "Data Encerramento", "Responsável"],
+    [
+      "Nº Recall",
+      "Data Início",
+      "Motivo",
+      "Produto",
+      "Lotes Afetados",
+      "Qtd. Distribuída",
+      "Clientes Notificados",
+      "Qtd. Recolhida",
+      "Destino",
+      "Status",
+      "Data Encerramento",
+      "Responsável",
+    ],
     ...Array.from({ length: 5 }, () => ["", "", "", "", "", "", "", "", "", "", "", ""]),
     [""],
     ["Referência: Decreto 12.031/2024 — Procedimento de Recolhimento"],
@@ -418,9 +690,7 @@ export function gerarPL_POP_10() {
     [""],
     ["Assinatura RT:", "________________________", "Data:", "__/__/__"],
   ];
-  const ws1 = createSheet(checklist, [5, 50, 4, 4, 4, 30], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } }
-  ]);
+  const ws1 = createSheet(checklist, [5, 50, 4, 4, 4, 30], [{ s: { r: 0, c: 1 }, e: { r: 0, c: 5 } }]);
   XLSX.utils.book_append_sheet(wb, ws1, "10.1 Checklist PAC");
 
   // 10.2 Auditoria Interna
@@ -434,9 +704,7 @@ export function gerarPL_POP_10() {
     ["Gravidade: L (Leve) | M (Moderada) | G (Grave)"],
     ["Status: A (Aberta) | F (Fechada)"],
   ];
-  const ws2 = createSheet(auditoria, [25, 30, 10, 25, 12, 15, 10], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 6 } }
-  ]);
+  const ws2 = createSheet(auditoria, [25, 30, 10, 25, 12, 15, 10], [{ s: { r: 0, c: 1 }, e: { r: 0, c: 6 } }]);
   XLSX.utils.book_append_sheet(wb, ws2, "10.2 Auditoria Interna");
 
   // 10.3 Indicadores
@@ -454,14 +722,15 @@ export function gerarPL_POP_10() {
     ["Meta Estabelecida:", ""],
     ["Obs:", ""],
   ];
-  const ws3 = createSheet(indicadores, [25, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 13 } }
-  ]);
+  const ws3 = createSheet(
+    indicadores,
+    [25, 8, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+    [{ s: { r: 0, c: 1 }, e: { r: 0, c: 13 } }],
+  );
   XLSX.utils.book_append_sheet(wb, ws3, "10.3 Indicadores PAC");
 
   downloadWorkbook(wb, "PL_POP_10_PAC");
 }
-
 
 // ─── Formulários individuais ───
 export function gerarFormRecebimentoMP() {
@@ -470,8 +739,46 @@ export function gerarFormRecebimentoMP() {
     ["FORMULÁRIO — RECEBIMENTO DE MATÉRIA-PRIMA"],
     ["Empresa:", "", "", "Data:", ""],
     [""],
-    ["Nº", "Data", "Fornecedor", "Matéria-Prima", "Lote", "Quantidade", "Unid.", "Validade", "Odor", "Insetos", "Umidade (%)", "Temperatura (°C)", "Cert. Análise Nº", "Aprovado", "Contraprova Retida", "Local Contraprova", "Responsável", "Obs."],
-    ...Array.from({ length: 30 }, (_, i) => [i + 1, "", "", "", "", "", "", "", "☐N ☐A", "☐Aus ☐Pres", "", "", "", "☐S ☐N", "☐S ☐N", "", "", ""]),
+    [
+      "Nº",
+      "Data",
+      "Fornecedor",
+      "Matéria-Prima",
+      "Lote",
+      "Quantidade",
+      "Unid.",
+      "Validade",
+      "Odor",
+      "Insetos",
+      "Umidade (%)",
+      "Temperatura (°C)",
+      "Cert. Análise Nº",
+      "Aprovado",
+      "Contraprova Retida",
+      "Local Contraprova",
+      "Responsável",
+      "Obs.",
+    ],
+    ...Array.from({ length: 30 }, (_, i) => [
+      i + 1,
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "☐N ☐A",
+      "☐Aus ☐Pres",
+      "",
+      "",
+      "",
+      "☐S ☐N",
+      "☐S ☐N",
+      "",
+      "",
+      "",
+    ]),
   ];
   const ws = createSheet(data, [5, 10, 18, 18, 10, 10, 6, 10, 10, 12, 10, 12, 14, 10, 14, 14, 15, 18]);
   XLSX.utils.book_append_sheet(wb, ws, "Recebimento MP");
@@ -508,7 +815,20 @@ export function gerarFormValidacaoLimpeza() {
     ["VALIDAÇÃO DE LIMPEZA DE LINHA / FLUSHING"],
     ["Empresa:", "", "Data:", "", "Linha:", ""],
     [""],
-    ["Nº", "Produto Anterior", "Medicamento/Aditivo", "Produto Seguinte", "Sensível?", "Flushing Kg", "Destino Flushing", "Inspeção Visual", "Swab/Teste", "Resultado", "Aprovado", "Responsável"],
+    [
+      "Nº",
+      "Produto Anterior",
+      "Medicamento/Aditivo",
+      "Produto Seguinte",
+      "Sensível?",
+      "Flushing Kg",
+      "Destino Flushing",
+      "Inspeção Visual",
+      "Swab/Teste",
+      "Resultado",
+      "Aprovado",
+      "Responsável",
+    ],
     ...Array.from({ length: 15 }, (_, i) => [i + 1, "", "", "", "☐S ☐N", "", "", "☐C ☐NC", "☐S ☐N/A", "", "☐S ☐N", ""]),
     [""],
     ["Referência: IN nº 15/2009 — Prevenção de Contaminação Cruzada por Medicamentos"],
@@ -524,8 +844,28 @@ export function gerarFormMatrizSensibilidade() {
     ["MATRIZ DE SENSIBILIDADE — SEQUENCIAMENTO DE PRODUÇÃO"],
     ["Empresa:", "", "Ano:", ""],
     [""],
-    ["Produto Anterior ↓ / Produto Seguinte →", "Prod A", "Prod B", "Prod C", "Prod D", "Prod E", "Prod F", "Prod G", "Prod H"],
-    ...["Prod A", "Prod B", "Prod C", "Prod D", "Prod E", "Prod F", "Prod G", "Prod H"].map(p => [p, "", "", "", "", "", "", "", ""]),
+    [
+      "Produto Anterior ↓ / Produto Seguinte →",
+      "Prod A",
+      "Prod B",
+      "Prod C",
+      "Prod D",
+      "Prod E",
+      "Prod F",
+      "Prod G",
+      "Prod H",
+    ],
+    ...["Prod A", "Prod B", "Prod C", "Prod D", "Prod E", "Prod F", "Prod G", "Prod H"].map((p) => [
+      p,
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+    ]),
     [""],
     ["Legenda: 0 = Sem restrição | 1 = Requer flushing | 2 = Requer limpeza completa | X = Proibido sequenciar"],
     ["Referência: IN nº 15/2009"],
@@ -541,7 +881,21 @@ export function gerarFormSubstancias() {
     ["CONTROLE DE SUBSTÂNCIAS INDESEJÁVEIS E PROIBIDAS"],
     ["Empresa:", "", "Ano:", ""],
     [""],
-    ["Data Análise", "Matéria-Prima", "Lote", "Fornecedor", "Substância", "Tipo", "Método Análise", "Resultado", "Unidade", "Limite Máximo", "Conforme", "Ref. Normativa", "Obs."],
+    [
+      "Data Análise",
+      "Matéria-Prima",
+      "Lote",
+      "Fornecedor",
+      "Substância",
+      "Tipo",
+      "Método Análise",
+      "Resultado",
+      "Unidade",
+      "Limite Máximo",
+      "Conforme",
+      "Ref. Normativa",
+      "Obs.",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "", "", "☐Proib ☐Indesej", "", "", "", "", "☐C ☐NC", "", ""]),
   ];
   const ws = createSheet(data, [12, 18, 10, 18, 18, 16, 15, 10, 8, 12, 10, 14, 18]);
@@ -555,8 +909,38 @@ export function gerarFormAnalisesLab() {
     ["REGISTRO DE ANÁLISES LABORATORIAIS"],
     ["Empresa:", "", "Ano:", ""],
     [""],
-    ["Data Análise", "Produto", "Lote", "Tipo Análise", "Parâmetro", "Método", "Resultado", "Unidade", "Limite Ref.", "Conforme", "Laboratório", "Nº Laudo", "Data Resultado", "Obs."],
-    ...Array.from({ length: 20 }, () => ["", "", "", "☐FQ ☐Micro ☐Bromatol", "", "", "", "", "", "☐C ☐NC", "", "", "", ""]),
+    [
+      "Data Análise",
+      "Produto",
+      "Lote",
+      "Tipo Análise",
+      "Parâmetro",
+      "Método",
+      "Resultado",
+      "Unidade",
+      "Limite Ref.",
+      "Conforme",
+      "Laboratório",
+      "Nº Laudo",
+      "Data Resultado",
+      "Obs.",
+    ],
+    ...Array.from({ length: 20 }, () => [
+      "",
+      "",
+      "",
+      "☐FQ ☐Micro ☐Bromatol",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "☐C ☐NC",
+      "",
+      "",
+      "",
+      "",
+    ]),
   ];
   const ws = createSheet(data, [12, 18, 10, 20, 15, 12, 10, 8, 10, 10, 18, 12, 12, 18]);
   XLSX.utils.book_append_sheet(wb, ws, "Análises Lab");
@@ -569,7 +953,23 @@ export function gerarFormReclamacoes() {
     ["REGISTRO DE RECLAMAÇÕES DE QUALIDADE / SAC"],
     ["Empresa:", "", "Ano:", ""],
     [""],
-    ["Nº Reclamação", "Data", "Cliente", "Contato", "Produto", "Lote", "NF", "Tipo", "Descrição Problema", "Causa Raiz", "Ação Imediata", "Ação Corretiva", "Responsável", "Prazo", "Status"],
+    [
+      "Nº Reclamação",
+      "Data",
+      "Cliente",
+      "Contato",
+      "Produto",
+      "Lote",
+      "NF",
+      "Tipo",
+      "Descrição Problema",
+      "Causa Raiz",
+      "Ação Imediata",
+      "Ação Corretiva",
+      "Responsável",
+      "Prazo",
+      "Status",
+    ],
     ...Array.from({ length: 15 }, () => ["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]),
   ];
   const ws = createSheet(data, [14, 10, 18, 15, 18, 10, 10, 15, 25, 20, 20, 20, 15, 12, 10]);
@@ -601,7 +1001,20 @@ export function gerarFormVisitantes() {
     ["CONTROLE DE VISITANTES"],
     ["Empresa:", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Nome Visitante", "Documento", "Empresa", "Motivo", "Áreas Visitadas", "EPI Fornecido", "Orientação Biosseguridade", "Hora Entrada", "Hora Saída", "Acompanhante", "Obs."],
+    [
+      "Data",
+      "Nome Visitante",
+      "Documento",
+      "Empresa",
+      "Motivo",
+      "Áreas Visitadas",
+      "EPI Fornecido",
+      "Orientação Biosseguridade",
+      "Hora Entrada",
+      "Hora Saída",
+      "Acompanhante",
+      "Obs.",
+    ],
     ...Array.from({ length: 20 }, () => ["", "", "", "", "", "", "☐S ☐N", "☐S ☐N", "", "", "", ""]),
     [""],
     ["Assinatura RT:", "", "Data:", ""],
@@ -617,7 +1030,18 @@ export function gerarFormCloroDiario() {
     ["CONTROLE DIÁRIO DE CLORO RESIDUAL E pH"],
     ["Empresa:", "", "Mês/Ano:", ""],
     [""],
-    ["Dia", "Ponto 1 - Cloro", "Ponto 1 - pH", "Ponto 2 - Cloro", "Ponto 2 - pH", "Ponto 3 - Cloro", "Ponto 3 - pH", "Conforme", "Ação Corretiva", "Responsável"],
+    [
+      "Dia",
+      "Ponto 1 - Cloro",
+      "Ponto 1 - pH",
+      "Ponto 2 - Cloro",
+      "Ponto 2 - pH",
+      "Ponto 3 - Cloro",
+      "Ponto 3 - pH",
+      "Conforme",
+      "Ação Corretiva",
+      "Responsável",
+    ],
     ...Array.from({ length: 31 }, (_, i) => [i + 1, "", "", "", "", "", "", "☐C ☐NC", "", ""]),
     [""],
     ["Padrão: Cloro 0,2–2,0 mg/L | pH 6,0–9,5 | Portaria GM/MS 888/2021"],
@@ -637,7 +1061,20 @@ export function gerarFormControleASO() {
     ["CONTROLE DE ATESTADOS DE SAÚDE OCUPACIONAL (ASO)"],
     ["Empresa:", "", "Ano:", ""],
     [""],
-    ["Nº", "Colaborador", "Cargo/Setor", "Data Admissão", "Tipo Exame", "Data ASO", "Médico", "CRM", "Resultado", "Restrições", "Próximo ASO", "Status"],
+    [
+      "Nº",
+      "Colaborador",
+      "Cargo/Setor",
+      "Data Admissão",
+      "Tipo Exame",
+      "Data ASO",
+      "Médico",
+      "CRM",
+      "Resultado",
+      "Restrições",
+      "Próximo ASO",
+      "Status",
+    ],
     ...Array.from({ length: 30 }, (_, i) => [i + 1, "", "", "", "", "", "", "", "☐Apto ☐Inapto", "", "", ""]),
     [""],
     ["Tipos: Admissional | Periódico | Retorno | Mudança Função | Demissional"],
@@ -653,7 +1090,23 @@ export function gerarFormMonitoramentoSaude() {
     ["MONITORAMENTO DIÁRIO DE SAÚDE DOS MANIPULADORES"],
     ["Empresa:", "", "Mês/Ano:", ""],
     [""],
-    ["Data", "Colaborador", "Sem Febre", "Sem Diarreia", "Sem Vômito", "Sem Lesões", "Sem Secreções", "Uniforme Limpo", "Sem Adornos", "Unhas Cortadas", "Barba Feita", "EPI OK", "Conforme", "Verificador", "Obs."],
+    [
+      "Data",
+      "Colaborador",
+      "Sem Febre",
+      "Sem Diarreia",
+      "Sem Vômito",
+      "Sem Lesões",
+      "Sem Secreções",
+      "Uniforme Limpo",
+      "Sem Adornos",
+      "Unhas Cortadas",
+      "Barba Feita",
+      "EPI OK",
+      "Conforme",
+      "Verificador",
+      "Obs.",
+    ],
     ...Array.from({ length: 25 }, () => ["", "", "☐", "☐", "☐", "☐", "☐", "☐", "☐", "☐", "☐", "☐", "☐C ☐NC", "", ""]),
   ];
   const ws = createSheet(data, [10, 20, 8, 10, 10, 10, 10, 12, 10, 10, 10, 8, 10, 14, 15]);
@@ -666,20 +1119,129 @@ export function gerarChecklistRegistroFabrica() {
   const wb = XLSX.utils.book_new();
 
   const sections: { titulo: string; itens: string[] }[] = [
-    { titulo: "1. DOCUMENTAÇÃO LEGAL DA EMPRESA", itens: ["CNPJ ativo", "Contrato social atualizado", "Inscrição estadual", "Alvará de funcionamento", "Licença ambiental (quando aplicável)", "Memorial descritivo da atividade"] },
-    { titulo: "2. RESPONSÁVEL TÉCNICO (RT)", itens: ["RT habilitado (médico veterinário, zootecnista ou engenheiro agrônomo)", "Registro no conselho (CRMV/CREA)", "ART ativa", "Contrato com a empresa"] },
-    { titulo: "3. INSTALAÇÕES", itens: ["Layout da fábrica (fluxo unidirecional)", "Área separada para recebimento de matérias-primas", "Área separada para armazenamento", "Área separada para produção", "Área separada para expedição", "Piso impermeável e lavável", "Ventilação adequada", "Iluminação suficiente", "Controle de acesso"] },
-    { titulo: "4. CONTROLE DE PRAGAS", itens: ["Programa de controle de pragas documentado", "Empresa terceirizada ou controle próprio", "Registros de aplicação", "Mapa de iscas"] },
-    { titulo: "5. MATÉRIAS-PRIMAS", itens: ["Cadastro de fornecedores", "Controle de recebimento", "Inspeção na chegada", "Armazenamento adequado", "Identificação por lote"] },
-    { titulo: "6. PROCESSO PRODUTIVO", itens: ["Fluxograma de produção", "Procedimentos operacionais (POPs)", "Controle de pesagem", "Sequenciamento de produção", "Controle de contaminação cruzada"] },
-    { titulo: "7. CONTROLE DE QUALIDADE", itens: ["Plano de amostragem", "Análises laboratoriais (interno ou terceirizado)", "Controle de produto acabado", "Registros de resultados"] },
-    { titulo: "8. RASTREABILIDADE", itens: ["Identificação de lotes", "Registro de produção por lote", "Controle de destino (clientes)", "Sistema de recall definido"] },
-    { titulo: "9. PRODUTO E ROTULAGEM", itens: ["Registro ou dispensa de registro do produto", "Rótulos conforme MAPA", "Garantias nutricionais", "Espécie/destinação", "Modo de uso", "Responsável técnico no rótulo"] },
-    { titulo: "10. HIGIENE E SANITIZAÇÃO", itens: ["Programa de limpeza", "POP de higienização", "Registros de limpeza", "Controle de água (potabilidade)"] },
-    { titulo: "11. TREINAMENTO DE FUNCIONÁRIOS", itens: ["Treinamento em BPF", "Registros de capacitação", "Procedimentos operacionais conhecidos pela equipe"] },
-    { titulo: "12. MANUAL DE BPF (OBRIGATÓRIO)", itens: ["Manual documentado", "POPs incluídos", "Controle de versões", "Assinado pelo RT"] },
-    { titulo: "13. REGISTROS OBRIGATÓRIOS", itens: ["Produção por lote", "Controle de matéria-prima", "Não conformidades", "Ações corretivas", "Reclamações de clientes"] },
-    { titulo: "14. REGISTRO NO MAPA (SIPEAGRO)", itens: ["Cadastro no sistema", "Solicitação de registro do estabelecimento", "Anexos enviados", "Acompanhamento do processo"] },
+    {
+      titulo: "1. DOCUMENTAÇÃO LEGAL DA EMPRESA",
+      itens: [
+        "CNPJ ativo",
+        "Contrato social atualizado",
+        "Inscrição estadual",
+        "Alvará de funcionamento",
+        "Licença ambiental (quando aplicável)",
+        "Memorial descritivo da atividade",
+      ],
+    },
+    {
+      titulo: "2. RESPONSÁVEL TÉCNICO (RT)",
+      itens: [
+        "RT habilitado (médico veterinário, zootecnista ou engenheiro agrônomo)",
+        "Registro no conselho (CRMV/CREA)",
+        "ART ativa",
+        "Contrato com a empresa",
+      ],
+    },
+    {
+      titulo: "3. INSTALAÇÕES",
+      itens: [
+        "Layout da fábrica (fluxo unidirecional)",
+        "Área separada para recebimento de matérias-primas",
+        "Área separada para armazenamento",
+        "Área separada para produção",
+        "Área separada para expedição",
+        "Piso impermeável e lavável",
+        "Ventilação adequada",
+        "Iluminação suficiente",
+        "Controle de acesso",
+      ],
+    },
+    {
+      titulo: "4. CONTROLE DE PRAGAS",
+      itens: [
+        "Programa de controle de pragas documentado",
+        "Empresa terceirizada ou controle próprio",
+        "Registros de aplicação",
+        "Mapa de iscas",
+      ],
+    },
+    {
+      titulo: "5. MATÉRIAS-PRIMAS",
+      itens: [
+        "Cadastro de fornecedores",
+        "Controle de recebimento",
+        "Inspeção na chegada",
+        "Armazenamento adequado",
+        "Identificação por lote",
+      ],
+    },
+    {
+      titulo: "6. PROCESSO PRODUTIVO",
+      itens: [
+        "Fluxograma de produção",
+        "Procedimentos operacionais (POPs)",
+        "Controle de pesagem",
+        "Sequenciamento de produção",
+        "Controle de contaminação cruzada",
+      ],
+    },
+    {
+      titulo: "7. CONTROLE DE QUALIDADE",
+      itens: [
+        "Plano de amostragem",
+        "Análises laboratoriais (interno ou terceirizado)",
+        "Controle de produto acabado",
+        "Registros de resultados",
+      ],
+    },
+    {
+      titulo: "8. RASTREABILIDADE",
+      itens: [
+        "Identificação de lotes",
+        "Registro de produção por lote",
+        "Controle de destino (clientes)",
+        "Sistema de recall definido",
+      ],
+    },
+    {
+      titulo: "9. PRODUTO E ROTULAGEM",
+      itens: [
+        "Registro ou dispensa de registro do produto",
+        "Rótulos conforme MAPA",
+        "Garantias nutricionais",
+        "Espécie/destinação",
+        "Modo de uso",
+        "Responsável técnico no rótulo",
+      ],
+    },
+    {
+      titulo: "10. HIGIENE E SANITIZAÇÃO",
+      itens: ["Programa de limpeza", "POP de higienização", "Registros de limpeza", "Controle de água (potabilidade)"],
+    },
+    {
+      titulo: "11. TREINAMENTO DE FUNCIONÁRIOS",
+      itens: ["Treinamento em BPF", "Registros de capacitação", "Procedimentos operacionais conhecidos pela equipe"],
+    },
+    {
+      titulo: "12. MANUAL DE BPF (OBRIGATÓRIO)",
+      itens: ["Manual documentado", "POPs incluídos", "Controle de versões", "Assinado pelo RT"],
+    },
+    {
+      titulo: "13. REGISTROS OBRIGATÓRIOS",
+      itens: [
+        "Produção por lote",
+        "Controle de matéria-prima",
+        "Não conformidades",
+        "Ações corretivas",
+        "Reclamações de clientes",
+      ],
+    },
+    {
+      titulo: "14. REGISTRO NO MAPA (SIPEAGRO)",
+      itens: [
+        "Cadastro no sistema",
+        "Solicitação de registro do estabelecimento",
+        "Anexos enviados",
+        "Acompanhamento do processo",
+      ],
+    },
   ];
 
   const data: (string | null)[][] = [
@@ -716,36 +1278,36 @@ export function gerarChecklistRegistroFabrica() {
 
 // Map arquivo key → generator function
 export const TEMPLATE_GENERATORS: Record<string, () => void> = {
-  "PL_POP_1": gerarPL_POP_1,
-  "PL_POP_2": gerarPL_POP_2,
-  "PL_POP_3": gerarPL_POP_3,
-  "PL_POP_4": gerarPL_POP_4,
-  "PL_POP_5": gerarPL_POP_5,
-  "PL_POP_6": gerarPL_POP_6,
-  "PL_POP_7": gerarPL_POP_7,
-  "PL_POP_8": gerarPL_POP_8,
-  "PL_POP_9": gerarPL_POP_9,
-  "PL_POP_10": gerarPL_POP_10,
-  "Form_Recebimento_MP": gerarFormRecebimentoMP,
+  PL_POP_1: gerarPL_POP_1,
+  PL_POP_2: gerarPL_POP_2,
+  PL_POP_3: gerarPL_POP_3,
+  PL_POP_4: gerarPL_POP_4,
+  PL_POP_5: gerarPL_POP_5,
+  PL_POP_6: gerarPL_POP_6,
+  PL_POP_7: gerarPL_POP_7,
+  PL_POP_8: gerarPL_POP_8,
+  PL_POP_9: gerarPL_POP_9,
+  PL_POP_10: gerarPL_POP_10,
+  Form_Recebimento_MP: gerarFormRecebimentoMP,
 
-  "Form_Ordem_Producao": gerarFormOrdemProducao,
-  "Form_Validacao_Limpeza": gerarFormValidacaoLimpeza,
-  "Form_Matriz_Sensibilidade": gerarFormMatrizSensibilidade,
-  "Form_Substancias": gerarFormSubstancias,
-  "Form_Analises_Lab": gerarFormAnalisesLab,
-  "Form_Reclamacoes": gerarFormReclamacoes,
-  "Form_Saude_Manipuladores": gerarFormSaudeManipuladores,
-  "Form_Visitantes": gerarFormVisitantes,
-  "Form_Cloro_Diario": gerarFormCloroDiario,
-  "Form_Higienizacao_Reservatorio": gerarFormHigienizacaoReservatorio,
-  "Form_Controle_ASO": gerarFormControleASO,
-  "Form_Monitoramento_Saude": gerarFormMonitoramentoSaude,
-  "Checklist_Registro_Fabrica": gerarChecklistRegistroFabrica,
-  "Ficha_Tecnica_Produto": gerarFichaTecnicaProduto,
-  "Modelo_Rotulo": gerarModeloRotulo,
-  "Form_Expedicao_Simples": gerarFormExpedicaoSimples,
-  "Form_Expedicao_Completa": gerarFormExpedicaoCompleta,
-  "Tabela_Desvios_Analiticos_CBAA": gerarTabelaDesviosAnaliticos,
+  Form_Ordem_Producao: gerarFormOrdemProducao,
+  Form_Validacao_Limpeza: gerarFormValidacaoLimpeza,
+  Form_Matriz_Sensibilidade: gerarFormMatrizSensibilidade,
+  Form_Substancias: gerarFormSubstancias,
+  Form_Analises_Lab: gerarFormAnalisesLab,
+  Form_Reclamacoes: gerarFormReclamacoes,
+  Form_Saude_Manipuladores: gerarFormSaudeManipuladores,
+  Form_Visitantes: gerarFormVisitantes,
+  Form_Cloro_Diario: gerarFormCloroDiario,
+  Form_Higienizacao_Reservatorio: gerarFormHigienizacaoReservatorio,
+  Form_Controle_ASO: gerarFormControleASO,
+  Form_Monitoramento_Saude: gerarFormMonitoramentoSaude,
+  Checklist_Registro_Fabrica: gerarChecklistRegistroFabrica,
+  Ficha_Tecnica_Produto: gerarFichaTecnicaProduto,
+  Modelo_Rotulo: gerarModeloRotulo,
+  Form_Expedicao_Simples: gerarFormExpedicaoSimples,
+  Form_Expedicao_Completa: gerarFormExpedicaoCompleta,
+  Tabela_Desvios_Analiticos_CBAA: gerarTabelaDesviosAnaliticos,
 };
 
 // ─── Tabela de Desvios Analíticos CBAA 2017 ───
@@ -755,7 +1317,9 @@ export function gerarTabelaDesviosAnaliticos() {
   const cabecalho: (string | number)[][] = [
     ["TABELA DE DESVIOS ANALÍTICOS — CBAA 2017"],
     ["Fonte: Compêndio Brasileiro de Alimentação Animal (Sindirações) — DESVIOS ANALÍTICOS E INCERTEZA NAS MEDIÇÕES"],
-    ["Estudos interlaboratoriais MAPA + privados (1987-2007). Vitaminas A e E: Diretiva CE 45/2000 (15% repetibilidade)."],
+    [
+      "Estudos interlaboratoriais MAPA + privados (1987-2007). Vitaminas A e E: Diretiva CE 45/2000 (15% repetibilidade).",
+    ],
     ["Aplicar a tolerância ANTES de classificar um resultado como NÃO CONFORME do rótulo."],
     [""],
     ["COMO USAR:"],
@@ -785,9 +1349,7 @@ export function gerarTabelaDesviosAnaliticos() {
     const cvFixo = isFixo ? (d.formula as { cv_pct: number }).cv_pct : "";
     const a = !isFixo ? (d.formula as { a: number; b: number }).a : "";
     const b = !isFixo ? (d.formula as { a: number; b: number }).b : "";
-    const formulaStr = isFixo
-      ? `CV = ${cvFixo}% (constante)`
-      : `CV = ${a}/X + (${b})`;
+    const formulaStr = isFixo ? `CV = ${cvFixo}% (constante)` : `CV = ${a}/X + (${b})`;
     return [
       d.nome,
       d.aliases.join(", "),
@@ -872,7 +1434,7 @@ export function gerarFichaTecnicaProduto() {
     [""],
     [""],
     ["8. INFORMAÇÕES REGULATÓRIAS"],
-    ["Conforme IN 22/2009, IN 13/2004 e Decreto 6.296/2007"],
+    ["Conforme IN 22/2009, IN 13/2004 e Decreto 12.031/2024"],
     [""],
     ["Assinatura RT:", "", "", "CRMV:", ""],
     ["Data:", ""],
@@ -931,10 +1493,10 @@ export function gerarModeloRotulo() {
     ["SAC / Telefone:", ""],
     [""],
     ["FRASES OBRIGATÓRIAS (IN 22/2009)"],
-    ["\"REGISTRO NO MINISTÉRIO DA AGRICULTURA E PECUÁRIA\""],
-    ["\"PRODUTO DE USO EXCLUSIVO NA ALIMENTAÇÃO ANIMAL\""],
-    ["\"PROIBIDO O USO NA ALIMENTAÇÃO HUMANA\""],
-    ["\"CONSULTE O MÉDICO VETERINÁRIO\""],
+    ['"REGISTRO NO MINISTÉRIO DA AGRICULTURA E PECUÁRIA"'],
+    ['"PRODUTO DE USO EXCLUSIVO NA ALIMENTAÇÃO ANIMAL"'],
+    ['"PROIBIDO O USO NA ALIMENTAÇÃO HUMANA"'],
+    ['"CONSULTE O MÉDICO VETERINÁRIO"'],
     [""],
     ["REFERÊNCIA — Valores de garantia para bovinos (IN 12/2004)"],
     ["Tipo Produto", "PB Mín (%)", "EE Mín (%)", "FB Máx (%)", "MM Máx (%)", "Ca g/kg", "P g/kg", "Na mg/kg"],
@@ -957,7 +1519,9 @@ export function gerarFormExpedicaoSimples() {
   const wb = XLSX.utils.book_new();
   const data: (string | number | null)[][] = [
     ["PL POP 9.2 — REGISTRO DE EXPEDIÇÃO (LISTA SIMPLES)"],
-    ["Lista resumida — dados detalhados de cliente/transporte ficam no cadastro. Arquivar por no mínimo 2 anos (IN 04/2007 MAPA)."],
+    [
+      "Lista resumida — dados detalhados de cliente/transporte ficam no cadastro. Arquivar por no mínimo 2 anos (IN 04/2007 MAPA).",
+    ],
     [""],
     ["Empresa:", "", "", "Mês/Ano:", "", "Folha nº:", ""],
     [""],
@@ -999,12 +1563,27 @@ export function gerarFormExpedicaoCompleta() {
     ["Motorista:", "", "", "CPF Motorista:", "", "UF Veículo:", ""],
     [""],
     ["5. PRODUTOS EXPEDIDOS — LOTES (RASTREABILIDADE)"],
-    ["Item", "Código", "Lote", "Produto", "Qtd", "Un.", "Sacos", "Vlr Unit. (R$)", "Vlr Total (R$)", "Data Fabric.", "Validade", "Observações"],
+    [
+      "Item",
+      "Código",
+      "Lote",
+      "Produto",
+      "Qtd",
+      "Un.",
+      "Sacos",
+      "Vlr Unit. (R$)",
+      "Vlr Total (R$)",
+      "Data Fabric.",
+      "Validade",
+      "Observações",
+    ],
     ...Array.from({ length: 12 }, (_, i) => [i + 1, "", "", "", "", "", "", "", "", "", "", ""]),
     ["", "", "", "", "", "", "", "TOTAL GERAL (R$):", "", "", "", ""],
     [""],
     ["6. OBSERVAÇÕES GERAIS"],
-    [""], [""], [""],
+    [""],
+    [""],
+    [""],
     [""],
     ["7. ASSINATURAS"],
     ["Responsável pela Expedição:", "", "Conferente / Operador:", "", "Responsável Técnico (RT):", "", "CRMV:", ""],
@@ -1021,15 +1600,34 @@ export function gerarFormExpedicaoCompleta() {
 // ─── MAPA: Mapa de Expedição (Romaneio de Saída) ───
 export function gerarMapaExpedicaoMAPA(dados: any[], empresa: any) {
   const wb = XLSX.utils.book_new();
-  
+
   const header = [
     ["", "MAPA DE EXPEDIÇÃO E RASTREABILIDADE DE PRODUTO ACABADO"],
-    ["", `Empresa: ${empresa?.nome || "________________________"}`, "", "", `Período: ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`],
+    [
+      "",
+      `Empresa: ${empresa?.nome || "________________________"}`,
+      "",
+      "",
+      `Período: ${new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`,
+    ],
     [""],
-    ["Data", "NF", "Cliente", "Cidade/UF", "Produto", "Lote", "Quantidade", "Unid.", "Sacos", "Transportadora", "Motorista", "Placa"],
+    [
+      "Data",
+      "NF",
+      "Cliente",
+      "Cidade/UF",
+      "Produto",
+      "Lote",
+      "Quantidade",
+      "Unid.",
+      "Sacos",
+      "Transportadora",
+      "Motorista",
+      "Placa",
+    ],
   ];
 
-  const dataRows = dados.map(e => [
+  const dataRows = dados.map((e) => [
     e.data_saida || e.data_emissao || "",
     e.numero_nf || "",
     e.cliente_nome || "",
@@ -1052,14 +1650,15 @@ export function gerarMapaExpedicaoMAPA(dados: any[], empresa: any) {
   ];
 
   const allData = [...header, ...dataRows, ...footer];
-  const ws = createSheet(allData, [12, 10, 25, 18, 25, 14, 12, 8, 8, 20, 18, 12], [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: 11 } }
-  ]);
+  const ws = createSheet(
+    allData,
+    [12, 10, 25, 18, 25, 14, 12, 8, 8, 20, 18, 12],
+    [{ s: { r: 0, c: 1 }, e: { r: 0, c: 11 } }],
+  );
 
   XLSX.utils.book_append_sheet(wb, ws, "Mapa Expedição");
   downloadWorkbook(wb, "Mapa_Expedicao_MAPA");
 }
-
 
 // ─── Exportador Dinâmico para Dados de Planilhas (Digital) ───
 export function exportPopDataToExcel(
@@ -1067,25 +1666,38 @@ export function exportPopDataToExcel(
   periodicidade: { label: string; key: string; periodos: string[]; areas: { area: string }[] },
   mes: number,
   ano: number,
-  rows: any[]
+  rows: any[],
 ) {
   const wb = XLSX.utils.book_new();
-  const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const MESES = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
 
   const header = [
     ["", `REGISTRO DIGITAL — ${pop.codigo} - ${pop.nome}`],
     ["", `Periodicidade: ${periodicidade.label}`, "", "", `Mês/Ano: ${MESES[mes - 1]}/${ano}`],
     [""],
-    ["Período", ...periodicidade.areas.map(a => a.area), "Responsável", "Função"]
+    ["Período", ...periodicidade.areas.map((a) => a.area), "Responsável", "Função"],
   ];
 
-  const dataRows = periodicidade.periodos.map(p => {
-    const cells = periodicidade.areas.map(a => {
-      const item = rows.find(r => r.periodo_label === p && r.area === a.area);
+  const dataRows = periodicidade.periodos.map((p) => {
+    const cells = periodicidade.areas.map((a) => {
+      const item = rows.find((r) => r.periodo_label === p && r.area === a.area);
       if (!item || item.conforme === null) return "-";
       return item.conforme ? "C" : "NC";
     });
-    const firstRowItem = rows.find(r => r.periodo_label === p);
+    const firstRowItem = rows.find((r) => r.periodo_label === p);
     const resp = firstRowItem?.responsavel || "";
     const func = firstRowItem?.funcao || "";
     return [p, ...cells, resp, func];
@@ -1098,15 +1710,12 @@ export function exportPopDataToExcel(
   ];
 
   const allData = [...header, ...dataRows, ...footer];
-  
+
   // Calculate column widths
   const colWidths = [15, ...periodicidade.areas.map(() => 15), 20, 20];
-  
-  const ws = createSheet(allData, colWidths, [
-    { s: { r: 0, c: 1 }, e: { r: 0, c: periodicidade.areas.length + 2 } }
-  ]);
+
+  const ws = createSheet(allData, colWidths, [{ s: { r: 0, c: 1 }, e: { r: 0, c: periodicidade.areas.length + 2 } }]);
 
   XLSX.utils.book_append_sheet(wb, ws, "Registro");
   downloadWorkbook(wb, `${pop.codigo}_${periodicidade.key}_${MESES[mes - 1]}_${ano}`);
 }
-

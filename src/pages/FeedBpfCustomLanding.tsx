@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FolderOpen, Upload, Layers, FileSignature, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { Seo } from "@/components/Seo";
+const WHATSAPP_CONTATO = "https://wa.me/5562996075522";
 
 export default function FeedBpfCustomLanding() {
   return (
@@ -147,10 +148,12 @@ export default function FeedBpfCustomLanding() {
               ))}
             </ul>
 
-            <Button asChild size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700">
-              <Link to="/cadastro?produto=feedbpfcustom">
-                Testar grátis 7 dias <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
+            <Button
+              size="lg"
+              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              onClick={() => window.open(WHATSAPP_CONTATO, "_blank", "noopener,noreferrer")}
+            >
+              Em breve <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               Sem cartão no trial. Após o teste, escolha o período de cobrança dentro do sistema.
@@ -165,8 +168,13 @@ export default function FeedBpfCustomLanding() {
           <CardContent className="p-8 sm:p-12 space-y-5">
             <h2 className="text-2xl sm:text-3xl font-bold">Sua documentação, seus modelos, nosso gestor.</h2>
             <p className="text-emerald-50">7 dias grátis, sem cartão. Se não gostar, é só sair.</p>
-            <Button asChild size="lg" variant="secondary" className="bg-white text-emerald-700 hover:bg-emerald-50">
-              <Link to="/cadastro?produto=feedbpfcustom">Começar agora <ArrowRight className="w-4 h-4 ml-2" /></Link>
+            <Button
+              size="lg"
+              variant="secondary"
+              className="bg-white text-emerald-700 hover:bg-emerald-50"
+              onClick={() => window.open(WHATSAPP_CONTATO, "_blank", "noopener,noreferrer")}
+            >
+              Em breve <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </CardContent>
         </Card>

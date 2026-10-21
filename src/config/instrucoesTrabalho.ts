@@ -1,3 +1,4 @@
+import { citar798 } from "@/config/carryOver798";
 export interface InstrucaoTrabalho {
   id: string;
   popCodigo: string;
@@ -288,20 +289,21 @@ export const INSTRUCOES_TRABALHO: InstrucaoTrabalho[] = [
     id: "IT-05-01",
     popCodigo: "POP-05",
     titulo: "Sequenciamento de Produção e Flushing",
-    objetivo: "Definir a ordem de fabricação e executar o flushing entre fórmulas para prevenir contaminação cruzada por medicamentos e aditivos (IN 15/2009).",
+    objetivo: `Definir a ordem de fabricação e executar o flushing entre fórmulas para prevenir contaminação cruzada por medicamentos e aditivos, com plano de sequenciamento validado ou limpeza validada a partir da matriz de sensibilidade (${citar798("art. 25, II")}).`,
     materiais: ["Programação de produção do dia", "Matriz de sensibilidade", "Material inerte para flushing (milho moído, calcário)", "Etiquetas de identificação"],
     epis: ["Máscara PFF2", "Luvas"],
     passos: [
       "Consultar a programação de produção e a matriz de sensibilidade.",
       "Ordenar a produção do produto de MENOR risco para o de MAIOR risco (ex: sem medicamento → com medicamento).",
       "Antes da troca de fórmula com medicamento/aditivo, executar flushing com material inerte.",
-      "Quantidade de flushing: mínimo 1% da capacidade do misturador ou conforme validação.",
+      "Quantidade de flushing conforme definido na validação da limpeza.",
       "Destinar o material de flushing conforme procedimento (reprocesso ou descarte).",
       "Registrar no sistema: produto anterior, produto seguinte, volume de flushing, destino do material.",
       "Quando a sequência envolve rações para ruminantes após não-ruminantes com POA: flushing obrigatório com volume validado.",
     ],
     criteriosAceitacao: [
-      "Sequência respeitada conforme matriz de sensibilidade",
+      "Sequência respeitada conforme plano de sequenciamento validado",
+      `Produto não-alvo verificado no mínimo a cada 12 meses (${citar798("art. 25, V, b")})`,
       "Flushing executado e registrado antes de troca de fórmula crítica",
       "Material de flushing destinado corretamente",
       "Teste de carry-over conforme quando aplicável",
@@ -317,16 +319,17 @@ export const INSTRUCOES_TRABALHO: InstrucaoTrabalho[] = [
     materiais: ["Frascos de coleta identificados", "Formulário de coleta de carry-over", "Caixa térmica"],
     epis: ["Luvas", "Máscara PFF2"],
     passos: [
-      "Após o flushing, coletar amostra do PRIMEIRO lote do produto subsequente (amostra pós-flushing).",
+      `Após o flushing, coletar amostra do produto fabricado logo depois, no último ponto compartilhado da linha (${citar798("art. 28, IV")}).`,
       "Coletar também amostra do material de flushing.",
       "Identificar as amostras: data, lote anterior, lote atual, ponto de coleta.",
       "Enviar ao laboratório para análise do princípio ativo do medicamento anterior.",
-      "Resultado esperado: concentração do princípio ativo < 1% do nível terapêutico.",
+      `Resultado esperado: até 2,5% da concentração do princípio ativo do produto anterior (${citar798("art. 29")}).`,
+      `Repetir a sequência-piloto 3 vezes; a validação só é aprovada com as 3 repetições conformes (${citar798("art. 29, §1º")}).`,
       "Se resultado não conforme: aumentar volume de flushing, repetir limpeza e refazer o teste.",
-      "Registrar resultados na planilha de carry-over e arquivar o laudo.",
+      "Registrar resultados (com o número da repetição) na planilha de carry-over e arquivar o laudo por 2 anos.",
     ],
     criteriosAceitacao: [
-      "Arraste < 1% do nível terapêutico do medicamento",
+      "Arraste até 2,5% da concentração do princípio ativo, nas 3 repetições",
       "Laudo laboratorial arquivado",
       "Ação corretiva aplicada em caso de não conformidade",
     ],

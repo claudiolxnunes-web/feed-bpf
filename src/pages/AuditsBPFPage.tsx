@@ -12,8 +12,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 import { Seo } from "@/components/Seo";
 
+const WHATSAPP_CONTATO = "https://wa.me/5562996075522";
+
 const funcionalidades = [
-  { icon: ClipboardCheck, title: "Checklist Completo", desc: "Checklist de auditoria interna baseado integralmente no Decreto 12.031/2024, com todos os itens exigidos pelo MAPA." },
+  { icon: ClipboardCheck, title: "Checklist Completo", desc: "Checklist de auditoria interna para verificação dos registros e processos da fábrica." },
   { icon: BarChart3, title: "Cálculo Automático", desc: "Cálculo automático de percentual de conformidade por área e geral, com classificação de criticidade." },
   { icon: ShieldCheck, title: "Sala do Auditor MAPA", desc: "Área exclusiva para o auditor acessar documentos, relatórios e evidências durante a auditoria." },
   { icon: FileBarChart, title: "Relatórios Completos", desc: "Relatórios detalhados de auditoria com gráficos, comparativos e exportação em PDF." },
@@ -31,7 +33,7 @@ export default function AuditsBPFPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Seo
         title="Audits_BPF — Auditorias e Checklists MAPA para Fábricas"
-        description="Conduza auditorias internas com checklists do Decreto 12.031/2024, planos de ação e relatórios prontos para o fiscal."
+        description="Conduza auditorias internas com checklists, planos de ação e relatórios prontos para o fiscal."
         jsonLd={{"@context": "https://schema.org", "@type": "Product", "name": "Audits_BPF", "description": "Plataforma de auditorias internas e checklists de conformidade MAPA.", "brand": {"@type": "Brand", "name": "BPF_Consult"}}}
       />
       <header className="relative overflow-hidden">
@@ -51,14 +53,16 @@ export default function AuditsBPFPage() {
                 Audits_<span className="text-primary">BPF</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-xl leading-relaxed mb-6">
-                Transforme suas auditorias internas em um processo 100% digital e conforme com o novo <strong className="text-foreground">Decreto 12.031/2024</strong> do MAPA.
+                Transforme suas auditorias internas em um processo digital, com registros organizados para fiscalização.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
-                  <Link to="/auditsbpf/planos">
-                    <Sparkles className="h-4 w-4" />
-                    Ver Planos e Preços
-                  </Link>
+                <Button
+                  size="lg"
+                  className="gap-2 shadow-lg shadow-primary/20"
+                  onClick={() => window.open(WHATSAPP_CONTATO, "_blank", "noopener,noreferrer")}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Em breve
                 </Button>
                 <Button size="lg" variant="outline" className="gap-2" asChild>
                   <Link to={loginLink}>

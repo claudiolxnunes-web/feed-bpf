@@ -333,8 +333,8 @@ export default function Fornecedores() {
 
   return (
     <>
-      <PageHeader icon={Users} title="POP 01 - Qualificação de Fornecedores" description="Cadastro, avaliação e histórico integrado ao Recebimento de MP — IN 04/2007"
-        orientacaoModuloId="fornecedores" />
+      <PageHeader icon={Users} title="POP 01 - Qualificação de Fornecedores" description="Cadastro, avaliação e histórico integrado ao Recebimento de MP"
+        orientacaoModuloId="fornecedores" assuntoBaseLegal="registro_estabelecimento" />
 
       {/* Validação SIPEAGRO — links oficiais MAPA */}
       <Card className="border-primary/40 bg-primary/5 mb-6">
@@ -342,7 +342,7 @@ export default function Fornecedores() {
           <div className="flex-1">
             <p className="font-semibold text-sm">🏛️ Validar fornecedor no MAPA/SIPEAGRO</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Lista oficial atualizada semanalmente. Consulte por CNPJ, Razão Social ou nº de registro antes de aprovar fornecedores de insumos para alimentação animal (IN 17/2017).
+              Lista oficial atualizada semanalmente. Consulte por CNPJ, Razão Social ou nº de registro antes de aprovar fornecedores de insumos para alimentação animal (registro de estabelecimentos).
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">
@@ -483,7 +483,7 @@ export default function Fornecedores() {
 
                   {/* SIPEAGRO */}
                   <div className="p-3 rounded-lg border bg-muted/20 space-y-3">
-                    <p className="text-sm font-semibold flex items-center gap-2">🏛️ Registro SIPEAGRO — IN 17/2017</p>
+                    <p className="text-sm font-semibold flex items-center gap-2">🏛️ Registro SIPEAGRO</p>
                     <p className="text-[10px] text-muted-foreground">Estabelecimentos fornecedores de insumos para alimentação animal devem possuir registro no SIPEAGRO/MAPA.</p>
                     <div>
                       <Label>Nº Registro SIPEAGRO</Label>

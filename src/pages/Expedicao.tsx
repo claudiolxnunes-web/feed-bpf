@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { toast } from "sonner";
+import { mensagemErroRegistro } from "@/utils/registroImutavel";
 import { LoteProdutoPicker } from "@/components/expedicao/LoteProdutoPicker";
 import { MapaExpedicaoDigital } from "@/components/expedicao/MapaExpedicaoDigital";
 
@@ -40,6 +41,7 @@ interface Expedicao {
 }
 
 interface Item {
+  id?: string; // id do registro em expedicao_itens (presente só na edição)
   produto: string;
   codigo_produto: string;
   lote_produto: string;
@@ -112,7 +114,7 @@ export default function Expedicao() {
     else setExpedicoes((data as any) || []);
 
     // Carregar itens para o filtro de lotes
-    let qi = supabase.from("expedicao_itens" as any).select("expedicao_id, lote_produto");
+    let qi = supabase.from("expedicao_itens" as any).select("expedicao_id, lote_produto").neq("status", "cancelado");
     if (empresaAtiva) qi = qi.eq("empresa_id", empresaAtiva.id);
     const { data: ditens } = await qi;
     setTodosItens(ditens || []);
@@ -362,7 +364,8 @@ export default function Expedicao() {
       peso_bruto_kg: e.peso_bruto_kg?.toString() || "", peso_liquido_kg: e.peso_liquido_kg?.toString() || "",
       valor_total: e.valor_total?.toString() || "", observacoes: e.observacoes || "",
     });
-    setItens(((data as any) || []).map((i: any) => ({
+    setItens(((data as any) || []).filter((i: any) => (i.status || "ativo") === "ativo").map((i: any) => ({
+      id: i.id,
       produto: i.produto, codigo_produto: i.codigo_produto || "", lote_produto: i.lote_produto || "",
       quantidade: Number(i.quantidade) || 0, unidade: i.unidade || "kg",
       quantidade_sacos: i.quantidade_sacos || undefined,
@@ -421,16 +424,15 @@ export default function Expedicao() {
     let expedicaoId: string;
     if (editId) {
       const { error } = await supabase.from("expedicoes" as any).update(payload).eq("id", editId);
-      if (error) { toast.error("Erro: " + error.message); setSaving(false); return; }
+      if (error) { toast.error(mensagemErroRegistro(error, "Erro ao atualizar expedição")); setSaving(false); return; }
       expedicaoId = editId;
-      await supabase.from("expedicao_itens" as any).delete().eq("expedicao_id", editId);
     } else {
       const { data: exp, error } = await supabase.from("expedicoes" as any).insert(payload).select().single();
       if (error || !exp) { toast.error("Erro ao salvar: " + (error?.message || "")); setSaving(false); return; }
       expedicaoId = (exp as any).id;
     }
 
-    const itensPayload = itensValidos.map(i => ({
+    const montarItemPayload = (i: Item) => ({
       user_id: user.id,
       empresa_id: empresaAtiva?.id || null,
       expedicao_id: expedicaoId,
@@ -442,9 +444,39 @@ export default function Expedicao() {
       quantidade_sacos: i.quantidade_sacos || null,
       valor_unitario: i.valor_unitario || null,
       valor_total: i.valor_total || null,
-    }));
-    const { error: errItens } = await supabase.from("expedicao_itens" as any).insert(itensPayload);
-    if (errItens) toast.error("NF salva, mas erro nos itens: " + errItens.message);
+    });
+
+    if (editId) {
+      // Sem DELETE: registros salvos não são apagados (Decreto 12.031/2024).
+      // Itens existentes são atualizados; novos são inseridos; removidos do formulário são marcados como "cancelado".
+      const { data: existentes } = await supabase.from("expedicao_itens" as any)
+        .select("id, status").eq("expedicao_id", editId);
+      const idsNoForm = new Set(itensValidos.filter(i => i.id).map(i => i.id as string));
+
+      for (const item of itensValidos) {
+        const payloadItem = montarItemPayload(item);
+        if (item.id) {
+          const { error } = await supabase.from("expedicao_itens" as any).update(payloadItem).eq("id", item.id);
+          if (error) toast.error("Erro ao atualizar item: " + error.message);
+        } else {
+          const { error } = await supabase.from("expedicao_itens" as any).insert({ ...payloadItem, status: "ativo" });
+          if (error) toast.error("Erro ao inserir item: " + error.message);
+        }
+      }
+
+      const idsParaCancelar = ((existentes as any) || [])
+        .filter((e: any) => (e.status || "ativo") === "ativo" && !idsNoForm.has(e.id))
+        .map((e: any) => e.id);
+      if (idsParaCancelar.length > 0) {
+        const { error } = await supabase.from("expedicao_itens" as any)
+          .update({ status: "cancelado" }).in("id", idsParaCancelar);
+        if (error) toast.error("Erro ao cancelar itens removidos: " + error.message);
+      }
+    } else {
+      const itensPayload = itensValidos.map(i => ({ ...montarItemPayload(i), status: "ativo" }));
+      const { error: errItens } = await supabase.from("expedicao_itens" as any).insert(itensPayload);
+      if (errItens) toast.error("NF salva, mas erro nos itens: " + errItens.message);
+    }
 
     if (!editId) {
       const rastroPayload = itensValidos.filter(i => i.lote_produto).map(i => ({
@@ -472,13 +504,13 @@ export default function Expedicao() {
   const handleDelete = async (id: string) => {
     if (!confirm("Excluir esta expedição?")) return;
     const { error } = await supabase.from("expedicoes" as any).delete().eq("id", id);
-    if (error) toast.error(error.message);
+    if (error) toast.error(mensagemErroRegistro(error, "Erro ao excluir expedição"));
     else { toast.success("Excluída"); fetchData(); }
   };
 
   const verDetalhe = async (exp: Expedicao) => {
     setDetalheExp(exp);
-    const { data } = await supabase.from("expedicao_itens" as any).select("*").eq("expedicao_id", exp.id);
+    const { data } = await supabase.from("expedicao_itens" as any).select("*").eq("expedicao_id", exp.id).neq("status", "cancelado");
     setDetalheItens((data as any) || []);
     setDetalheOpen(true);
   };
@@ -499,10 +531,11 @@ export default function Expedicao() {
         title="Expedição & Faturamento"
         description="Registro de saída de produto acabado por NF — rastreabilidade completa para recall"
         icon={Truck}
+        assuntoBaseLegal="recolhimento_recall"
       />
 
       {/* Dashboard mês */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground capitalize">{dashboard.mesLabel}</span><TrendingUp className="h-4 w-4 text-primary" /></div>
@@ -557,7 +590,7 @@ export default function Expedicao() {
             <Download className="h-4 w-4 mr-2" />Romaneio por NF
           </Button>
           <Button variant="default" size="sm" onClick={async () => {
-            const { data } = await supabase.from("expedicao_itens" as any).select("*");
+            const { data } = await supabase.from("expedicao_itens" as any).select("*").neq("status", "cancelado");
             const mapped = filtered.map(f => ({ ...f, itens: data?.filter((i: any) => i.expedicao_id === f.id) }));
             setMapaDados(mapped);
             setMapaOpen(true);
@@ -565,7 +598,7 @@ export default function Expedicao() {
             <Eye className="h-4 w-4 mr-2" />Visualizar Mapa de Expedição (Digital)
           </Button>
           <Button variant="outline" size="sm" onClick={async () => {
-            const { data } = await supabase.from("expedicao_itens" as any).select("*");
+            const { data } = await supabase.from("expedicao_itens" as any).select("*").neq("status", "cancelado");
             const mapped = filtered.map(f => ({ ...f, itens: data?.filter((i: any) => i.expedicao_id === f.id) }));
             gerarMapaExpedicaoMAPA(mapped, empresaAtiva);
           }}>
@@ -650,7 +683,7 @@ export default function Expedicao() {
                           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleXmlUpload(f); }}
                           className="mt-2" />
                         <p className="text-xs text-muted-foreground mt-2">
-                          Extrai: NF, cliente, transportadora, motorista, placa, produtos e <strong>lotes (rastro/nLote)</strong>.
+                          Extrai: NF, cliente, transportadora, motorista, placa, produtos <strong>lotes (rastro/nLote)</strong>.
                         </p>
                         {origem === "xml" && <Badge variant="secondary" className="mt-3">XML carregado — revise e salve</Badge>}
                       </CardContent>
@@ -683,7 +716,7 @@ export default function Expedicao() {
                 </Tabs>
 
                 <div className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div><Label>NF nº *</Label><Input value={form.numero_nf} onChange={e => setForm({ ...form, numero_nf: e.target.value })} /></div>
                     <div><Label>Série</Label><Input value={form.serie_nf} onChange={e => setForm({ ...form, serie_nf: e.target.value })} /></div>
                     <div><Label>Data Emissão</Label><Input type="date" value={form.data_emissao} onChange={e => setForm({ ...form, data_emissao: e.target.value })} /></div>
@@ -693,7 +726,7 @@ export default function Expedicao() {
 
                   <div className="border rounded-md p-3 space-y-3">
                     <h4 className="font-semibold text-sm">Cliente / Destinatário</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       <div className="md:col-span-2"><Label>Razão Social *</Label><Input value={form.cliente_nome} onChange={e => setForm({ ...form, cliente_nome: e.target.value })} /></div>
                       <div><Label>CNPJ/CPF</Label><Input value={form.cliente_cnpj} onChange={e => setForm({ ...form, cliente_cnpj: e.target.value })} /></div>
                       <div className="md:col-span-2"><Label>Endereço</Label><Input value={form.cliente_endereco} onChange={e => setForm({ ...form, cliente_endereco: e.target.value })} /></div>
@@ -710,7 +743,7 @@ export default function Expedicao() {
 
                   <div className="border rounded-md p-3 space-y-3">
                     <h4 className="font-semibold text-sm">Transporte</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       <div className="md:col-span-2"><Label>Transportadora</Label><Input value={form.transportadora_nome} onChange={e => setForm({ ...form, transportadora_nome: e.target.value })} /></div>
                       <div><Label>CNPJ Transp.</Label><Input value={form.transportadora_cnpj} onChange={e => setForm({ ...form, transportadora_cnpj: e.target.value })} /></div>
                       <div><Label>Motorista</Label><Input value={form.motorista_nome} onChange={e => setForm({ ...form, motorista_nome: e.target.value })} /></div>
@@ -761,7 +794,7 @@ export default function Expedicao() {
                     })}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div><Label>Peso Bruto (kg)</Label><Input type="number" value={form.peso_bruto_kg} onChange={e => setForm({ ...form, peso_bruto_kg: e.target.value })} /></div>
                     <div><Label>Peso Líquido (kg)</Label><Input type="number" value={form.peso_liquido_kg} onChange={e => setForm({ ...form, peso_liquido_kg: e.target.value })} /></div>
                     <div><Label>Valor Total (R$)</Label><Input type="number" value={form.valor_total} onChange={e => setForm({ ...form, valor_total: e.target.value })} /></div>
@@ -769,7 +802,7 @@ export default function Expedicao() {
                   <div><Label>Observações</Label><Textarea value={form.observacoes} onChange={e => setForm({ ...form, observacoes: e.target.value })} /></div>
                 </div>
 
-                <DialogFooter>
+                <DialogFooter className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 border-t bg-background px-6 py-3 gap-2">
                   <Button variant="outline" onClick={() => { setOpen(false); resetForm(); }}>Cancelar</Button>
                   <Button onClick={handleSave} disabled={saving}>
                     {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}{editId ? "Atualizar" : "Salvar"} Expedição
@@ -878,7 +911,7 @@ export default function Expedicao() {
       </Dialog>
 
       <Dialog open={detalheOpen} onOpenChange={setDetalheOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>NF {detalheExp?.numero_nf} — {detalheExp?.cliente_nome}</DialogTitle>
           </DialogHeader>

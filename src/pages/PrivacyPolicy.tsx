@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
 
             <h2 className="text-lg font-bold text-[#173404] mt-8 mb-4">1. Identificação do Controlador</h2>
             <p className="text-slate-600 mb-4">
-              {SELLER}, atuando comercialmente como {TRADING} ("nós", "nosso"), é o controlador dos dados pessoais tratados nesta plataforma, conforme a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018). Contato: <a href={`mailto:${CONTACT}`} className="text-primary underline">{CONTACT}</a>.
+              {SELLER}, atuando comercialmente como {TRADING} ("nós", "nosso"), é o controlador dos dados pessoais tratados nesta plataforma, conforme a Lei Geral de Proteção de Dados (LGPD). Contato: <a href={`mailto:${CONTACT}`} className="text-primary underline">{CONTACT}</a>.
             </p>
 
             <h2 className="text-lg font-bold text-[#173404] mt-8 mb-4">2. Categorias de Dados Coletados</h2>

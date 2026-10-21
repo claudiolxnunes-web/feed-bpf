@@ -235,14 +235,14 @@ export async function exportRotuloDocx(rotulo: RotuloDocxData, niveisObj: Record
 
   // ---- HEADER TABLE (Classification + Name | Manufacturer) ----
   const headerTable = new Table({
-    width: { size: 14400, type: WidthType.DXA },
-    columnWidths: [9600, 4800],
+    width: { size: 15120, type: WidthType.DXA },
+    columnWidths: [10080, 5040],
     rows: [
       new TableRow({
         children: [
           new TableCell({
             borders: cellBorders, margins: { top: 60, bottom: 60, left: 120, right: 120 },
-            width: { size: 9600, type: WidthType.DXA },
+            width: { size: 10080, type: WidthType.DXA },
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
@@ -257,7 +257,7 @@ export async function exportRotuloDocx(rotulo: RotuloDocxData, niveisObj: Record
           }),
           new TableCell({
             borders: cellBorders, margins: { top: 60, bottom: 60, left: 80, right: 80 },
-            width: { size: 4800, type: WidthType.DXA },
+            width: { size: 5040, type: WidthType.DXA },
             children: [
               new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Fabricado por:", bold: true, font: "Arial", size: 14 })] }),
               new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: rotulo.razao_social, font: "Arial", size: 13 })] }),
@@ -277,7 +277,7 @@ export async function exportRotuloDocx(rotulo: RotuloDocxData, niveisObj: Record
       ? { ...noBorders, right: cellBorder }
       : noBorders,
     margins: { top: 40, bottom: 40, left: 120, right: 120 },
-    width: { size: rotulo.exibir_tabela_consumo ? 9600 : 14400, type: WidthType.DXA },
+    width: { size: rotulo.exibir_tabela_consumo ? 10080 : 15120, type: WidthType.DXA },
     children: leftChildren.length > 0 ? leftChildren : [new Paragraph({ children: [] })],
   });
 
@@ -287,7 +287,7 @@ export async function exportRotuloDocx(rotulo: RotuloDocxData, niveisObj: Record
     const rightCell = new TableCell({
       borders: noBorders,
       margins: { top: 40, bottom: 40, left: 80, right: 80 },
-      width: { size: 4800, type: WidthType.DXA },
+      width: { size: 5040, type: WidthType.DXA },
       children: [
         ...rightChildren.filter(c => c instanceof Paragraph),
         ...tables,
@@ -299,8 +299,8 @@ export async function exportRotuloDocx(rotulo: RotuloDocxData, niveisObj: Record
   }
 
   const bodyTable = new Table({
-    width: { size: 14400, type: WidthType.DXA },
-    columnWidths: rotulo.exibir_tabela_consumo ? [9600, 4800] : [14400],
+    width: { size: 15120, type: WidthType.DXA },
+    columnWidths: rotulo.exibir_tabela_consumo ? [10080, 5040] : [15120],
     rows: bodyRows,
   });
 
@@ -351,14 +351,16 @@ export async function exportRotuloDocx(rotulo: RotuloDocxData, niveisObj: Record
     sections: [{
       properties: {
         page: {
+          // docx-js espera as medidas em retrato e faz a troca ao aplicar LANDSCAPE
           size: {
-            width: 15840,  // landscape letter
-            height: 12240,
+            width: 12240,
+            height: 15840,
             orientation: PageOrientation.LANDSCAPE,
           },
           margin: { top: 360, right: 360, bottom: 360, left: 360 },
         },
       },
+
       children: [
         headerTable,
         bodyTable,

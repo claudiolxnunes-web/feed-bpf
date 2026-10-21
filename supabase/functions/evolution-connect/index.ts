@@ -186,7 +186,11 @@ Deno.serve(async (req) => {
     if (body.action === 'status') {
       const list = await callEvolution(`${baseUrl}/instance/fetchInstances`, config.api_key);
       if (!list.ok) {
-        return json({ error: 'Falha ao consultar Evolution', details: list.data }, list.status);
+        // Responde 200 com campo "error" para a tela mostrar o aviso sem quebrar.
+        const errorMessage = isUnauthorizedError(list.status, list.data)
+          ? 'Chave da Evolution rejeitada (401). Confira se a API Key salva é a Global API Key (AUTHENTICATION_API_KEY) do seu servidor Evolution.'
+          : 'Falha ao consultar Evolution';
+        return json({ error: errorMessage, status: list.status, details: list.data });
       }
       return json({ success: true, instances: list.data });
     }
@@ -243,6 +247,12 @@ Deno.serve(async (req) => {
 
     const renewResults: Array<{ step: string; status: number; data: unknown }> = [];
 
+    // Quando a chave salva não tem permissão para apagar/desconectar instâncias
+    // (ex.: é o token da própria instância, e não a Global API Key), a renovação
+    // completa é impossível. Nesse caso pulamos a remoção e tentamos apenas gerar
+    // o QR Code pela rota de conexão, que aceita o token da instância.
+    let renewSkipped = false;
+
     if (forceRenewQr) {
       // Importante: em algumas versões da Evolution/Baileys, o fluxo logout -> connect
       // devolve QR Code, mas o WhatsApp nunca completa o pareamento. Para renovar de
@@ -252,7 +262,9 @@ Deno.serve(async (req) => {
       });
       renewResults.push({ step: 'delete_before_recreate', status: deleted.status, data: deleted.data });
 
-      if (!deleted.ok && deleted.status !== 404) {
+      if (!deleted.ok && isUnauthorizedError(deleted.status, deleted.data)) {
+        renewSkipped = true;
+      } else if (!deleted.ok && deleted.status !== 404) {
         const loggedOut = await callEvolution(`${baseUrl}/instance/logout/${encodedInstance}`, config.api_key, {
           method: 'DELETE',
         });
@@ -265,34 +277,39 @@ Deno.serve(async (req) => {
         renewResults.push({ step: 'delete_after_logout_fallback', status: deletedAfterLogout.status, data: deletedAfterLogout.data });
 
         if (!deletedAfterLogout.ok && deletedAfterLogout.status !== 404) {
+          // Responde 200 com "error" para a tela mostrar o aviso sem travar.
           return json({
             error: 'A Evolution não permitiu remover a instância antiga. Crie uma instância com outro nome, salve como principal e gere o QR Code nela.',
+            status: deletedAfterLogout.status,
             details: renewResults,
-          }, deletedAfterLogout.status);
+          });
         }
       }
 
-      await wait(2500);
+      if (!renewSkipped) {
+        await wait(2500);
 
-      const recreated = await callEvolution(`${baseUrl}/instance/create`, config.api_key, {
-        method: 'POST',
-        body: JSON.stringify({
-          instanceName,
-          qrcode: true,
-          integration: 'WHATSAPP-BAILEYS',
-        }),
-      });
-      renewResults.push({ step: 'recreate_clean_instance', status: recreated.status, data: recreated.data });
+        const recreated = await callEvolution(`${baseUrl}/instance/create`, config.api_key, {
+          method: 'POST',
+          body: JSON.stringify({
+            instanceName,
+            qrcode: true,
+            integration: 'WHATSAPP-BAILEYS',
+          }),
+        });
+        renewResults.push({ step: 'recreate_clean_instance', status: recreated.status, data: recreated.data });
 
-      if (!recreated.ok && recreated.status !== 403 && recreated.status !== 409) {
-        return json({
-          error: 'A instância antiga foi removida, mas a Evolution não conseguiu recriar uma instância limpa.',
-          details: renewResults,
-        }, recreated.status);
-      }
+        if (!recreated.ok && recreated.status !== 403 && recreated.status !== 409) {
+          return json({
+            error: 'A instância antiga foi removida, mas a Evolution não conseguiu recriar uma instância limpa.',
+            status: recreated.status,
+            details: renewResults,
+          });
+        }
 
-      if (hasQrPayload(recreated.data)) {
-        return json({ success: true, qrcode: recreated.data, recreated: true, renew: renewResults });
+        if (hasQrPayload(recreated.data)) {
+          return json({ success: true, qrcode: recreated.data, recreated: true, renew: renewResults });
+        }
       }
     }
 
@@ -341,7 +358,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (forceRenewQr) {
+    if (forceRenewQr && !renewSkipped) {
       const deleted = await callEvolution(`${baseUrl}/instance/delete/${encodedInstance}`, config.api_key, {
         method: 'DELETE',
       });
@@ -361,8 +378,9 @@ Deno.serve(async (req) => {
       if (!recreated.ok && recreated.status !== 403 && recreated.status !== 409) {
         return json({
           error: 'Não foi possível recriar a instância para gerar um QR Code novo.',
+          status: recreated.status,
           details: renewResults,
-        }, recreated.status);
+        });
       }
 
       if (hasQrPayload(recreated.data)) {
@@ -378,8 +396,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    const allUnauthorized = results.length > 0
+      && results.every((r) => isUnauthorizedError(r.status, r.data));
+
     return json({
-      error: forceRenewQr
+      error: renewSkipped || allUnauthorized
+        ? 'A chave salva não tem permissão para apagar ou reconectar esta instância na Evolution (401). Cole no campo API Key a Global API Key do servidor (AUTHENTICATION_API_KEY), salve e tente de novo. Se preferir, use "Gerar QR Code" normal, sem renovar.'
+        : forceRenewQr
         ? 'A instância foi forçada a renovar, mas a Evolution ainda não devolveu um QR Code. Aguarde alguns segundos e tente novamente; se persistir, confira os logs da Evolution/Traefik.'
         : number
         ? 'A Evolution respondeu sem QR Code/código de pareamento. Confira se o número está correto e tente novamente. Se o celular já está pareado, desconecte em Aparelhos Conectados no WhatsApp e tente de novo.'

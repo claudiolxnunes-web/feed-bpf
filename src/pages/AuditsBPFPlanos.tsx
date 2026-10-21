@@ -32,7 +32,7 @@ const NIVEIS: { key: Nivel; nome: string; descricao: string; icon: typeof Shield
       "1 empresa cadastrada",
       "Até 10 usuários",
       "Acesso completo ao Audits BPF",
-      "Checklists Decreto 12.031/2024",
+      "Checklists",
       "Relatórios e exportação PDF",
       "Suporte por e-mail",
     ],
@@ -46,7 +46,7 @@ const NIVEIS: { key: Nivel; nome: string; descricao: string; icon: typeof Shield
       "Até 10 empresas",
       "Painel multi-empresa",
       "Acesso completo ao Audits BPF",
-      "Checklists Decreto 12.031/2024",
+      "Checklists",
       "Relatórios e exportação PDF",
       "Suporte prioritário",
     ],
@@ -60,7 +60,7 @@ const NIVEIS: { key: Nivel; nome: string; descricao: string; icon: typeof Shield
       "Até 20 empresas",
       "Painel multi-empresa avançado",
       "Acesso completo ao Audits BPF",
-      "Checklists Decreto 12.031/2024",
+      "Checklists",
       "Relatórios e exportação PDF",
       "Suporte prioritário + onboarding",
     ],
@@ -244,7 +244,7 @@ export default function AuditsBPFPlanos() {
                         Processando...
                       </>
                     ) : (
-                      "Assinar agora"
+                      "Em breve"
                     )}
                   </Button>
                 </CardContent>

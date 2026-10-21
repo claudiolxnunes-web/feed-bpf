@@ -8,7 +8,9 @@ import { useLicense } from "@/hooks/useLicense";
 import { checkAccess, TIER_LABEL } from "@/config/tiers";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmpresa } from "@/hooks/useEmpresa";
 import { SUPER_ADMIN_EMAILS } from "@/config/adminAccess";
+import { POP_PESOS, LIMITE_PONTOS_INTERMEDIARIO } from "@/config/popsPesos";
 
 interface TierGateProps {
   children: ReactNode;
@@ -74,9 +76,49 @@ const HYBRID_SHORTCUTS: Record<string, { templatePath: string; archivePath: stri
 export default function TierGate({ children }: TierGateProps) {
   const { tier } = useLicense();
   const { user } = useAuth();
+  const { empresaAtiva } = useEmpresa();
   const location = useLocation();
   const isSuperAdmin = !!(user?.email && SUPER_ADMIN_EMAILS.includes(user.email.toLowerCase() as any));
-  const access = isSuperAdmin ? { allowed: true, hybrid: false, reason: "" } : checkAccess(tier, location.pathname);
+  
+  // Lógica de pontos digitais para o plano Intermediário
+  const isIntermediario = tier === "intermediario";
+  const configModos = empresaAtiva?.config_modos_preenchimento || {};
+  
+  // Identifica o POP relacionado à rota atual para verificar o modo
+  // Esta lógica mapeia o path para o código do POP
+  const currentPop = useMemo(() => {
+    const path = location.pathname;
+    if (path.includes("recebimento") || path.includes("fornecedores")) return "POP-01";
+    if (path.includes("higiene")) return "POP-02";
+    if (path.includes("saude")) return "POP-03";
+    if (path.includes("agua")) return "POP-04";
+    if (path.includes("pcp") || path.includes("producao")) return "POP-05";
+    if (path.includes("manutencao")) return "POP-06";
+    if (path.includes("pragas")) return "POP-07";
+    if (path.includes("residuos")) return "POP-08";
+    if (path.includes("armazenamento") || path.includes("transporte")) return "POP-09";
+    if (path.includes("pac") || path.includes("auditoria")) return "POP-10";
+    return null;
+  }, [location.pathname]);
+
+  const access = useMemo(() => {
+    if (isSuperAdmin) return { allowed: true, hybrid: false, reason: "" };
+    
+    const baseAccess = checkAccess(tier, location.pathname);
+    
+    // Se for intermediário e o POP específico não estiver configurado como digital,
+    // tratamos como híbrido (mesmo que o plano permita digital em outros)
+    if (isIntermediario && currentPop && configModos[currentPop] !== "digital") {
+      return { 
+        allowed: true, 
+        hybrid: true, 
+        reason: `Este módulo está operando em modo Híbrido. No Plano Intermediário, você pode escolher quais POPs serão 100% digitais na configuração da empresa (limite de ${LIMITE_PONTOS_INTERMEDIARIO} pontos).` 
+      };
+    }
+    
+    return baseAccess;
+  }, [tier, location.pathname, isSuperAdmin, isIntermediario, currentPop, configModos]);
+
   const shortcuts = useMemo(
     () => HYBRID_SHORTCUTS[location.pathname] ?? {
       templatePath: "/planilhas-pop",

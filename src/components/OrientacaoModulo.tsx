@@ -1,3 +1,6 @@
+import { textoTela } from "@/lib/textoTela";
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
+import type { AssuntoBaseLegal } from "@/config/baseLegal";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +22,17 @@ interface Props {
 }
 
 export function OrientacaoModulo({ modulo, showRouteLink = true }: Props) {
+  const assuntos: Partial<Record<string, AssuntoBaseLegal>> = {
+    fornecedores: "registro_estabelecimento", produtos: "rotulagem",
+    rastreabilidade: "rastreabilidade", pragas: "controle_pragas",
+    "simulacao-recall": "recolhimento_recall", expedicao: "recolhimento_recall",
+    "relatorio-producao": "relatorio_producao_mensal",
+    autocontrole: "autocontrole", auditoria: "autocontrole",
+    "nao-conformidades": "autocontrole", "matriz-risco": "autocontrole",
+    "checklist-pre-auditoria": "autocontrole", "sala-auditor": "autocontrole",
+    substancias: "substancias_proibidas", "consulta-sipeagro": "registro_estabelecimento",
+  };
+  const assunto = assuntos[modulo.id] ?? "bpf_geral";
   const initialState = modulo.campos_simulacao.reduce((acc, c) => {
     acc[c.nome] = "";
     return acc;
@@ -117,14 +131,10 @@ export function OrientacaoModulo({ modulo, showRouteLink = true }: Props) {
             <div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <Badge variant="outline">{modulo.codigo}</Badge>
-                {modulo.base_legal.map((l) => (
-                  <Badge key={l} variant="secondary" className="text-xs">
-                    <Scale className="w-3 h-3 mr-1" />{l}
-                  </Badge>
-                ))}
+                <BaseLegalBadge assunto={assunto} />
               </div>
               <CardTitle>{modulo.titulo}</CardTitle>
-              <CardDescription className="mt-1">{modulo.descricao}</CardDescription>
+              <CardDescription className="mt-1">{textoTela(modulo.descricao)}</CardDescription>
             </div>
             {showRouteLink && (
               <Button asChild variant="outline" size="sm">
@@ -155,17 +165,12 @@ export function OrientacaoModulo({ modulo, showRouteLink = true }: Props) {
                   </div>
                   <div className="flex-1 space-y-2">
                     <h4 className="font-semibold text-base">{passo.titulo}</h4>
-                    <p className="text-sm text-muted-foreground">{passo.descricao}</p>
+                    <p className="text-sm text-muted-foreground">{textoTela(passo.descricao)}</p>
                     {passo.dica && (
                       <Alert className="mt-2 bg-accent/30 border-accent">
                         <Lightbulb className="h-4 w-4" />
-                        <AlertDescription className="text-xs">{passo.dica}</AlertDescription>
+                        <AlertDescription className="text-xs">{textoTela(passo.dica)}</AlertDescription>
                       </Alert>
-                    )}
-                    {passo.base_legal && (
-                      <Badge variant="outline" className="text-xs">
-                        <Scale className="w-3 h-3 mr-1" />{passo.base_legal}
-                      </Badge>
                     )}
                   </div>
                 </div>
@@ -201,9 +206,9 @@ export function OrientacaoModulo({ modulo, showRouteLink = true }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {modulo.campos_simulacao.map((campo) => (
                   <div key={campo.nome} className="space-y-1.5">
-                    <Label className="text-sm">{campo.label}</Label>
+                    <Label className="text-sm">{textoTela(campo.label)}</Label>
                     {renderCampo(campo)}
-                    {campo.ajuda && <p className="text-xs text-muted-foreground">{campo.ajuda}</p>}
+                    {campo.ajuda && <p className="text-xs text-muted-foreground">{textoTela(campo.ajuda)}</p>}
                   </div>
                 ))}
               </div>
@@ -227,12 +232,12 @@ export function OrientacaoModulo({ modulo, showRouteLink = true }: Props) {
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                     <AlertTitle className="text-primary">Simulação concluída ✓</AlertTitle>
                     <AlertDescription className="text-sm mt-2 space-y-3">
-                      <p>{modulo.exemplo_resultado || "Em uso real, este registro seria salvo no banco com carimbo SHA-256 anti-fraude."}</p>
+                      <p>{textoTela(modulo.exemplo_resultado || "Em uso real, este registro seria salvo no banco com carimbo SHA-256 anti-fraude.")}</p>
                       <div className="border border-dashed border-primary/40 rounded-md p-3 bg-background/60 font-mono text-xs space-y-1">
                         <div className="font-semibold text-primary not-italic">🔒 CARIMBO ANTI-FRAUDE (exigência MAPA)</div>
                         <div>📅 Data/Hora: <strong>{ts}</strong></div>
                         <div>🆔 Hash SHA-256 (simulado): <strong>{hex}…</strong></div>
-                        <div className="text-muted-foreground">Em produção: timestamp servidor + SHA-256 real + audit_log (Decreto 12.031/2024).</div>
+                        <div className="text-muted-foreground">Em produção: timestamp servidor + SHA-256 real + audit_log.</div>
                       </div>
                     </AlertDescription>
                   </Alert>

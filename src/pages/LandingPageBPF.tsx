@@ -1,3 +1,4 @@
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -44,7 +45,7 @@ const SOFTWARE_JSON_LD = {
   operatingSystem: "Web",
   offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
   description:
-    "Sistema completo de Boas Práticas de Fabricação (BPF) para fábricas de ração — IN 04/2007 e Decreto 12.031/2024.",
+    "Sistema completo de Boas Práticas de Fabricação (BPF) para fábricas de ração.",
 };
 
 export default function LandingPageBPF() {
@@ -63,7 +64,7 @@ export default function LandingPageBPF() {
     <div className="min-h-screen bg-white font-sans text-slate-900">
       <Seo
         title="BPF_Consult — BPF, Auditoria e CRM para Nutrição Animal"
-        description="Plataforma integrada para fábricas de ração: BPF (IN 04/2007), auditoria digital, rastreabilidade, recall e CRM. Conformidade MAPA simplificada."
+        description="Plataforma integrada para fábricas de ração: BPF, auditoria digital, rastreabilidade, recall e CRM. Conformidade MAPA simplificada."
         canonical="https://www.bpfconsult.com.br/"
         jsonLd={[ORG_JSON_LD, SOFTWARE_JSON_LD]}
       />
@@ -95,7 +96,7 @@ export default function LandingPageBPF() {
           <Badge className="mb-6 border-[#97C459] text-[#97C459] bg-transparent px-4 py-1">Consultoria & Tecnologia para Nutrição Animal</Badge>
           <h1 className="text-4xl sm:text-6xl font-bold mb-6 leading-tight">Sua fábrica em conformidade. Seus processos no digital. Seu negócio no controle.</h1>
 
-          <p className="text-lg sm:text-xl text-green-100/80 mb-10 max-w-2xl mx-auto">Plataforma e consultoria especializada em BPF, auditorias digitais, rastreabilidade e CRM para fábricas de rações e suplementos animais - com total aderência à IN 17/2023 do MAPA.</p>
+          <p className="text-lg sm:text-xl text-green-100/80 mb-10 max-w-2xl mx-auto">Plataforma e consultoria especializada em BPF, auditorias digitais, rastreabilidade e CRM para fábricas de rações e suplementos animais - com total aderência à do MAPA.</p>
           <div className="flex flex-col items-center gap-6">
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
               <Button onClick={() => navigate("/demo/feedbpf")} size="lg" className="bg-[#97C459] hover:bg-[#86b14d] text-[#173404] font-bold text-lg px-8 py-7 rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95">
@@ -118,7 +119,7 @@ export default function LandingPageBPF() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               "📁 \"A documentação de BPF está espalhada em pastas, planilhas e e-mails. Se vier uma auditoria amanhã, não estou preparado.\"",
-              "📋 \"Não sei se meus rótulos estão conforme a IN 17/2023. Fico esperando ser notificado para agir.\"",
+              "📋 \"Não sei se meus rótulos estão. Fico esperando ser notificado para agir.\"",
               "🔍 \"Se houver um problema com um lote, não consigo rastrear de onde veio nem para onde foi.\"",
               "📉 \"Minha equipe comercial trabalha de forma informal. Não tenho visibilidade da carteira de clientes.\"",
               "⚠️ \"Já passei por uma auditoria difícil. Não quero repetir. Mas não sei como me preparar de forma contínua.\"",
@@ -164,7 +165,7 @@ export default function LandingPageBPF() {
             <Card className="p-8 border-t-4 border-t-[#173404] shadow-lg rounded-2xl text-center">
               <ShieldCheck className="h-12 w-12 text-[#173404] mx-auto mb-6" />
               <h3 className="font-bold text-xl mb-4">Conformidade Garantida</h3>
-              <p className="text-slate-600">Desenvolvido com base na IN 17/2023 e nas normas MAPA vigentes. Você opera com segurança.</p>
+              <p className="text-slate-600">Desenvolvido para apoiar os procedimentos de BPF e a organização dos registros da sua fábrica.</p>
             </Card>
           </div>
         </div>
@@ -237,9 +238,9 @@ export default function LandingPageBPF() {
             <Card className="p-8 bg-white border-none shadow-sm rounded-2xl">
               <Tag className="h-10 w-10 text-[#173404] mb-6" />
               <h3 className="text-xl font-bold mb-4 text-[#173404]">Nutri_Agro Labels: Rotulagem</h3>
-              <p className="text-slate-600 mb-6 text-sm">Valide e gerencie seus rótulos com base na IN 17/2023. Reduza o risco de notificações.</p>
+              <p className="text-slate-600 mb-6 text-sm">Valide e gerencie seus rótulos com base. Reduza o risco de notificações.</p>
               <ul className="space-y-3 mb-8">
-                {["Validação IN 17/2023", "Alertas obrigatórios", "Suporte registro MAPA", "Biblioteca de rótulos"].map((f, i) => (
+                {["Validação", "Alertas obrigatórios", "Suporte registro MAPA", "Biblioteca de rótulos"].map((f, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
                     <CheckCircle className="h-4 w-4 text-[#97C459]" /> {f}
                   </li>
@@ -300,7 +301,7 @@ export default function LandingPageBPF() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 mb-20">
             {[
-              { t: "Conformidade", d: "Opere com segurança regulatória conforme IN 17/2023.", icon: ShieldCheck },
+              { t: "Conformidade", d: "Opere com segurança regulatória.", icon: ShieldCheck },
               { t: "Rastreabilidade", d: "Saiba onde está cada lote em tempo real.", icon: Search },
               { t: "Produtividade", d: "Processos padronizados reduzem retrabalho.", icon: Factory },
               { t: "Redução de Erros", d: "Validações automáticas que protegem sua operação.", icon: AlertTriangle },
@@ -429,9 +430,9 @@ export default function LandingPageBPF() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-8">A IN 17/2023 mudou as regras. Sua fábrica está pronta?</h2>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-8">Sua fábrica está pronta para a fiscalização?<BaseLegalBadge assunto="rotulagem" /></h2>
               <div className="space-y-6 text-green-100/80 leading-relaxed">
-                <p>A Instrução Normativa 17/2023 do Ministério da Agricultura estabelece novos requisitos para registro, rotulagem e controle de qualidade.</p>
+                <p>Organize os registros, a rotulagem e o controle de qualidade da sua fábrica.</p>
                 <p>As mudanças afetam diretamente:</p>
                 <ul className="space-y-4">
                   {[

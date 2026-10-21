@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { inserirCarimbo, CARIMBO_PLACEHOLDER } from "./carimboDocumento";
 
 interface FornecedorData {
   nome: string;
@@ -193,16 +194,11 @@ export function exportListaAprovadosXlsx(fornecedores: FornecedorData[]) {
 /**
  * Gera um "PDF" via impressão do navegador (window.print) de conteúdo HTML
  */
-export function printQuestionario(f?: FornecedorData) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { gerarCarimboSync, carimboHTML } = require("./carimboDocumento");
+export async function printQuestionario(f?: FornecedorData): Promise<void> {
+  // Abre a janela antes de qualquer espera, para não ser bloqueada pelo navegador.
+  const win = window.open("", "_blank");
   const e = (s: unknown) => String(s ?? "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  const carimbo = gerarCarimboSync({
-    documentoTipo: "PL POP 1.1 — Questionário Qualificação Fornecedor",
-    documentoId: f?.nome,
-    empresa: f?.nome,
-  });
   const nome = f?.nome || "";
   const html = `
 <!DOCTYPE html>
@@ -271,13 +267,17 @@ ${f?.observacoes ? `<p><strong>Observações:</strong> ${e(f.observacoes)}</p>` 
   <div><div class="line">Verificação</div></div>
 </div>
 
-${carimboHTML(carimbo)}
+${CARIMBO_PLACEHOLDER}
 
 </body></html>`;
 
-  const win = window.open("", "_blank");
+  const { html: htmlFinal } = await inserirCarimbo(html, {
+    documentoTipo: "PL POP 1.1 — Questionário Qualificação Fornecedor",
+    documentoId: f?.nome,
+    empresa: f?.nome,
+  });
   if (win) {
-    win.document.write(html);
+    win.document.write(htmlFinal);
     win.document.close();
     win.onload = () => { win.print(); };
   }

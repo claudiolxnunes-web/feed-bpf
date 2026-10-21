@@ -1,4 +1,7 @@
+import { PONTOS_COLETA, PARAMETROS_ANALISE, CHECKLIST_RESERVATORIO } from "@/components/agua/constants";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { corrigirViaNC } from "@/utils/correcaoNC";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,46 +18,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Droplet, CheckCircle2, AlertTriangle, Trash2, FileText, Beaker, Container, Download, ShieldCheck } from "lucide-react";
+import { Plus, Droplet, CheckCircle2, AlertTriangle, FileWarning, FileText, Beaker, Container, Download, ShieldCheck } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { AnexarPlanilhaPop } from "@/components/documentos/AnexarPlanilhaPop";
 
-const PONTOS_COLETA = [
-  "Ponto 1 — Entrada (Poço/SAAE)",
-  "Ponto 2 — Caixa d'Água Principal",
-  "Ponto 3 — Área de Produção",
-  "Ponto 4 — Bebedouro/Refeitório",
-  "Ponto 5 — Lavagem de Equipamentos",
-  "Ponto 6 — Laboratório",
-];
 
-const PARAMETROS_ANALISE = [
-  { param: "Cloro Residual Livre", unidade: "mg/L", limite: "0,2 a 2,0", ref: "Portaria GM/MS 888/2021" },
-  { param: "pH", unidade: "-", limite: "6,0 a 9,5", ref: "Portaria GM/MS 888/2021" },
-  { param: "Turbidez", unidade: "uT", limite: "≤ 5,0", ref: "Portaria GM/MS 888/2021" },
-  { param: "Coliformes Totais", unidade: "NMP/100mL", limite: "Ausência", ref: "Portaria GM/MS 888/2021" },
-  { param: "Escherichia coli", unidade: "NMP/100mL", limite: "Ausência", ref: "Portaria GM/MS 888/2021" },
-  { param: "Cor Aparente", unidade: "uH", limite: "≤ 15", ref: "Portaria GM/MS 888/2021" },
-];
 
-const CHECKLIST_RESERVATORIO = [
-  "Reservatório com tampa e vedação adequada",
-  "Ausência de trincas ou rachaduras",
-  "Ausência de sujidades visíveis nas paredes internas",
-  "Ausência de algas ou biofilme",
-  "Boia de nível funcionando corretamente",
-  "Registro de entrada/saída em bom estado",
-  "Extravasor (ladrão) com tela de proteção",
-  "Área ao redor limpa e sem acúmulo de materiais",
-  "Identificação do reservatório (volume/capacidade)",
-  "Registro de última higienização visível e atualizado",
-  "Tubulações sem vazamentos",
-  "Cloração automática/manual funcionando",
-  "Acesso restrito ao reservatório",
-  "Escada de acesso em bom estado",
-  "Pintura/revestimento interno íntegro",
-  "Certificado da empresa de limpeza arquivado",
-];
+
+
+
 
 export default function PotabilidadeAgua() {
   const { user } = useAuth();
@@ -234,16 +206,7 @@ export default function PotabilidadeAgua() {
     },
   });
 
-  const deleteAnalise = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("analises_laboratorio").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["potabilidade-agua"] });
-      toast.success("Registro excluído");
-    },
-  });
+  const navigate = useNavigate();
 
   const conformes = analises.filter(a => a.conforme).length;
   const naoConformes = analises.filter(a => a.conforme === false).length;
@@ -252,9 +215,9 @@ export default function PotabilidadeAgua() {
     <div className="space-y-6">
       <PageHeader
         title="POP 04 - Potabilidade da Água"
-        description="Controle de potabilidade da água e higienização de reservatórios — IN 04/2007"
+        description="Controle de potabilidade da água e higienização de reservatórios"
         orientacaoModuloId="potabilidade-agua"
-      />
+       assuntoBaseLegal="bpf_geral" />
       <div className="flex justify-end mb-3"><AnexarPlanilhaPop popCodigo="POP-04" popNome="Potabilidade da Água" /></div>
 
       {/* KPIs */}
@@ -385,7 +348,7 @@ export default function PotabilidadeAgua() {
                         </TableCell>
                         <TableCell className="text-xs">{a.laudo_numero || "—"}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => deleteAnalise.mutate(a.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                          <Button variant="ghost" size="sm" className="gap-1 text-xs" title="Registros não são excluídos — correção via Não Conformidade" onClick={() => corrigirViaNC(navigate, { tabela: "analises_laboratorio", registroId: a.id, descricao: `Análise de água — parâmetro: ${a.parametro} — resultado: ${a.resultado} — data: ${a.data_analise}` })}><FileWarning className="w-4 h-4 text-primary" /> Corrigir via NC</Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -476,11 +439,7 @@ export default function PotabilidadeAgua() {
                       <TableCell className="text-xs max-w-xs truncate">{l.observacoes}</TableCell>
 
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={async () => {
-                          await supabase.from("registros_limpeza").delete().eq("id", l.id);
-                          queryClient.invalidateQueries({ queryKey: ["limpeza-reservatorio"] });
-                          toast.success("Excluído");
-                        }}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                        <Button variant="ghost" size="sm" className="gap-1 text-xs" title="Registros não são excluídos — correção via Não Conformidade" onClick={() => corrigirViaNC(navigate, { tabela: "registros_limpeza", registroId: l.id, descricao: `Limpeza de reservatório — data: ${l.data_execucao} — executor: ${l.executor || "—"}` })}><FileWarning className="w-4 h-4 text-primary" /> Corrigir via NC</Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -493,7 +452,7 @@ export default function PotabilidadeAgua() {
         {/* ── ABA PARÂMETROS LEGAIS ── */}
         <TabsContent value="parametros">
           <Card>
-            <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="w-5 h-5" /> Parâmetros de Referência — Portaria GM/MS 888/2021</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="w-5 h-5" /> Parâmetros de Referência </CardTitle></CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
@@ -501,7 +460,7 @@ export default function PotabilidadeAgua() {
                     <TableHead>Parâmetro</TableHead>
                     <TableHead>Unidade</TableHead>
                     <TableHead>Limite / VMP</TableHead>
-                    <TableHead>Referência Normativa</TableHead>
+                    <TableHead>Referência</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -510,13 +469,13 @@ export default function PotabilidadeAgua() {
                       <TableCell className="font-medium">{p.param}</TableCell>
                       <TableCell>{p.unidade}</TableCell>
                       <TableCell className="font-mono">{p.limite}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{p.ref}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">Parâmetros de controle</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
               <div className="mt-4 p-3 bg-muted rounded-lg text-sm space-y-1">
-                <p className="font-medium">📋 Frequências recomendadas (IN 04/2007):</p>
+                <p className="font-medium">📋 Frequências recomendadas:</p>
                 <ul className="list-disc pl-5 text-muted-foreground space-y-0.5">
                   <li><strong>Cloro Residual e pH</strong>: diário (pontos de uso)</li>
                   <li><strong>Análise microbiológica</strong>: mensal (todos os pontos)</li>

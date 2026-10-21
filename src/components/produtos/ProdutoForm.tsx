@@ -397,7 +397,7 @@ export default function ProdutoForm({ produtoId, onSaved }: Props) {
             <div><Label>Validade (meses)</Label><Input type="number" value={validadeMeses} onChange={(e) => setValidadeMeses(e.target.value)} /></div>
             <div><Label>Embalagem</Label><Input value={embalagem} onChange={(e) => setEmbalagem(e.target.value)} placeholder="Ex: Saco de ráfia 40kg" /></div>
             <div className="md:col-span-2 lg:col-span-3 border-t pt-3 mt-2">
-              <Label className="text-sm font-semibold text-orange-700">⚠️ Risco Regulatório (MAPA/EEB - IN 34/2008)</Label>
+              <Label className="text-sm font-semibold text-orange-700">⚠️ Risco Regulatório (MAPA/EEB)</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                 <div>
                   <Label className="text-xs">Espécie de Destino</Label>
@@ -421,8 +421,8 @@ export default function ProdutoForm({ produtoId, onSaved }: Props) {
               </div>
               {linhaCompartilhada && especieDestino === "ruminante" && (
                 <p className="text-xs text-destructive mt-2 bg-destructive/10 p-2 rounded">
-                  ⚠️ Linha compartilhada para ruminantes exige validação de carry-over (PCP/Flushing) - IN 34/2008.
-                </p>
+ ⚠️ Linha compartilhada para ruminantes exige validação de carry-over (PCP/Flushing).
+ </p>
               )}
             </div>
           </div>

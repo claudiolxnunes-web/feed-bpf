@@ -55,9 +55,9 @@ export default function TutorialGoogleFormsSheets() {
         </h1>
         <p className="text-muted-foreground mt-1">
           Guia passo a passo para criar formulários e planilhas no Google e integrá-los ao
-          Feed_BPF Custom. Toda resposta vira um <strong>Registro Digital</strong> com
-          hash SHA-256 (Decreto 12.031/2024).
-        </p>
+          Feed_BPF Custom. Toda resposta vira um <strong>Registro Digital</strong>  com
+ hash SHA-256.
+ </p>
       </div>
 
       <Alert className="border-emerald-500/40 bg-emerald-500/5">
@@ -76,6 +76,57 @@ export default function TutorialGoogleFormsSheets() {
           .
         </AlertDescription>
       </Alert>
+
+      {/* ==================== ATALHO — MODO RÁPIDO ==================== */}
+      <Card className="border-2 border-emerald-500/40 bg-emerald-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="h-5 w-5 text-emerald-600" />
+            Atalho — Modo rápido (2 minutos)
+            <Badge className="bg-emerald-600 hover:bg-emerald-700">Recomendado</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          <p className="text-sm text-muted-foreground mb-3">
+            Se você já tem o formulário pronto no Google, não precisa criar o modelo campo a campo.
+            O <strong>Modo rápido</strong> cria o modelo, os campos e o token do webhook de uma vez.
+          </p>
+          <Step n={1} title="Copie as perguntas do seu Forms">
+            <p>
+              Abra o formulário e copie o <strong>título de cada pergunta</strong>, uma por linha
+              (ex.: <code className="px-1 bg-muted rounded">Data</code>,{" "}
+              <code className="px-1 bg-muted rounded">Responsável</code>,{" "}
+              <code className="px-1 bg-muted rounded">Cloro (ppm)</code>).
+            </p>
+          </Step>
+          <Step n={2} title="Cole no Modo rápido">
+            <p>
+              Vá em{" "}
+              <Link to="/feedbpf-custom/google-forms" className="text-emerald-600 underline">
+                Google Forms
+              </Link>{" "}
+              e cole a lista no bloco <strong>Modo rápido</strong>. O sistema detecta o tipo de cada
+              campo (data, número, sim/não, texto) e sugere o POP.
+            </p>
+          </Step>
+          <Step n={3} title="Criar e conectar">
+            <p>
+              Clique em <strong>Criar modelo</strong>. Em seguida use o{" "}
+              <strong>Assistente de configuração</strong> na mesma tela: ele valida os nomes das
+              perguntas, entrega o script pronto e tem o botão <strong>Testar webhook</strong>.
+            </p>
+          </Step>
+          <div className="pt-2">
+            <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+              <Link to="/feedbpf-custom/google-forms">Abrir Modo rápido</Link>
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground pt-3">
+            Prefere entender tudo com detalhes? Continue no passo a passo completo abaixo.
+          </p>
+        </CardContent>
+      </Card>
+
 
       {/* ==================== PARTE 1 — GOOGLE FORMS ==================== */}
       <Card>
@@ -99,9 +150,9 @@ export default function TutorialGoogleFormsSheets() {
                 forms.google.com <ExternalLink className="h-3 w-3" />
               </a>
               , clique em <strong>+ Em branco</strong> e dê um título claro
-              (ex.: “POP-04 — Cloro Diário”).
+              (ex.: “POP-03 — Saúde e Treinamentos”).
             </p>
-            <Illustration src={imgCriarForm} alt="Exemplo de formulário criado no Google Forms com campos POP-04 (Data, Responsável, Cloro, pH)" />
+            <Illustration src={imgCriarForm} alt="Exemplo de formulário criado no Google Forms com campos POP-03 (Data, Responsável, Treinamento, ASO)" />
           </Step>
 
           <Step n={2} title="Adicionar as perguntas">
@@ -160,7 +211,7 @@ export default function TutorialGoogleFormsSheets() {
               <li>Função: <code className="px-1 bg-muted rounded">onFormSubmit</code></li>
               <li>Fonte do evento: <strong>Do formulário</strong></li>
               <li>Tipo de evento: <strong>No envio do formulário</strong></li>
-              <li>Salvar e <strong>autorizar</strong> com sua conta Google (aparecerá aviso
+              <li>Salvar <strong>autorizar</strong> com sua conta Google (aparecerá aviso
                 “App não verificado” → “Avançado” → “Acessar mesmo assim”).</li>
             </ol>
             <Illustration src={imgTrigger} alt="Painel de Acionadores do Apps Script com função onFormSubmit configurada para disparar no envio do formulário" />

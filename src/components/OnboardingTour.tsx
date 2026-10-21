@@ -24,7 +24,7 @@ const STEPS: Step[] = [
   },
   {
     title: "📋 Documentos & POPs",
-    descricao: "Gerencie todos os 10 POPs obrigatórios da IN 04/2007, controle versões, preencha planilhas e arquive documentos digitalizados. Acesse pelo menu Qualidade.",
+    descricao: "Gerencie todos os 10 POPs obrigatórios da, controle versões, preencha planilhas e arquive documentos digitalizados. Acesse pelo menu Qualidade.",
     posicao: "center",
   },
   {

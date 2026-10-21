@@ -1,3 +1,6 @@
+import { BaseLegalBadge } from "@/components/BaseLegalBadge";
+import { ETAPAS_RECALL } from "@/components/recall/constants";
+import type { RecallStep } from "@/components/recall/constants";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Timer, Play, Square, RotateCcw, AlertTriangle, CheckCircle2, ClipboardList, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,27 +16,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEmpresa } from "@/hooks/useEmpresa";
 
-interface RecallStep {
-  id: string;
-  label: string;
-  descricao: string;
-  concluido: boolean;
-  horaInicio?: string;
-  horaFim?: string;
-}
 
-const ETAPAS_RECALL: Omit<RecallStep, "concluido" | "horaInicio" | "horaFim">[] = [
-  { id: "1", label: "Identificação do Problema", descricao: "Detectar o lote/produto com problema e registrar a não conformidade" },
-  { id: "2", label: "Comunicação Interna", descricao: "Notificar RT, gerência e equipe de qualidade sobre o recall" },
-  { id: "3", label: "Rastreabilidade Reversa", descricao: "Identificar todos os lotes afetados, matérias-primas e fornecedores envolvidos" },
-  { id: "4", label: "Rastreabilidade Direta", descricao: "Localizar os clientes/destinos que receberam o produto afetado" },
-  { id: "5", label: "Notificação ao MAPA/SIF", descricao: "Comunicar oficialmente ao órgão competente (simulado)" },
-  { id: "6", label: "Notificação aos Clientes", descricao: "Entrar em contato com todos os destinatários do produto" },
-  { id: "7", label: "Recolhimento Físico", descricao: "Iniciar a logística reversa para recuperação dos produtos" },
-  { id: "8", label: "Segregação e Destinação", descricao: "Segregar produtos recolhidos e definir destino (destruição, reprocesso, etc.)" },
-  { id: "9", label: "Registro e Relatório", descricao: "Documentar todo o exercício e gerar relatório final com tempos" },
-  { id: "10", label: "Ação Corretiva", descricao: "Definir ações para evitar recorrência e atualizar procedimentos" },
-];
+
+
 
 export default function SimulacaoRecall() {
   const { user } = useAuth();
@@ -100,22 +85,30 @@ export default function SimulacaoRecall() {
 
     if (!user) return;
 
-    // Save as a NC for audit trail
-    const { error } = await supabase.from("nao_conformidades").insert({
+    // Grava na tabela própria de simulações (não infla os indicadores de NC)
+    const { error } = await supabase.from("simulacoes_recall" as any).insert({
       user_id: user.id,
       empresa_id: empresaAtiva?.id || null,
-      setor: "Qualidade",
-      descricao: `[SIMULAÇÃO RECALL] Produto: ${produtoSimulado} | Lote: ${loteSimulado} | Tempo total: ${formatTime(tempoTotal)} | Etapas concluídas: ${concluidas}/${etapas.length}`,
-      causa: "Exercício anual de recall conforme Decreto 12.031/2024",
-      acao_corretiva: observacoes || "Exercício simulado — sem ação corretiva necessária",
-      status: "fechada",
+      data: new Date().toISOString().slice(0, 10),
+      produto: produtoSimulado,
+      lote: loteSimulado,
+      tempo_total_min: Math.round(tempoTotal / 60),
+      etapas: etapas.map(e => ({
+        id: e.id,
+        label: e.label,
+        concluido: e.concluido,
+        horaInicio: e.horaInicio || null,
+        horaFim: e.horaFim || null,
+      })),
+      observacoes: observacoes || null,
       responsavel: user.email || "",
+      status: "concluida",
     });
 
     if (error) {
       toast({ title: "Erro ao salvar simulação", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Simulação de Recall registrada!", description: "O exercício foi salvo como registro de NC para fins de auditoria." });
+      toast({ title: "Simulação de Recall registrada!", description: "O exercício foi salvo no registro de simulações para fins de auditoria." });
     }
   };
 
@@ -128,8 +121,8 @@ export default function SimulacaoRecall() {
 
   return (
     <>
-      <PageHeader icon={Timer} title="Simulação de Recall" description="Exercício anual obrigatório — Decreto 12.031/2024 e POP-008"
-        orientacaoModuloId="simulacao-recall" />
+      <PageHeader icon={Timer} title="POP 09 - Simulação de Recall" description="Exercício anual de recolhimento de produtos — POP 09"
+        orientacaoModuloId="simulacao-recall"  assuntoBaseLegal="recolhimento_recall" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Painel lateral */}
@@ -239,15 +232,14 @@ export default function SimulacaoRecall() {
           <Card className="bg-muted/30 mt-4">
             <CardContent className="py-4">
               <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-yellow-500" /> Orientações — Decreto 12.031/2024
-              </h4>
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />  Orientações <BaseLegalBadge assunto="recolhimento_recall" /></h4>
               <ul className="text-xs text-muted-foreground space-y-1">
                 <li>• O exercício de recall deve ser realizado <strong>pelo menos 1 vez ao ano</strong></li>
                 <li>• O tempo ideal de resposta é de até <strong>2 horas</strong> para completar todas as etapas</li>
                 <li>• O RT deve participar e assinar o relatório final</li>
                 <li>• Mantenha este registro arquivado por no mínimo <strong>2 anos</strong> para auditoria</li>
                 <li>• A rastreabilidade reversa e direta devem ser demonstráveis em até <strong>4 horas</strong></li>
-                <li>• Registros insuficientes podem gerar autuação conforme IN 04/2007</li>
+                <li>• Registros insuficientes podem gerar autuação</li>
               </ul>
             </CardContent>
           </Card>

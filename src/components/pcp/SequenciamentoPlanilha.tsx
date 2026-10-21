@@ -79,7 +79,7 @@ export default function SequenciamentoPlanilha({ ordens, matriz }: Props) {
           <ArrowRightLeft className="w-5 h-5 text-primary" />
           <div>
             <CardTitle className="text-base font-display">Planilha de Sequenciamento — Programação de Fábrica</CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">Visão detalhada da sequência de produção e transições (IN 15/2009)</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Visão detalhada da sequência de produção e transições </p>
           </div>
         </div>
         <Button size="sm" variant="outline" onClick={handlePrint}>

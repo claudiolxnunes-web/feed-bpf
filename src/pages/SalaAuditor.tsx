@@ -27,21 +27,21 @@ interface ModuleStatus {
 }
 
 const INSPECTION_MODULES: { key: string; label: string; path: string; table: string; description: string }[] = [
-  { key: "documentos", label: "Documentos / POPs", path: "/documentos", table: "documentos", description: "Manual BPF, POPs atualizados (Art. 39-IV, 42)" },
-  { key: "execucao_pops", label: "Execução ITs/POPs", path: "/execucao-pops", table: "execucao_pops", description: "Registros de execução dos 9 POPs (IN 04/2007)" },
-  { key: "recebimento_mp", label: "Recebimento MP", path: "/recebimento", table: "recebimento_mp", description: "Controle de recepção com procedência (Art. 39-XIII)" },
-  { key: "producao", label: "Produção", path: "/producao", table: "producao", description: "Registros de fabricação (Art. 39-XIII)" },
-  { key: "rastreabilidade", label: "Rastreabilidade", path: "/rastreabilidade", table: "rastreabilidade", description: "Rastreabilidade MP → Produto Final (Art. 41)" },
-  { key: "nao_conformidades", label: "Não Conformidades", path: "/nao-conformidades", table: "nao_conformidades", description: "Desvios e ações corretivas (Art. 40-III)" },
-  { key: "treinamentos", label: "Treinamentos", path: "/treinamentos", table: "treinamentos", description: "Capacitação da equipe (Art. 39-XIV)" },
+  { key: "documentos", label: "Documentos / POPs", path: "/documentos", table: "documentos", description: "Manual BPF, POPs atualizados (-IV, 42)" },
+  { key: "execucao_pops", label: "Execução ITs/POPs", path: "/execucao-pops", table: "execucao_pops", description: "Registros de execução dos 9 POPs" },
+  { key: "recebimento_mp", label: "Recebimento MP", path: "/recebimento", table: "recebimento_mp", description: "Controle de recepção com procedência (-XIII)" },
+  { key: "producao", label: "Produção", path: "/producao", table: "producao", description: "Registros de fabricação (-XIII)" },
+  { key: "rastreabilidade", label: "Rastreabilidade", path: "/rastreabilidade", table: "rastreabilidade", description: "Rastreabilidade MP → Produto Final" },
+  { key: "nao_conformidades", label: "Não Conformidades", path: "/nao-conformidades", table: "nao_conformidades", description: "Desvios e ações corretivas (-III)" },
+  { key: "treinamentos", label: "Treinamentos", path: "/treinamentos", table: "treinamentos", description: "Capacitação da equipe (-XIV)" },
   { key: "controle_pragas", label: "Controle de Pragas", path: "/pragas", table: "controle_pragas", description: "Programa MIP (POP-002)" },
-  { key: "cronogramas_higiene", label: "Higiene / Sanitização", path: "/higiene", table: "cronogramas_higiene", description: "PPHO e cronogramas (Art. 37-38)" },
-  { key: "calibracoes", label: "Calibrações", path: "/manutencao", table: "calibracoes", description: "Calibração de equipamentos (IN 04/2007)" },
-  { key: "analises_laboratorio", label: "Análises Laboratoriais", path: "/analises", table: "analises_laboratorio", description: "Controle laboratorial (Art. 68, 76)" },
-  { key: "controle_residuos", label: "Resíduos / Efluentes", path: "/residuos", table: "controle_residuos", description: "Manejo de resíduos – POP-05 (IN 04/2007)" },
-  { key: "validacao_limpeza_linha", label: "Validação Limpeza", path: "/validacao-limpeza", table: "validacao_limpeza_linha", description: "Contaminação cruzada (Art. 10-XII)" },
-  { key: "fornecedores", label: "Fornecedores", path: "/fornecedores", table: "fornecedores", description: "Qualificação de fornecedores (Art. 39-XIII)" },
-  { key: "produtos", label: "Produtos / Rótulos", path: "/produtos", table: "produtos", description: "Rotulagem conforme Art. 61-66" },
+  { key: "cronogramas_higiene", label: "Higiene / Sanitização", path: "/higiene", table: "cronogramas_higiene", description: "PPHO e cronogramas" },
+  { key: "calibracoes", label: "Calibrações", path: "/manutencao", table: "calibracoes", description: "Calibração de equipamentos" },
+  { key: "analises_laboratorio", label: "Análises Laboratoriais", path: "/analises", table: "analises_laboratorio", description: "Controle laboratorial" },
+  { key: "controle_residuos", label: "Resíduos / Efluentes", path: "/residuos", table: "controle_residuos", description: "Manejo de resíduos – POP-05" },
+  { key: "validacao_limpeza_linha", label: "Validação Limpeza", path: "/validacao-limpeza", table: "validacao_limpeza_linha", description: "Contaminação cruzada (-XII)" },
+  { key: "fornecedores", label: "Fornecedores", path: "/fornecedores", table: "fornecedores", description: "Qualificação de fornecedores (-XIII)" },
+  { key: "produtos", label: "Produtos / Rótulos", path: "/produtos", table: "produtos", description: "Rotulagem" },
 ];
 
 function escapeCsv(val: unknown): string {
@@ -101,7 +101,9 @@ export default function SalaAuditor() {
         item.item.toLowerCase().includes(search.toLowerCase()) ||
         item.area.toLowerCase().includes(search.toLowerCase()) ||
         (item.popVinculado || "").toLowerCase().includes(search.toLowerCase());
+      
       const matchesArea = areaFilter === "todas" || item.area === areaFilter;
+      
       const matchesStatus = statusFilter === "todos" ||
         (statusFilter === "conforme" && item.conforme === true) ||
         (statusFilter === "nao_conforme" && item.conforme === false) ||
@@ -150,8 +152,8 @@ export default function SalaAuditor() {
 
   return (
     <>
-      <PageHeader icon={Shield} title="Sala do Auditor" description="Acesso centralizado a todos os itens de fiscalização — Decreto 12.031/2024"
-        orientacaoModuloId="sala-auditor" />
+      <PageHeader icon={Shield} title="Sala do Auditor" description="Acesso centralizado a todos os itens de fiscalização"
+        orientacaoModuloId="sala-auditor"  assuntoBaseLegal="autocontrole" />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
@@ -182,7 +184,7 @@ export default function SalaAuditor() {
       <Tabs defaultValue="acesso_externo" className="space-y-4">
         <TabsList className="flex flex-wrap">
           <TabsTrigger value="acesso_externo">🔗 Acesso do Auditor</TabsTrigger>
-          <TabsTrigger value="checklist">📋 Checklist Decreto 12.031</TabsTrigger>
+          <TabsTrigger value="checklist">📋 Checklist </TabsTrigger>
           <TabsTrigger value="modulos">📂 Módulos do Sistema</TabsTrigger>
           <TabsTrigger value="audit">🔍 Auditoria de Lotes</TabsTrigger>
         </TabsList>
