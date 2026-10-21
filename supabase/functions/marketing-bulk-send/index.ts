@@ -50,12 +50,12 @@ Deno.serve(async (req) => {
       
       const messageId = `marketing-${crypto.randomUUID()}`
       
-      // We'll call the send-transactional-email function or use the RPC directly
-      // Using the RPC is faster for bulk
-      const { error: enqueueError } = await admin.functions.invoke('send-transactional-email', {
+      // Enfileira via send-transactional-email (o worker da fila controla o ritmo/rate limit)
+      const { data: sendData, error: enqueueError } = await admin.functions.invoke('send-transactional-email', {
         body: {
           templateName: 'crm-message',
           recipientEmail: rec.email,
+          idempotencyKey: messageId,
           templateData: {
             assunto: emailSubject.replace('{{nome}}', rec.nome || 'Cliente'),
             corpo_html: emailBodyHtml.replace('{{nome}}', rec.nome || 'Cliente'),
@@ -63,11 +63,18 @@ Deno.serve(async (req) => {
           }
         }
       })
+      // 200 com reason 'email_suppressed' = destinatário bloqueado (bounce/spam/descadastro)
+      const suprimido = sendData?.reason === 'email_suppressed'
+      const delivered = !enqueueError && !suprimido
 
-      results.push({ email: rec.email, success: !enqueueError, error: enqueueError })
-      
+      results.push({
+        email: rec.email,
+        success: delivered,
+        error: enqueueError ? String(enqueueError) : suprimido ? 'recipient_suppressed' : null,
+      })
+
       // Optional: Add to CRM interaction history if it's a pipeline lead
-      if (rec.pipeline_id && !enqueueError) {
+      if (rec.pipeline_id && delivered) {
         await admin.from('crm_interacoes').insert({
           pipeline_id: rec.pipeline_id,
           tipo: 'email',

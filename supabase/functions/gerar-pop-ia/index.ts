@@ -4,7 +4,8 @@ import { getAiResponse } from "../_shared/ai-helper.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -15,18 +16,18 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const supabaseAuth = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
     const { data: claimsData, error: claimsErr } = await supabaseAuth.auth.getClaims(authHeader.replace("Bearer ", ""));
     if (claimsErr || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -34,11 +35,12 @@ serve(async (req) => {
 
     if (!codigo_pop || !nome_pop) {
       return new Response(JSON.stringify({ error: "Código e nome do POP são obrigatórios" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const systemPrompt = `Você é um consultor sênior em BPF para fábricas de ração animal, especialista em IN 04/2007, IN 15/2009, IN 17/2017 e Decreto 12.031/2024.
+    const systemPrompt = `Você é um consultor sênior em BPF para fábricas de ração animal, especialista em IN 04/2007, IN 15/2009, Portaria SDA 798/2023 e Decreto 12.031/2024.
 
 Gere um rascunho COMPLETO de POP (Procedimento Operacional Padrão) personalizado para a fábrica, seguindo a estrutura padrão do MAPA.
 
@@ -62,50 +64,72 @@ Personalize o conteúdo de acordo com:
     const response = await getAiResponse({
       messages: [{ role: "user", content: userPrompt }],
       systemPrompt,
-      tools: [{
-        type: "function",
-        function: {
-          name: "gerar_pop",
-          description: "Retorna um POP completo estruturado",
-          parameters: {
-            type: "object",
-            properties: {
-              objetivo: { type: "string" },
-              campo_aplicacao: { type: "string" },
-              documentos_referencia: { type: "array", items: { type: "string" } },
-              definicoes: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: { termo: { type: "string" }, definicao: { type: "string" } },
-                  required: ["termo", "definicao"],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "gerar_pop",
+            description: "Retorna um POP completo estruturado",
+            parameters: {
+              type: "object",
+              properties: {
+                objetivo: { type: "string" },
+                campo_aplicacao: { type: "string" },
+                documentos_referencia: { type: "array", items: { type: "string" } },
+                definicoes: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: { termo: { type: "string" }, definicao: { type: "string" } },
+                    required: ["termo", "definicao"],
+                  },
                 },
-              },
-              procedimentos: { type: "array", items: { type: "string" } },
-              monitoramento: {
-                type: "object",
-                properties: { controle: { type: "string" }, frequencia: { type: "string" }, registro: { type: "string" }, responsavel: { type: "string" } },
-                required: ["controle", "frequencia", "registro", "responsavel"],
-              },
-              verificacao: {
-                type: "object",
-                properties: { controle: { type: "string" }, frequencia: { type: "string" }, registro: { type: "string" }, responsavel: { type: "string" } },
-                required: ["controle", "frequencia", "registro", "responsavel"],
-              },
-              acoes_corretivas: {
-                type: "array",
-                items: {
+                procedimentos: { type: "array", items: { type: "string" } },
+                monitoramento: {
                   type: "object",
-                  properties: { nao_conformidade: { type: "string" }, acao: { type: "string" } },
-                  required: ["nao_conformidade", "acao"],
+                  properties: {
+                    controle: { type: "string" },
+                    frequencia: { type: "string" },
+                    registro: { type: "string" },
+                    responsavel: { type: "string" },
+                  },
+                  required: ["controle", "frequencia", "registro", "responsavel"],
                 },
+                verificacao: {
+                  type: "object",
+                  properties: {
+                    controle: { type: "string" },
+                    frequencia: { type: "string" },
+                    registro: { type: "string" },
+                    responsavel: { type: "string" },
+                  },
+                  required: ["controle", "frequencia", "registro", "responsavel"],
+                },
+                acoes_corretivas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: { nao_conformidade: { type: "string" }, acao: { type: "string" } },
+                    required: ["nao_conformidade", "acao"],
+                  },
+                },
+                tempo_retencao: { type: "string" },
               },
-              tempo_retencao: { type: "string" },
+              required: [
+                "objetivo",
+                "campo_aplicacao",
+                "documentos_referencia",
+                "definicoes",
+                "procedimentos",
+                "monitoramento",
+                "verificacao",
+                "acoes_corretivas",
+                "tempo_retencao",
+              ],
             },
-            required: ["objetivo", "campo_aplicacao", "documentos_referencia", "definicoes", "procedimentos", "monitoramento", "verificacao", "acoes_corretivas", "tempo_retencao"],
           },
         },
-      }],
+      ],
       toolChoice: { type: "function", function: { name: "gerar_pop" } },
     });
 
@@ -123,11 +147,11 @@ Personalize o conteúdo de acordo com:
     return new Response(JSON.stringify({ success: true, data: result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
   } catch (e) {
     console.error("gerar-pop-ia error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

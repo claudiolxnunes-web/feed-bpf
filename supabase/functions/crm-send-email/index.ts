@@ -59,7 +59,10 @@ Deno.serve(async (req) => {
 
   const messageId = `crm-${pipelineId}-${Date.now()}`
 
-  let status = 'enviado'
+  // `crm_emails_enviados.status` aceita apenas 'enviado' | 'falhou' (CHECK).
+  // Supressão é registrada como 'falhou' com o motivo explícito em `erro`.
+  let status: 'enviado' | 'falhou' = 'enviado'
+  let suprimido = false
   let erro: string | null = null
   try {
     const res = await admin.functions.invoke('send-transactional-email', {
@@ -71,6 +74,12 @@ Deno.serve(async (req) => {
       },
     })
     if (res.error) throw res.error
+    // send-transactional-email responde 200 com reason 'email_suppressed' quando o destinatário está bloqueado
+    if (res.data?.reason === 'email_suppressed') {
+      status = 'falhou'
+      suprimido = true
+      erro = 'Destinatário bloqueado para novos envios (bounce/spam/descadastro)'
+    }
   } catch (e) {
     status = 'falhou'
     erro = String(e)
@@ -78,7 +87,7 @@ Deno.serve(async (req) => {
   }
 
   // Registrar no histórico
-  await admin.from('crm_emails_enviados').insert({
+  const { error: histErro } = await admin.from('crm_emails_enviados').insert({
     pipeline_id: pipelineId,
     para_email: para,
     assunto,
@@ -89,6 +98,12 @@ Deno.serve(async (req) => {
     erro,
     message_id: messageId,
   })
+  if (histErro) {
+    console.error('Falha ao gravar histórico de e-mail do CRM', {
+      code: histErro.code,
+      message: histErro.message,
+    })
+  }
 
   // Registrar interação automaticamente
   if (status === 'enviado') {
@@ -102,7 +117,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: status === 'enviado', status, erro }),
+    JSON.stringify({ ok: status === 'enviado', status: suprimido ? 'suprimido' : status, erro }),
     { status: status === 'enviado' ? 200 : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   )
 })

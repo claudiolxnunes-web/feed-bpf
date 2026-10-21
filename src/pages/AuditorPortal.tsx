@@ -39,11 +39,12 @@ export default function AuditorPortal() {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [expiraEm, setExpiraEm] = useState<string>("");
 
-  const callApi = async (params: Record<string, string>) => {
+  const callApi = async ({ token: auditorToken, ...params }: Record<string, string>) => {
     const url = new URL(`${SUPABASE_URL}/functions/v1/auditor-portal`);
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    // Token vai no header: na query string ele vaza em logs de borda e no Referer.
     const res = await fetch(url, {
-      headers: { apikey: ANON, Authorization: `Bearer ${ANON}` },
+      headers: { apikey: ANON, Authorization: `Bearer ${ANON}`, "x-auditor-token": auditorToken ?? "" },
     });
     return res.json();
   };

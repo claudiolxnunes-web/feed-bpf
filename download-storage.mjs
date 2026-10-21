@@ -13,7 +13,10 @@ import { exec } from "child_process";
  * 2. URL da Edge Function e o Token de Exportação.
  * 
  * Uso:
- * node download-storage.mjs <SUPABASE_URL_OR_FUNCTION_URL> <EXPORT_TOKEN>
+ * STORAGE_EXPORT_TOKEN=... node download-storage.mjs <SUPABASE_URL_OR_FUNCTION_URL>
+ *
+ * O token vem da variavel de ambiente (nunca da linha de comando, que fica no
+ * historico do shell) e vai no header x-export-token.
  */
 
 const execAsync = promisify(exec);
@@ -44,11 +47,12 @@ async function downloadFile(url, dest) {
 }
 
 async function run() {
-  const [,, baseUrl, token] = process.argv;
+  const [,, baseUrl] = process.argv;
+  const token = process.env.STORAGE_EXPORT_TOKEN;
 
   if (!baseUrl || !token) {
-    console.error("Uso: node download-storage.mjs <FUNCTION_URL> <EXPORT_TOKEN>");
-    console.log("Exemplo: node download-storage.mjs https://xxxx.supabase.co/functions/v1/export-storage meu-token-seguro");
+    console.error("Uso: STORAGE_EXPORT_TOKEN=... node download-storage.mjs <FUNCTION_URL>");
+    console.log("Exemplo: STORAGE_EXPORT_TOKEN=... node download-storage.mjs https://xxxx.supabase.co/functions/v1/export-storage");
     process.exit(1);
   }
 
@@ -61,9 +65,7 @@ async function run() {
   try {
     const response = await new Promise((resolve, reject) => {
       const url = new URL(exportUrl);
-      url.searchParams.set("token", token);
-      
-      https.get(url, (res) => {
+      https.get(url, { headers: { "x-export-token": token } }, (res) => {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => {

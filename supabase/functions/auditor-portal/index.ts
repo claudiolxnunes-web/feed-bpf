@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-auditor-token",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -102,7 +102,12 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const action = url.searchParams.get("action") ?? "validate";
-    const token = url.searchParams.get("token") ?? "";
+    // Token aceito apenas pelo header: na query string ele vaza em logs de borda e no Referer.
+    const headerToken = req.headers.get("x-auditor-token");
+    if (!headerToken && url.searchParams.get("token")) {
+      console.warn("[auditor-portal] DEPRECATED: token via query string; use header x-auditor-token");
+    }
+    const token = headerToken ?? "";
 
     const validation = await validateToken(token);
     if (!validation.ok) {
